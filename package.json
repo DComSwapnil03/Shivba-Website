@@ -1,0 +1,21 @@
+{
+  "name": "shivba-web",
+  "version": "1.0.0",
+  "description": "This is my first Full-Stack Project using MERN Stack . This is my Final Year Project .",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DComSwapnil03/Shivba-Website.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/DComSwapnil03/Shivba-Website/issues"
+  },
+  "homepage": "https://github.com/DComSwapnil03/Shivba-Website#readme"
+}
