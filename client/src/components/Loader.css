@@ -1,0 +1,148 @@
+/* Glassmorphism overlay - blends with website content */
+.shivba-loader-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* Centered loader container with blend effect */
+.shivba-loader-blend {
+  position: relative;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(24px);
+  border-radius: 2rem;
+  padding: 2.5rem 3rem;
+  box-shadow:
+    0 25px 45px -12px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(236, 72, 153, 0.2);
+  animation: shivba-float 3s ease-in-out infinite;
+}
+
+/* Glow ring around cube */
+.shivba-loader-glow-ring {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140px;
+  height: 140px;
+  border: 2px solid rgba(236, 72, 153, 0.6);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.15), transparent 70%);
+  animation: shivba-ring-pulse 2s ease-in-out infinite;
+}
+
+/* 3D Rotating Cube */
+.shivba-cube {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 1rem auto;
+  transform-style: preserve-3d;
+  animation: shivba-spin 4s linear infinite;
+}
+
+/* Cube faces - Shivba branded */
+.shivba-cube .face {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 0.75rem;
+  color: #fef3f2;
+  text-shadow: 0 0 8px rgba(236, 72, 153, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  backdrop-filter: blur(4px);
+  box-shadow:
+    0 8px 32px rgba(236, 72, 153, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Face gradients matching Shivba theme */
+.shivba-cube .front {
+  background: linear-gradient(135deg, #ec4899, #f472b6);
+  transform: rotateY(0deg) translateZ(50px);
+}
+.shivba-cube .back {
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
+  transform: rotateY(180deg) translateZ(50px);
+}
+.shivba-cube .right {
+  background: linear-gradient(135deg, #10b981, #34d399);
+  transform: rotateY(90deg) translateZ(50px);
+}
+.shivba-cube .left {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  transform: rotateY(-90deg) translateZ(50px);
+}
+.shivba-cube .top {
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  transform: rotateX(90deg) translateZ(50px);
+}
+.shivba-cube .bottom {
+  background: linear-gradient(135deg, #ef4444, #f87171);
+  transform: rotateX(-90deg) translateZ(50px);
+}
+
+/* Loading text */
+.shivba-loader-text {
+  margin-top: 1rem;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #e2e8f0;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 12px rgba(236, 72, 153, 0.5);
+  animation: shivba-text-glow 1.5s ease-in-out infinite alternate;
+}
+
+/* Animations */
+@keyframes shivba-spin {
+  0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+  33% { transform: rotateX(120deg) rotateY(180deg) rotateZ(90deg); }
+  66% { transform: rotateX(240deg) rotateY(360deg) rotateZ(180deg); }
+  100% { transform: rotateX(360deg) rotateY(540deg) rotateZ(270deg); }
+}
+
+@keyframes shivba-float {
+  0%, 100% { 
+    transform: translateY(0px) scale(1);
+    box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.4);
+  }
+  50% { 
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.5);
+  }
+}
+
+@keyframes shivba-ring-pulse {
+  0%, 100% { 
+    transform: translateX(-50%) scale(1);
+     opacity: 0.6;
+    box-shadow: 0 0 20px rgba(236, 72, 153, 0.4);
+  }
+  50% { 
+    transform: translateX(-50%) scale(1.1) ;
+    opacity: 1;
+    box-shadow: 0 0 40px rgba(236, 72, 153, 0.8);
+  }
+}
+
+@keyframes shivba-text-glow {
+  0% { text-shadow: 0 0 12px rgba(236, 72, 153, 0.5); }
+  100% { text-shadow: 0 0 20px rgba(236, 72, 153, 0.9), 0 0 30px rgba(236, 72, 153, 0.6); }
+}

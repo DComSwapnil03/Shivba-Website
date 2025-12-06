@@ -1,0 +1,256 @@
+const express = require('express');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
+// We assume InterestRegistration model is correctly handled in server.js's safeRequire
+const InterestRegistration = require('../models/InterestRegistration'); 
+
+const router = express.Router();
+
+// --- 1. CONFIGURATION CHECKS (CRITICAL ENVIRONMENT VARS) ---
+
+if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
+    console.error('❌ FATAL: SMTP credentials (MAIL_USER or MAIL_PASS) are not set. Email functionality disabled.');
+    // In a production server, you might want to exit the process or use a placeholder mailer
+    // For now, we will throw a clear error to halt the process if mail is crucial for registration
+    if (process.env.NODE_ENV !== 'development') {
+        throw new Error('Missing SMTP credentials. Cannot initialize mailer.');
+    }
+}
+
+/**
+ * 1. SINGLE Mailer configuration (used everywhere)
+ */
+// NOTE: nodemailer.createTransport can throw an error if configuration is severely malformed.
+const mailer = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: Number(process.env.SMTP_PORT) || 587,
+  // Explicitly check if the port is 465 for 'secure' flag
+  secure: Number(process.env.SMTP_PORT) === 465,
+  auth: {
+    user: process.env.MAIL_USER,
+    pass: process.env.MAIL_PASS
+  },
+  // Tweak TLS setting for safety/development flexibility
+  tls: {
+    rejectUnauthorized: process.env.NODE_ENV !== 'development' && Number(process.env.SMTP_PORT) !== 587 // Only reject unauthorized in prod, unless port is 587
+  }
+});
+
+// Verify connection immediately
+mailer.verify((error, success) => {
+    if (error) {
+        console.error('❌ Mailer connection verification failed:', error.message);
+        // Do NOT crash the server here, as it might connect later, but alert the developer
+    } else {
+        console.log('✅ Mailer ready to send messages');
+    }
+});
+
+
+/**
+ * 2. SINGLE Email verification method (used for OTP + link)
+ */
+async function sendVerificationEmail({ to, name, token, otp }) {
+  console.log(`[Email] Sending verification to: ${to}`);
+  
+  const baseUrl = process.env.CLIENT_BASE_URL || 'http://localhost:3000';
+  const verifyUrl = `${baseUrl}/verify?token=${token}&email=${encodeURIComponent(to)}`;
+
+  try {
+    // Check environment variables crucial for email
+    if (!process.env.MAIL_FROM && !process.env.MAIL_USER) {
+        throw new Error('MAIL_FROM or MAIL_USER environment variable is missing.');
+    }
+
+    const info = await mailer.sendMail({
+      from: process.env.MAIL_FROM || process.env.MAIL_USER,
+      to,
+      subject: 'Your Shivba Verification Code',
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px;">
+          <h2 style="color: #ffffff; text-align: center;">Welcome to Shivba, ${name}!</h2>
+          
+          <div style="background: rgba(255,255,255,0.95); padding: 2rem; border-radius: 12px; margin: 1rem 0; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+            <h1 style="background: linear-gradient(135deg, #ec4899, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 3.5rem; font-weight: 800; letter-spacing: 12px; text-align: center; margin: 1rem 0;">${otp}</h1>
+            <p style="color: #4b5563; font-size: 1.1rem; text-align: center; line-height: 1.6;">
+              Your verification code (expires in 10 minutes)
+            </p>
+          </div>
+
+          <div style="text-align: center; margin: 2rem 0;">
+            <a href="${verifyUrl}" style="background: linear-gradient(135deg, #ec4899, #f472b6); color: white; padding: 12px 32px; text-decoration: none; border-radius: 50px; font-weight: 600; font-size: 1.1rem; box-shadow: 0 8px 24px rgba(236, 72, 153, 0.4);">Verify Now</a>
+            <p style="color: #9ca3af; font-size: 0.9rem; margin-top: 1rem;">
+              Or copy this code: <strong>${otp}</strong>
+            </p>
+          </div>
+
+          <hr style="border: none; height: 1px; background: rgba(255,255,255,0.2); margin: 2rem 0;">
+          <p style="color: #e2e8f0; font-size: 0.85rem; text-align: center;">
+            Didn't request this? Ignore this email.
+          </p>
+          <p style="color: #fbbf24; font-weight: 600; text-align: center;">
+            Shivba Team
+          </p>
+        </div>
+      `
+    });
+    
+    console.log(`✅ Email sent! ID: ${info.messageId}`);
+    return info;
+  } catch (error) {
+    console.error('❌ Email failed:', error);
+    // Re-throwing the error ensures the calling function (/register-interest-simple) 
+    // knows the email failed and can respond with a 500 status.
+    throw error; 
+  }
+}
+
+/**
+ * 3. POST /api/register-interest-simple - Register + Send OTP
+ */
+router.post('/register-interest-simple', async (req, res) => {
+  console.log('📝 New registration attempt');
+  
+  try {
+    const { name, email, phone } = req.body;
+    
+    // --- Input Validation ---
+    if (!name?.trim() || !email?.trim() || !phone?.trim()) {
+      return res.status(400).json({ 
+        message: 'Please provide name, email, and phone.' 
+      });
+    }
+
+    // Basic email format check (optional but recommended)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+        return res.status(400).json({ message: 'Invalid email format.' });
+    }
+
+    const lowerEmail = email.toLowerCase().trim();
+
+    // Generate secure OTP + token
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+
+    // Save/upsert registration
+    const user = await InterestRegistration.findOneAndUpdate(
+      { email: lowerEmail },
+      {
+        name: name.trim(),
+        email: lowerEmail,
+        phone: phone.trim(),
+        eventName: 'General Interest',
+        amount: 0,
+        isVerified: false,
+        verifyToken: token,      // For link verification
+        verifyTokenExpiresAt: expiresAt
+      },
+      { 
+          upsert: true, 
+          new: true, 
+          setDefaultsOnInsert: true,
+          // Add runValidators: true if you have Mongoose schema validators
+          // runValidators: true 
+      }
+    );
+
+    console.log(`💾 Saved registration for ${lowerEmail}`);
+
+    // Send verification email (SINGLE method)
+    await sendVerificationEmail({ to: lowerEmail, name: name.trim(), token, otp });
+
+    return res.status(201).json({
+      success: true,
+      message: 'Verification code sent to your email!',
+      email: lowerEmail,
+      nextStep: 'verify'
+    });
+
+  } catch (error) {
+    console.error('❌ Registration error:', error);
+
+    // Differentiate between Mongoose/DB error and other errors
+    let errorMessage = 'Registration failed. Please try again.';
+    if (error.name === 'MongoServerError' && error.code === 11000) {
+        // Handle duplicate key error (if you have unique indexes other than email)
+        errorMessage = 'This entry already exists (Duplicate Key Error).';
+    } else if (error.name === 'ValidationError') {
+        // Handle Mongoose validation error (if you use runValidators: true)
+        errorMessage = error.message; 
+    } else if (error.message.includes('Mailer connection') || error.message.includes('SMTP')) {
+        // Explicitly catch mailer issues bubbled up from sendVerificationEmail
+        errorMessage = 'Registration saved, but failed to send verification email.';
+    }
+
+    return res.status(500).json({ 
+      message: errorMessage 
+    });
+  }
+});
+
+/**
+ * 4. POST /api/verify-otp - Verify code OR token
+ */
+router.post('/verify-otp', async (req, res) => {
+  console.log('🔍 Verification attempt');
+  
+  try {
+    const { email, otp, token } = req.body;
+    
+    // --- Input Validation ---
+    if (!email || (!otp && !token)) {
+      return res.status(400).json({ 
+        message: 'Email and (OTP or token) are required.' 
+      });
+    }
+
+    const lowerEmail = email.toLowerCase().trim();
+
+    // Find user by OTP OR token (both expire at same time)
+    const user = await InterestRegistration.findOne({
+      email: lowerEmail,
+      $or: [
+        { verifyToken: otp },
+        { verifyToken: token }
+      ],
+      // Check if the token/otp is still valid (greater than current date)
+      verifyTokenExpiresAt: { $gt: new Date() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ 
+        message: 'Invalid or expired verification code.' 
+      });
+    }
+
+    // Mark verified and cleanup
+    user.isVerified = true;
+    user.verifyToken = undefined;
+    user.verifyTokenExpiresAt = undefined;
+    await user.save(); // Save operation can throw an error
+
+    console.log(`✅ Verified ${lowerEmail}`);
+
+    return res.json({
+      success: true,
+      message: 'Email verified successfully!',
+      user: {
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        isVerified: true
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Verification error:', error);
+    // General server error response for verification failures
+    return res.status(500).json({ 
+      message: 'Verification failed due to a server error. Please try again.' 
+    });
+  }
+});
+
+module.exports = router;
