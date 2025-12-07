@@ -21,7 +21,7 @@ import StarterAnimaPage from './pages/StarterAnimaPage';
 import HelpPage from './pages/HelpPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 // --- NEW IMPORT ---
-import OwnerPage from './pages/OwnerPage'; 
+// OwnerPage removed — no longer imported
 import LanguageSwitcher from './components/LanguageSwitcher';
 
 /* ------------ Dark Mode & FAB Styles (Injected) ------------- */
@@ -182,10 +182,13 @@ function Header({ setPage, activePage }) {
 }
 
 /* ------------ Marquee ------------- */
+/* ------------ Marquee ------------- */
 function MarqueeBar() {
   const { t } = useTranslation();
   return (
-    <div className="shivba-marquee">
+    // CHANGE: Added style={{ marginTop: '80px' }} 
+    // Adjust '80px' to match the height of your header so it doesn't hide behind it.
+    <div className="shivba-marquee" style={{ marginTop: '7px' }}>
       <div className="shivba-marquee-label">{t('hero.latestUpdates')}</div>
       <div className="shivba-marquee-window">
         <div className="shivba-marquee-track">
@@ -279,10 +282,7 @@ function App() {
       return { name: 'reset-password' };
     }
     
-    // 2. Check URL for Owner Route (Direct Access)
-    if (path === '/owner') {
-      return { name: 'owner' };
-    }
+    // Owner route removed — no direct owner path handling
 
     // 3. Check Local Storage
     try {
@@ -408,10 +408,39 @@ function App() {
     // --- NEW RESET PASSWORD ROUTE ---
     case 'reset-password': content = <ResetPasswordPage setPage={handleSetPage} />; break;
 
-    // --- NEW OWNER ROUTE ---
-    case 'owner': content = <OwnerPage setPage={handleSetPage} />; break;
+    // Owner route removed
     
     default: content = <HomePage setPage={handleSetPage} />;
+  }
+
+  // Debugging: log page and content type to help locate invalid component errors (React #130)
+  try {
+    // content can be a React element, ensure it's valid before render
+    // eslint-disable-next-line no-console
+    console.debug('Rendering page:', page.name, 'contentType:', typeof content, content && content.type ? content.type : null);
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error('Error inspecting content before render', e);
+  }
+
+  // If `content` isn't a valid React element, render a helpful diagnostic UI
+  if (!React.isValidElement(content)) {
+    // Build a safe diagnostic message (avoid JSON.stringify on circular objects)
+    let contentType = typeof content;
+    let compType = null;
+    try { compType = content && content.type ? content.type : null; } catch (e) { compType = null; }
+    const diag = (
+      <div style={{ padding: 24, color: '#b91c1c', background: '#fff6f6' }}>
+        <h3 style={{ marginTop: 0 }}>App Render Error — Invalid Component</h3>
+        <p>The page <strong>{String(page?.name)}</strong> produced an invalid React element.</p>
+        <p><strong>content typeof:</strong> {contentType}</p>
+        <p><strong>content.type:</strong> {String(compType)}</p>
+        <p>Please check the component import/export (default vs named export) for this page.</p>
+        <p style={{ fontSize: 12, color: '#6b7280' }}>Open the browser console for more details.</p>
+      </div>
+    );
+
+    content = diag;
   }
 
   return (
@@ -441,3 +470,4 @@ function App() {
 }
 
 export default App;
+<link rel="stylesheet" href="%PUBLIC_URL%/vendor/bootstrap-icons/bootstrap-icons.css" />

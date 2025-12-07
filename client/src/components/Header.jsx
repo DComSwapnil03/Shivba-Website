@@ -7,10 +7,7 @@ function Header({ setPage, activePage }) {
   const [open, setOpen] = useState(false);
   const { t } = useTranslation();
 
-  // --- SECURITY NOTE: This is for UI demonstration only. ---
-  // In a real app, you would check the user's role from your auth state/database.
-  // For now, change this to 'false' to hide the button.
-  const isOwner = true; 
+  // Owner button removed — access controlled via backend now
 
   const goto = (name) => {
     setPage({ name });
@@ -55,16 +52,7 @@ function Header({ setPage, activePage }) {
             {t('nav.contact')}
           </button>
 
-          {/* --- NEW OWNER BUTTON (Desktop) --- */}
-          {isOwner && (
-            <button 
-              className={navClass('owner')} 
-              onClick={() => goto('owner')}
-              style={{ color: '#FF5722', fontWeight: 'bold' }} // Distinct style
-            >
-              Owner Panel
-            </button>
-          )}
+          {/* Owner panel removed from nav */}
         </nav>
 
         {/* Desktop right actions */}
@@ -126,15 +114,7 @@ function Header({ setPage, activePage }) {
             {t('nav.contact')}
           </button>
 
-           {/* --- NEW OWNER BUTTON (Mobile) --- */}
-           {isOwner && (
-            <button 
-              onClick={() => goto('owner')}
-              style={{ color: '#FF5722', borderTop: '1px solid #333' }}
-            >
-              Owner Panel
-            </button>
-          )}
+          {/* Owner panel removed from mobile menu */}
           
           <hr />
           
