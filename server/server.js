@@ -1,10 +1,11 @@
 require('dotenv').config();
-import express, { json, urlencoded } from 'express';
-import { connect } from 'mongoose';
-import cors from 'cors';
-import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
-import morgan from 'morgan';
+const express = require('express');
+const { json, urlencoded } = express;
+const mongoose = require('mongoose');
+const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const morgan = require('morgan');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -22,15 +23,13 @@ async function connectToDatabase() {
 
   if (!process.env.MONGO_URI) {
     console.warn('⚠️ MONGO_URI not set - Database connection will fail.');
-    // Return early or throw error if DB is critical
     return;
   }
 
   try {
-    const db = await connect(process.env.MONGO_URI, {
-      // These options are often required for Mongoose in serverless environments
-      serverSelectionTimeoutMS: 5000, 
-      maxPoolSize: 1, // Keep pool size small to avoid overwhelming serverless DB
+    const db = await mongoose.connect(process.env.MONGO_URI, {
+      serverSelectionTimeoutMS: 5000,
+      maxPoolSize: 1,
     });
     cachedDb = db;
     console.log('✅ New MongoDB connection established');
@@ -52,11 +51,11 @@ app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
 // Ensure models register
 try { require('./src/models'); } catch (e) { /* optional */ }
 
-// Direct route imports
-import authRoutes from './src/routes/authRoutes';
-import accountRoutes from './src/routes/accountRoutes';
-import eventRegistrationRoutes from './src/routes/eventRegistrationRoutes';
-import contactRoutes from './src/routes/contactRoutes';
+// Direct route imports (CommonJS)
+const authRoutes = require('./src/routes/authRoutes');
+const accountRoutes = require('./src/routes/accountRoutes');
+const eventRegistrationRoutes = require('./src/routes/eventRegistrationRoutes');
+const contactRoutes = require('./src/routes/contactRoutes');
 
 // --- ROUTE MOUNTING ---
 app.use('/api', authRoutes);
@@ -74,20 +73,15 @@ app.get("/api/message", (req, res) => {
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
 // --- VERCEL-SPECIFIC ENTRYPOINT: WRAP ALL ROUTES IN A DB CONNECTOR ---
-// Wrap the Express app's request handler to ensure DB connection before processing a request.
-export default async (req, res) => {
-    // Attempt to connect to the DB
-    try {
-        await connectToDatabase();
-    } catch (e) {
-        // Handle connection failure for the API call
-        return res.status(503).json({ 
-            message: 'Service Unavailable: Could not connect to database.' 
-        });
-    }
+// Export a handler that ensures DB connection before passing the request to Express
+module.exports = async (req, res) => {
+  try {
+    await connectToDatabase();
+  } catch (e) {
+    return res.status(503).json({ message: 'Service Unavailable: Could not connect to database.' });
+  }
 
-    // Pass the request to the Express app
-    return app(req, res);
+  return app(req, res);
 };
 
 // --- LOCAL DEVELOPMENT ONLY ---
