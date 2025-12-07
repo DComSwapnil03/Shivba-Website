@@ -39,6 +39,9 @@ app.use('/api', contactRoutes);
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Health check
+app.get("/api/message", (req, res) => {
+res.json({ message: "Hello from Express on Vercel!" });
+});
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
 // 404 handler for /api
