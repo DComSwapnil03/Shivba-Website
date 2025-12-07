@@ -1,18 +1,15 @@
 // --- 1. SAFE REQUIRE UTILITY ---
 // Function to safely require modules and exit gracefully if a critical module is missing
-const safeRequire = (path, name) => {
+const pathLib = require('path');
+const safeRequire = (relPath, name) => {
   try {
-    // We utilize the path relative to this file
-    return require(path);
+    // Resolve a path relative to this index file to avoid resolution ambiguity
+    const resolved = relPath.startsWith('.') ? pathLib.join(__dirname, relPath) : relPath;
+    return require(resolved);
   } catch (err) {
-    if (err.code === "MODULE_NOT_FOUND") {
-      console.error(
-        `\n❌ FATAL ERROR: Cannot find model file for "${name}" at path: "${path}".`
-      );
-      console.error(
-        "Please check if the model file exists and the filename matches exactly."
-      );
-      // Exit the process so the application doesn't start with a broken data model
+    if (err && err.code === 'MODULE_NOT_FOUND') {
+      console.error(`\n❌ FATAL ERROR: Cannot find model file for "${name}" at path: "${relPath}" (resolved: "${pathLib.join(__dirname, relPath)}").`);
+      console.error('Please check if the model file exists and the filename matches exactly.');
       process.exit(1);
     }
     throw err; // Re-throw any other type of error (like syntax errors in the model file)
