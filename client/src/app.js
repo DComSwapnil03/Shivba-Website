@@ -445,28 +445,31 @@ function App() {
   }
 
   return (
-    <div className="App">
-      <GlobalStyles />
-      <Modal show={modalState.show} title={modalState.title} message={modalState.message} content={modalState.content} type={modalState.type} onClose={closeModal} />
-      
-      {/* Hide header on owner page if you want a dashboard feel, otherwise keep it */}
-      {page.name !== 'owner' && <Header setPage={handleSetPage} activePage={page.name} />}
-      
-      {/* Remove Marquee on owner page to save space */}
-      {page.name !== 'owner' && <MarqueeBar />}
-      
-      <main className="animate-fadeIn">{content}</main>
-      
-      {/* Only show footer if not on owner page */}
-      {page.name !== 'owner' && <Footer setPage={handleSetPage} />}
+    <>
+      <Analytics />
+      <div className="App">
+        <GlobalStyles />
+        <Modal show={modalState.show} title={modalState.title} message={modalState.message} content={modalState.content} type={modalState.type} onClose={closeModal} />
+        
+        {/* Hide header on owner page if you want a dashboard feel, otherwise keep it */}
+        {page.name !== 'owner' && <Header setPage={handleSetPage} activePage={page.name} />}
+        
+        {/* Remove Marquee on owner page to save space */}
+        {page.name !== 'owner' && <MarqueeBar />}
+        
+        <main className="animate-fadeIn">{content}</main>
+        
+        {/* Only show footer if not on owner page */}
+        {page.name !== 'owner' && <Footer setPage={handleSetPage} />}
 
-      <div className={`fab-container ${settingsOpen ? 'open' : ''}`}>
-        <button className="fab-item" onClick={scrollToTop} data-tooltip="Scroll Top" tabIndex={settingsOpen ? 0 : -1}>⬆️</button>
-        <button className="fab-item" onClick={toggleDarkMode} data-tooltip="Dark Mode" tabIndex={settingsOpen ? 0 : -1}>{darkMode ? '☀️' : '🌙'}</button>
-        <button className="fab-item" onClick={showShortcuts} data-tooltip="Help" tabIndex={settingsOpen ? 0 : -1}>❓</button>
-        <button className={`fab-main ${settingsOpen ? 'active' : ''}`} onClick={() => setSettingsOpen(!settingsOpen)}>⚙️</button>
+        <div className={`fab-container ${settingsOpen ? 'open' : ''}`}>
+          <button className="fab-item" onClick={scrollToTop} data-tooltip="Scroll Top" tabIndex={settingsOpen ? 0 : -1}>⬆️</button>
+          <button className="fab-item" onClick={toggleDarkMode} data-tooltip="Dark Mode" tabIndex={settingsOpen ? 0 : -1}>{darkMode ? '☀️' : '🌙'}</button>
+          <button className="fab-item" onClick={showShortcuts} data-tooltip="Help" tabIndex={settingsOpen ? 0 : -1}>❓</button>
+          <button className={`fab-main ${settingsOpen ? 'active' : ''}`} onClick={() => setSettingsOpen(!settingsOpen)}>⚙️</button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
