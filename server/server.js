@@ -1,11 +1,10 @@
 require('dotenv').config();
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const morgan = require('morgan');
-const path = require('path');
+import express, { json, urlencoded } from 'express';
+import { connect } from 'mongoose';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import morgan from 'morgan';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -28,7 +27,7 @@ async function connectToDatabase() {
   }
 
   try {
-    const db = await mongoose.connect(process.env.MONGO_URI, {
+    const db = await connect(process.env.MONGO_URI, {
       // These options are often required for Mongoose in serverless environments
       serverSelectionTimeoutMS: 5000, 
       maxPoolSize: 1, // Keep pool size small to avoid overwhelming serverless DB
@@ -43,8 +42,8 @@ async function connectToDatabase() {
 }
 
 // Basic middleware (applies to every request)
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(json());
+app.use(urlencoded({ extended: true }));
 app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
@@ -54,10 +53,10 @@ app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
 try { require('./src/models'); } catch (e) { /* optional */ }
 
 // Direct route imports
-const authRoutes = require('./src/routes/authRoutes');
-const accountRoutes = require('./src/routes/accountRoutes');
-const eventRegistrationRoutes = require('./src/routes/eventRegistrationRoutes');
-const contactRoutes = require('./src/routes/contactRoutes');
+import authRoutes from './src/routes/authRoutes';
+import accountRoutes from './src/routes/accountRoutes';
+import eventRegistrationRoutes from './src/routes/eventRegistrationRoutes';
+import contactRoutes from './src/routes/contactRoutes';
 
 // --- ROUTE MOUNTING ---
 app.use('/api', authRoutes);
@@ -76,7 +75,7 @@ app.get('/api/health', (req, res) => res.json({ ok: true }));
 
 // --- VERCEL-SPECIFIC ENTRYPOINT: WRAP ALL ROUTES IN A DB CONNECTOR ---
 // Wrap the Express app's request handler to ensure DB connection before processing a request.
-module.exports = async (req, res) => {
+export default async (req, res) => {
     // Attempt to connect to the DB
     try {
         await connectToDatabase();
