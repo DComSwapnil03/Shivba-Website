@@ -2,7 +2,7 @@
   "name": "server",
   "version": "1.0.0",
   "description": "Shivba Backend API",
-  "main": "server.js",
+  "main": "server.js,cjs",
   "engines": {
     "node": "24.x" 
   },
