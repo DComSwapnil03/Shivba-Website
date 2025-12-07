@@ -1,21 +1,31 @@
 {
   "name": "shivba-web",
   "version": "1.0.0",
-  "description": "This is my first Full-Stack Project using MERN Stack . This is my Final Year Project .",
+  "description": "Final Year Full-Stack Project using MERN Stack.",
   "main": "index.js",
+  "engines": {
+    "node": "18.x"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "build": "echo 'Build complete - No build step required for Node backend'",
+    "dev": "nodemon index.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/DComSwapnil03/Shivba-Website.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "mern",
+    "shivba",
+    "fullstack"
+  ],
+  "author": "Swapnil Hanumant Lokare",
   "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/DComSwapnil03/Shivba-Website/issues"
-  },
-  "homepage": "https://github.com/DComSwapnil03/Shivba-Website#readme"
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3"
+  }
 }
