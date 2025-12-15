@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './app.css';
 import { useTranslation } from 'react-i18next';
-import { Analytics } from "@vercel/analytics/react"
 
 /* --- Page Imports --- */
 import HomePage from './pages/Homepage';
