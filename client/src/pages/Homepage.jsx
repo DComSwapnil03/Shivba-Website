@@ -53,65 +53,65 @@ const EmojiOrbitAnimation = () => {
 };
 
 // --- COMPONENT 2: GRAVITY PLAYGROUND ---
-function GravitySection() {
-  const icons = [
-    { icon: '🏋️', label: 'Talim', color: '#ffe4e6', text: '#db2777' },
-    { icon: '🛌', label: 'Hostel', color: '#dbeafe', text: '#2563eb' },
-    { icon: '📚', label: 'Library', color: '#f3f4f6', text: '#4b5563' },
-    { icon: '👥', label: 'Social', color: '#fae8ff', text: '#a855f7' },
-    { icon: '🧘', label: 'Yoga', color: '#dcfce7', text: "#16a34a" },
-    { icon: '💪', label: 'Food', color: '#ffedd5', text: '#ea580c' },
-    { icon: '🏆', label: 'Sports', color: '#fef9c3', text: '#ca8a04' },
-  ];
-  const floatingItems = [...icons, ...icons, ...icons];
+// function GravitySection() {
+//   const icons = [
+//     { icon: '🏋️', label: 'Talim', color: '#ffe4e6', text: '#db2777' },
+//     { icon: '🛌', label: 'Hostel', color: '#dbeafe', text: '#2563eb' },
+//     { icon: '📚', label: 'Library', color: '#f3f4f6', text: '#4b5563' },
+//     { icon: '👥', label: 'Social', color: '#fae8ff', text: '#a855f7' },
+//     { icon: '🧘', label: 'Yoga', color: '#dcfce7', text: "#16a34a" },
+//     { icon: '💪', label: 'Food', color: '#ffedd5', text: '#ea580c' },
+//     { icon: '🏆', label: 'Sports', color: '#fef9c3', text: '#ca8a04' },
+//   ];
+//   const floatingItems = [...icons, ...icons, ...icons];
 
-  return (
-    <section className="gravity-container">
-      <div className="gravity-header animate-fadeIn">
-        <h2>Our Ecosystem</h2>
-        <p>A fluid network of services. Drag them to see the physics.</p>
-      </div>
-      <div className="gravity-box">
-        {floatingItems.map((item, i) => (
-          <FloatingBubble key={i} item={item} />
-        ))}
-      </div>
-    </section>
-  );
-}
+//   return (
+//     <section className="gravity-container">
+//       <div className="gravity-header animate-fadeIn">
+//         <h2>Our Ecosystem</h2>
+//         <p>A fluid network of services. Drag them to see the physics.</p>
+//       </div>
+//       <div className="gravity-box">
+//         {floatingItems.map((item, i) => (
+//           <FloatingBubble key={i} item={item} />
+//         ))}
+//       </div>
+//     </section>
+//   );
+// }
 
-function FloatingBubble({ item }) {
-  const randomTop = Math.floor(Math.random() * 80) + 10;
-  const randomLeft = Math.floor(Math.random() * 80) + 10;
-  const durationX = Math.random() * 10 + 20;
-  const durationY = Math.random() * 10 + 15;
+// function FloatingBubble({ item }) {
+//   const randomTop = Math.floor(Math.random() * 80) + 10;
+//   const randomLeft = Math.floor(Math.random() * 80) + 10;
+//   const durationX = Math.random() * 10 + 20;
+//   const durationY = Math.random() * 10 + 15;
 
-  return (
-    <motion.div
-      className="gravity-bubble"
-      style={{
-        backgroundColor: item.color, color: item.text,
-        top: `${randomTop}%`, left: `${randomLeft}%`,
-      }}
-      animate={{
-        y: [0, -30, 0, 30, 0], x: [0, 20, 0, -20, 0], rotate: [0, 5, -5, 0],
-      }}
-      transition={{
-        y: { duration: durationY, repeat: Infinity, ease: 'easeInOut' },
-        x: { duration: durationX, repeat: Infinity, ease: 'easeInOut' },
-        rotate: { duration: 20, repeat: Infinity, ease: 'linear' },
-      }}
-      whileHover={{ scale: 1.1, zIndex: 50, cursor: 'grab' }}
-      whileTap={{ scale: 1.05, cursor: 'grabbing' }}
-      drag dragElastic={0.2} dragMomentum={true}
-      dragTransition={{ bounceStiffness: 200, bounceDamping: 20 }}
-      dragConstraints={{ left: -100, right: 100, top: -100, bottom: 100 }}
-    >
-      <span className="bubble-icon">{item.icon}</span>
-      <span className="bubble-label">{item.label}</span>
-    </motion.div>
-  );
-}
+//   return (
+//     <motion.div
+//       className="gravity-bubble"
+//       style={{
+//         backgroundColor: item.color, color: item.text,
+//         top: `${randomTop}%`, left: `${randomLeft}%`,
+//       }}
+//       animate={{
+//         y: [0, -30, 0, 30, 0], x: [0, 20, 0, -20, 0], rotate: [0, 5, -5, 0],
+//       }}
+//       transition={{
+//         y: { duration: durationY, repeat: Infinity, ease: 'easeInOut' },
+//         x: { duration: durationX, repeat: Infinity, ease: 'easeInOut' },
+//         rotate: { duration: 20, repeat: Infinity, ease: 'linear' },
+//       }}
+//       whileHover={{ scale: 1.1, zIndex: 50, cursor: 'grab' }}
+//       whileTap={{ scale: 1.05, cursor: 'grabbing' }}
+//       drag dragElastic={0.2} dragMomentum={true}
+//       dragTransition={{ bounceStiffness: 200, bounceDamping: 20 }}
+//       dragConstraints={{ left: -100, right: 100, top: -100, bottom: 100 }}
+//     >
+//       <span className="bubble-icon">{item.icon}</span>
+//       <span className="bubble-label">{item.label}</span>
+//     </motion.div>
+//   );
+// }
 
 // --- MAIN PAGE ---
 function HomePage({ setPage }) {
@@ -153,10 +153,9 @@ function HomePage({ setPage }) {
         </div>
       </section>
 
-      {/* 2. Ecosystem */}
-      <GravitySection />
+      
 
-      {/* 3. Services */}
+      {/* 2. Services */}
       <section className="home-section">
         <div className="section-header">
           <h2>{t('home.servicesTitle')}</h2>
