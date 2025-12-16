@@ -188,7 +188,7 @@ function MarqueeBar() {
   return (
     // CHANGE: Added style={{ marginTop: '80px' }} 
     // Adjust '80px' to match the height of your header so it doesn't hide behind it.
-    <div className="shivba-marquee" style={{ marginTop: '7px' }}>
+    <div className="shivba-marquee" style={{ marginTop: '3px' }}>
       <div className="shivba-marquee-label">{t('hero.latestUpdates')}</div>
       <div className="shivba-marquee-window">
         <div className="shivba-marquee-track">
