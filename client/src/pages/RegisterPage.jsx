@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { API_BASE_URL } from '../config';
 
 function RegisterPage({ setPage, setModalState }) {
@@ -11,29 +11,17 @@ function RegisterPage({ setPage, setModalState }) {
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // --- STRICT PASSWORD RULES ---
-  const [passwordCriteria, setPasswordCriteria] = useState({
-    length: false,  // Min 8 chars
-    number: false,  // At least 1 number
-    upper: false,   // At least 1 uppercase
-    special: false  // At least 1 special char (!@#$%)
-  });
 
-  const [allCriteriaMet, setAllCriteriaMet] = useState(false);
-
-  // Check rules whenever password changes
-  useEffect(() => {
-    const p = formData.password;
-    const criteria = {
-        length: p.length >= 8,
-        number: /[0-9]/.test(p),
-        upper: /[A-Z]/.test(p),
-        special: /[!@#$%^&*(),.?":{}|<>]/.test(p)
-    };
-    setPasswordCriteria(criteria);
-    setAllCriteriaMet(Object.values(criteria).every(Boolean));
-  }, [formData.password]);
+  // --- OPTIMIZATION: DERIVED STATE (No useEffect needed) ---
+  // Calculating this on the fly makes typing instant and removes input lag.
+  const p = formData.password;
+  const passwordCriteria = {
+      length: p.length >= 8,
+      number: /[0-9]/.test(p),
+      upper: /[A-Z]/.test(p),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(p)
+  };
+  const allCriteriaMet = Object.values(passwordCriteria).every(Boolean);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,20 +34,18 @@ function RegisterPage({ setPage, setModalState }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
-
-    // Final Gatekeeping (Just in case they enabled the button via hack)
+    
     if (!allCriteriaMet) {
         setModalState({ show: true, title: 'Weak Password', message: 'Please meet all password requirements.', type: 'error' });
-        setIsSubmitting(false);
         return;
     }
 
     if (formData.password !== formData.confirmPassword) {
         setModalState({ show: true, title: 'Error', message: 'Passwords do not match.', type: 'error' });
-        setIsSubmitting(false);
         return;
     }
+
+    setIsSubmitting(true);
 
     try {
       const payload = {
@@ -69,11 +55,18 @@ function RegisterPage({ setPage, setModalState }) {
           password: formData.password
       };
 
+      // Set a 15-second timeout so the user isn't stuck forever if the server hangs
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
       const res = await fetch(`${API_BASE_URL}/api/register-interest-simple`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId); // Clear timeout if successful
 
       const data = await res.json();
 
@@ -93,10 +86,15 @@ function RegisterPage({ setPage, setModalState }) {
       setPage({ name: 'verify', params: { email: data.email } });
 
     } catch (error) {
+      let errorMsg = error.message;
+      if (error.name === 'AbortError') {
+          errorMsg = "Server took too long to respond. Please check your connection.";
+      }
+      
       setModalState({
         show: true,
         title: '❌ Registration Failed',
-        message: error.message,
+        message: errorMsg,
         type: 'error'
       });
     } finally {
@@ -145,7 +143,7 @@ function RegisterPage({ setPage, setModalState }) {
                     }}
                 />
                 
-                {/* Visual Checklist - The "Wanted Words" Enforcement */}
+                {/* Visual Checklist */}
                 <div style={{ marginTop: '10px', background: '#f9fafb', padding: '10px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
                     <p style={{ fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '5px', color: '#374151' }}>
                         Password must contain:
@@ -186,17 +184,25 @@ function RegisterPage({ setPage, setModalState }) {
             <div className="form-actions" style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
                 <button 
                     type="submit" 
-                    // CRITICAL: Button is DISABLED until all criteria met
                     disabled={isSubmitting || !allCriteriaMet || !formData.name || !formData.email || !formData.phone}
                     className={isSubmitting ? 'submitting' : ''}
                     style={{ 
                         flex: 1, 
                         opacity: allCriteriaMet ? 1 : 0.5, 
-                        cursor: allCriteriaMet ? 'pointer' : 'not-allowed',
-                        background: allCriteriaMet ? 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)' : '#9ca3af'
+                        cursor: (allCriteriaMet && !isSubmitting) ? 'pointer' : 'not-allowed',
+                        background: allCriteriaMet ? 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)' : '#9ca3af',
+                        position: 'relative',
+                        color: 'white',
+                        fontWeight: 'bold'
                     }}
                 >
-                    {isSubmitting ? 'Creating Account...' : (allCriteriaMet ? 'Register Now' : 'Fix Password to Register')}
+                    {isSubmitting ? (
+                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                         <span className="spinner-border"></span> Processing...
+                      </span>
+                    ) : (
+                      allCriteriaMet ? 'Register Now' : 'Fix Password to Register'
+                    )}
                 </button>
 
                 <button 
@@ -216,6 +222,22 @@ function RegisterPage({ setPage, setModalState }) {
           </p>
         </div>
       </div>
+      
+      {/* INJECTED CSS FOR SPINNER */}
+      <style>{`
+        .spinner-border {
+          width: 16px;
+          height: 16px;
+          border: 2px solid #ffffff;
+          border-top: 2px solid transparent;
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }
