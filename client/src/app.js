@@ -20,8 +20,6 @@ import AccountServiceDetailPage from './pages/AccountServiceDetailPage';
 import StarterAnimaPage from './pages/StarterAnimaPage';
 import HelpPage from './pages/HelpPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
-// --- NEW IMPORT ---
-// OwnerPage removed — no longer imported
 import LanguageSwitcher from './components/LanguageSwitcher';
 
 /* ------------ Dark Mode & FAB Styles (Injected) ------------- */
@@ -182,12 +180,10 @@ function Header({ setPage, activePage }) {
 }
 
 /* ------------ Marquee ------------- */
-/* ------------ Marquee ------------- */
 function MarqueeBar() {
   const { t } = useTranslation();
   return (
-    // CHANGE: Added style={{ marginTop: '80px' }} 
-    // Adjust '80px' to match the height of your header so it doesn't hide behind it.
+    // Adjusted top margin to ensure visibility
     <div className="shivba-marquee" style={{ marginTop: '3px' }}>
       <div className="shivba-marquee-label">{t('hero.latestUpdates')}</div>
       <div className="shivba-marquee-window">
@@ -212,7 +208,7 @@ function Modal({ show, title, message, content, type, onClose }) {
       <div className={`modal ${type}`} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px', width: '90%' }}>
         <h2>{title}</h2>
         {content ? content : <p>{message}</p>}
-        <div style={{ marginTop: '20px', textAlign: 'right' }}>
+        <div style={{ marginTop: '10px', textAlign: 'right' }}>
           <button onClick={onClose} className="shivba-primary-btn">Close</button>
         </div>
       </div>
@@ -277,18 +273,24 @@ function App() {
   const [page, setPage] = useState(() => {
     const path = window.location.pathname;
     
-    // 1. Check URL for Reset Password Route
+    // 1. Check URL for Reset Password Route (Critical functionality)
     if (path === '/reset-password') {
       return { name: 'reset-password' };
     }
     
-    // Owner route removed — no direct owner path handling
+    // 2. CHECK SESSION STORAGE
+    // If the key 'shivba_intro_shown' exists, the user has been here this session -> Go Home.
+    // If it does not exist, this is a fresh entry -> Show Animation.
+    const hasSeenIntro = sessionStorage.getItem('shivba_intro_shown');
 
-    // 3. Check Local Storage
-    try {
-      const stored = localStorage.getItem('shivba_page');
-      return stored ? JSON.parse(stored) : { name: 'starter-anima' };
-    } catch { return { name: 'starter-anima' }; }
+    if (!hasSeenIntro) {
+      // Mark as seen so next refresh/nav skips animation
+      sessionStorage.setItem('shivba_intro_shown', 'true');
+      return { name: 'starter-anima' };
+    }
+
+    // Default: User has already entered, show home
+    return { name: 'home' };
   });
 
   const [history, setHistory] = useState([]);
@@ -353,6 +355,8 @@ function App() {
   }, [page.name]);
 
   useEffect(() => {
+    // We still save to localStorage so internal navigation feels persistent if we need it,
+    // but the initialization logic ignores it.
     try { localStorage.setItem('shivba_page', JSON.stringify(page)); } catch {}
   }, [page]);
 
@@ -386,7 +390,15 @@ function App() {
   }, [handleSetPage, closeModal, goBack, goForward]);
 
   let content;
-  if (page.name === 'starter-anima') return (<><GlobalStyles /><StarterAnimaPage setPage={handleSetPage} /></>);
+  // Special Handling for Starter Page: Render immediately
+  if (page.name === 'starter-anima') {
+    return (
+      <div className="App">
+        <GlobalStyles />
+        <StarterAnimaPage setPage={handleSetPage} />
+      </div>
+    );
+  }
 
   switch (page.name) {
     case 'home': content = <HomePage setPage={handleSetPage} />; break;
@@ -404,18 +416,13 @@ function App() {
     case 'help': content = <HelpPage setPage={handleSetPage} />; break;
     case 'verify': content = <VerifyCodePage defaultEmail={page.params?.email || ''} onVerified={(email) => { setVerifiedEmail(email); handleSetPage({ name: 'account' }); }} setPage={handleSetPage} />; break;
     case 'account': content = <MyAccountPage defaultEmail={verifiedEmail} setPage={handleSetPage} onLoaded={setAccountMember} />; break;
-    
-    // --- NEW RESET PASSWORD ROUTE ---
     case 'reset-password': content = <ResetPasswordPage setPage={handleSetPage} />; break;
-
-    // Owner route removed
     
     default: content = <HomePage setPage={handleSetPage} />;
   }
 
-  // Debugging: log page and content type to help locate invalid component errors (React #130)
+  // Debugging: log page and content type to help locate invalid component errors
   try {
-    // content can be a React element, ensure it's valid before render
     // eslint-disable-next-line no-console
     console.debug('Rendering page:', page.name, 'contentType:', typeof content, content && content.type ? content.type : null);
   } catch (e) {
@@ -425,7 +432,6 @@ function App() {
 
   // If `content` isn't a valid React element, render a helpful diagnostic UI
   if (!React.isValidElement(content)) {
-    // Build a safe diagnostic message (avoid JSON.stringify on circular objects)
     let contentType = typeof content;
     let compType = null;
     try { compType = content && content.type ? content.type : null; } catch (e) { compType = null; }
@@ -439,24 +445,24 @@ function App() {
         <p style={{ fontSize: 12, color: '#6b7280' }}>Open the browser console for more details.</p>
       </div>
     );
-
     content = diag;
   }
 
+  // Main Return for Standard Pages
   return (
     <div className="App">
       <GlobalStyles />
       <Modal show={modalState.show} title={modalState.title} message={modalState.message} content={modalState.content} type={modalState.type} onClose={closeModal} />
       
-      {/* Hide header on owner page if you want a dashboard feel, otherwise keep it */}
+      {/* Hide Header on Owner Page */}
       {page.name !== 'owner' && <Header setPage={handleSetPage} activePage={page.name} />}
       
-      {/* Remove Marquee on owner page to save space */}
+      {/* Hide Marquee on Owner Page */}
       {page.name !== 'owner' && <MarqueeBar />}
       
       <main className="animate-fadeIn">{content}</main>
       
-      {/* Only show footer if not on owner page */}
+      {/* Hide Footer on Owner Page */}
       {page.name !== 'owner' && <Footer setPage={handleSetPage} />}
 
       <div className={`fab-container ${settingsOpen ? 'open' : ''}`}>

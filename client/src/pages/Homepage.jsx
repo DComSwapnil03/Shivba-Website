@@ -153,15 +153,13 @@ function HomePage({ setPage }) {
         </div>
       </section>
 
-      
-
       {/* 2. Services */}
       <section className="home-section">
-        <div className="section-header ">
+        <div className="section-header">
           <h2>{t('home.servicesTitle')}</h2>
           <p>{t('home.servicesSubtitle')}</p>
         </div>
-        <div className="cards-grid ">
+        <div className="cards-grid">
           <HomeCard title={t('home.cards.talim.title')} text={t('home.cards.talim.text')} onClick={() => setPage({ name: 'service-detail', params: { id: 'talim' } })} />
           <HomeCard title={t('home.cards.hostel.title')} text={t('home.cards.hostel.text')} onClick={() => setPage({ name: 'service-detail', params: { id: 'hostel' } })} />
           <HomeCard title={t('home.cards.library.title')} text={t('home.cards.library.text')} onClick={() => setPage({ name: 'service-detail', params: { id: 'library' } })} />
