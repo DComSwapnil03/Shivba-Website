@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { API_BASE_URL } from '../config';
+import '../index.css';
 
 function VerifyCodePage({ defaultEmail = '', defaultName = '', defaultPhone = '', onVerified, setPage }) {
   const [email, setEmail] = useState(defaultEmail);
@@ -11,7 +12,7 @@ function VerifyCodePage({ defaultEmail = '', defaultName = '', defaultPhone = ''
   
   const codeInputRef = useRef(null);
 
-  // Auto-focus code input and prefill email
+  // Auto-focus code input
   useEffect(() => {
     if (defaultEmail) setEmail(defaultEmail);
     if (codeInputRef.current) codeInputRef.current.focus();
@@ -52,7 +53,6 @@ function VerifyCodePage({ defaultEmail = '', defaultName = '', defaultPhone = ''
       setMessage('🎉 Verified! Redirecting...');
       setMessageType('success');
 
-      // Notify parent and navigate after short delay
       setTimeout(() => {
         if (onVerified) {
           onVerified(email);
@@ -62,8 +62,8 @@ function VerifyCodePage({ defaultEmail = '', defaultName = '', defaultPhone = ''
     } catch (err) {
       setMessage(err.message);
       setMessageType('error');
-      setCode(''); // Clear code on error
-      codeInputRef.current?.focus();
+      setCode('');
+      if (codeInputRef.current) codeInputRef.current.focus();
     } finally {
       setIsSubmitting(false);
     }
@@ -80,7 +80,7 @@ function VerifyCodePage({ defaultEmail = '', defaultName = '', defaultPhone = ''
         name: defaultName || 'Member',
         email, 
         phone: defaultPhone || '0000000000',
-        password: 'dummy' // Required by backend validation but ignored for existing users
+        password: 'dummy' 
       };
 
       const res = await fetch(`${API_BASE_URL}/api/register-interest-simple`, {
@@ -91,8 +91,7 @@ function VerifyCodePage({ defaultEmail = '', defaultName = '', defaultPhone = ''
 
       const data = await res.json();
 
-      if (!res.ok && res.status !== 409) { // 409 means user exists, which is fine for resend
-         // If it's a true error, throw it
+      if (!res.ok && res.status !== 409) {
          if(res.status !== 201) throw new Error(data.message || 'Failed to resend code.');
       }
 
@@ -109,81 +108,47 @@ function VerifyCodePage({ defaultEmail = '', defaultName = '', defaultPhone = ''
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && code.length === 6) handleSubmit(e);
-    if (!/[0-9]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab' && !e.ctrlKey) {
-      e.preventDefault();
-    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden" 
-         style={{ background: 'linear-gradient(135deg, #FFF1EB 0%, #ACE0F9 100%)' }}>
-      
-      {/* Decorative Background Elements */}
-      <div className="absolute top-[-50px] left-[-50px] w-48 h-48 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-      <div className="absolute top-[-50px] right-[-50px] w-48 h-48 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-      <div className="absolute bottom-[-50px] left-[20%] w-48 h-48 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+    <div className="verify-container">
+      {/* Background Blobs */}
+      <div className="blob blob-1"></div>
+      <div className="blob blob-2"></div>
+      <div className="blob blob-3"></div>
 
-      <style>{`
-        @keyframes blob {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-          100% { transform: translate(0px, 0px) scale(1); }
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-        .glass-panel {
-          background: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.5);
-        }
-      `}</style>
-
-      <div className="glass-panel w-full max-w-md p-8 rounded-3xl shadow-2xl relative z-10 m-4">
+      <div className="verify-card">
         
-        {/* Icon Header */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-white rounded-2xl mx-auto shadow-md flex items-center justify-center mb-4 transform rotate-3">
-            <span className="text-3xl">🔐</span>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-1">Verify Account</h2>
-          <p className="text-gray-500 text-sm">
+        {/* Header */}
+        <div className="verify-header">
+          <div className="verify-icon">🔐</div>
+          <h2 className="verify-title">Verify Account</h2>
+          <p className="verify-subtitle">
             We sent a 6-digit code to<br/>
-            <span className="font-semibold text-gray-700 bg-white/50 px-2 py-0.5 rounded mt-1 inline-block">
-              {email || 'your email'}
-            </span>
+            <span className="highlight-email">{email || 'your email'}</span>
           </p>
         </div>
 
         <form onSubmit={handleSubmit}>
-          {/* Email Input (Hidden or Read-only mostly) */}
-          <div className="mb-6 relative group">
-             <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 ml-1">Email</label>
+          
+          {/* Email Input */}
+          <div className="email-display-group">
+             <label className="input-label">Email</label>
              <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-white/60 border-none rounded-xl py-3 px-4 text-gray-700 font-medium focus:ring-2 focus:ring-indigo-400 focus:bg-white transition-all shadow-inner"
-              placeholder="name@email.com"
-            />
-            <div className="absolute right-3 top-8 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">✏️</div>
+               type="email"
+               value={email}
+               onChange={(e) => setEmail(e.target.value)}
+               className="email-input-readonly"
+               placeholder="name@email.com"
+             />
           </div>
 
-          {/* Code Input */}
-          <div className="mb-8">
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1 text-center">
-              Enter Verification Code
-            </label>
+          {/* OTP Code Input */}
+          <div className="otp-container">
+            <label className="input-label" style={{textAlign: 'center'}}>Enter Verification Code</label>
             
-            <div className="relative">
+            <div style={{ position: 'relative' }}>
+              {/* Invisible Real Input for Accessibility & Mobile typing */}
               <input
                 ref={codeInputRef}
                 type="text"
@@ -194,22 +159,17 @@ function VerifyCodePage({ defaultEmail = '', defaultName = '', defaultPhone = ''
                 }}
                 onKeyDown={handleKeyPress}
                 maxLength={6}
-                className="w-full bg-transparent text-transparent caret-indigo-500 absolute inset-0 z-10 text-center text-3xl cursor-text focus:outline-none"
+                className="otp-real-input"
                 autoComplete="one-time-code"
                 inputMode="numeric"
               />
               
-              <div className="flex justify-between gap-2">
+              {/* Visual Boxes */}
+              <div className="otp-visuals">
                 {[...Array(6)].map((_, idx) => (
                   <div 
                     key={idx}
-                    className={`w-12 h-14 rounded-xl border-2 flex items-center justify-center text-2xl font-bold transition-all duration-200 shadow-sm
-                      ${code[idx] 
-                        ? 'border-indigo-500 bg-white text-indigo-600 scale-105 shadow-md' 
-                        : 'border-gray-200 bg-white/40 text-gray-300'
-                      }
-                      ${idx === code.length && !isSubmitting ? 'border-indigo-300 ring-2 ring-indigo-100' : ''}
-                    `}
+                    className={`otp-box ${code[idx] || (idx === code.length) ? 'active' : ''}`}
                   >
                     {code[idx] || ''}
                   </div>
@@ -220,9 +180,7 @@ function VerifyCodePage({ defaultEmail = '', defaultName = '', defaultPhone = ''
 
           {/* Feedback Message */}
           {message && (
-            <div className={`mb-6 p-3 rounded-xl text-center text-sm font-semibold animate-fadeIn
-              ${messageType === 'success' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-600 border border-red-200'}
-            `}>
+            <div className={`status-msg ${messageType}`}>
               {message}
             </div>
           )}
@@ -231,40 +189,24 @@ function VerifyCodePage({ defaultEmail = '', defaultName = '', defaultPhone = ''
           <button
             type="submit"
             disabled={isSubmitting || code.length !== 6}
-            className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg transform transition-all duration-200 active:scale-95
-              ${isSubmitting || code.length !== 6 
-                ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none' 
-                : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:shadow-xl hover:translate-y-[-2px]'
-              }
-            `}
+            className="verify-btn"
           >
-            {isSubmitting ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                Verifying...
-              </span>
-            ) : 'Verify Code'}
+            {isSubmitting ? 'Verifying...' : 'Verify Code'}
           </button>
         </form>
 
         {/* Footer Actions */}
-        <div className="mt-8 flex justify-between items-center text-sm px-2">
-          <button 
-            onClick={() => setPage({ name: 'register' })}
-            className="text-gray-500 hover:text-gray-800 transition-colors flex items-center gap-1"
-          >
+        <div className="verify-footer">
+          <button onClick={() => setPage({ name: 'register' })} className="back-link">
             ← Back
           </button>
 
           {resendCountdown === 0 ? (
-            <button 
-              onClick={handleResend}
-              className="text-indigo-600 hover:text-indigo-800 font-semibold transition-colors"
-            >
+            <button onClick={handleResend} className="resend-btn">
               Resend Code
             </button>
           ) : (
-            <span className="text-gray-400 font-medium cursor-default">
+            <span className="resend-timer">
               Resend in {resendCountdown}s
             </span>
           )}
