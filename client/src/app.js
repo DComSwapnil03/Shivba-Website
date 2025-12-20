@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import './app.css';
 import { useTranslation } from 'react-i18next';
+import './app.css'; // Ensure this file exists, or the GlobalStyles below will handle it
 
 /* --- Page Imports --- */
 import HomePage from './pages/Homepage';
@@ -22,130 +22,152 @@ import HelpPage from './pages/HelpPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import LanguageSwitcher from './components/LanguageSwitcher';
 
-/* ------------ Dark Mode & FAB Styles (Injected) ------------- */
+/* ------------ Global Styles (Updated Footer & Icons) ------------- */
 const GlobalStyles = () => (
   <style>{`
-    /* 1. Base Dark Mode Defaults */
-    body.dark-mode {
-      background-color: #121212 !important;
-      color: #e0e0e0 !important;
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@700;900&family=Montserrat:wght@300;400;500;600&display=swap');
+
+    :root {
+      --c-gold: #FFA500;
+      --c-dark: #1a1a1a;
+      --c-darker: #111;
+      --c-light: #f9fafb;
+      --font-heading: 'Cinzel', serif;
+      --font-body: 'Montserrat', sans-serif;
+      --font-logo: 'Cinzel Decorative', cursive;
+      --marquee-height: 32px;
+      --header-height: 80px;
     }
 
-    /* 2. HEADER & FOOTER */
-    body.dark-mode .shivba-header {
-      background-color: #1e1e1e !important;
-      border-bottom: 1px solid #333;
+    body {
+      font-family: var(--font-body);
+      margin: 0; padding: 0;
+      background-color: var(--c-light);
+      color: black;
+      -webkit-font-smoothing: antialiased;
     }
-    body.dark-mode .shivba-footer {
-      background-color: #000000 !important;
-      border-top: 1px solid #333;
-      color: #ccc;
-    }
-    body.dark-mode .nav-btn { color: #aaa; }
-    body.dark-mode .nav-btn:hover,
-    body.dark-mode .nav-btn.active { color: #FFA500; }
+    h1, h2, h3, h4 { font-family: var(--font-heading); letter-spacing: 0.02em; }
 
-    /* 3. HOME PAGE SECTIONS */
-    body.dark-mode .home-hero,
-    body.dark-mode .home-hero-mid,
-    body.dark-mode .home-section,
-    body.dark-mode .home-cta,
-    body.dark-mode .home-hero-inner {
-      background-color: #121212 !important;
-      color: #ffffff !important;
-    }
+    /* Page Animation */
+    @keyframes fadeUp { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+    .animate-fadeUp { animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; width: 100%; position: relative; z-index: 1; padding-top: calc(var(--marquee-height) + var(--header-height)); }
 
-    /* 4. HOME PAGE TEXT */
-    body.dark-mode h1, 
-    body.dark-mode h2, 
-    body.dark-mode h3, 
-    body.dark-mode h4,
-    body.dark-mode .home-hero-text h1,
-    body.dark-mode .home-hero-text p,
-    body.dark-mode .home-section-header h2,
-    body.dark-mode .home-section-header p,
-    body.dark-mode .home-cta h2,
-    body.dark-mode .home-cta p {
-      color: #ffffff !important;
-    }
+    /* Utilities */
+    .desktop-only { display: none; }
+    @media (min-width: 1200px) { .desktop-only { display: inline; } }
 
-    /* 5. CARDS & BOXES */
-    body.dark-mode .home-card,
-    body.dark-mode .service-row,
-    body.dark-mode .modal,
-    body.dark-mode .home-hero-panel {
-      background-color: #1e1e1e !important;
-      border: 1px solid #333;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.5);
-    }
-    body.dark-mode .home-card h3 { color: #FFA500 !important; }
-    body.dark-mode .home-card p { color: #dddddd !important; }
-    body.dark-mode .home-card-link { color: #4db6ac !important; }
+    /* Marquee */
+    .shivba-marquee { position: fixed; top: 0; left: 0; width: 100%; height: var(--marquee-height); z-index: 1001; background: var(--c-dark); color: white; display: flex; font-size: 0.85rem; border-bottom: 1px solid #333; overflow: hidden; }
+    .shivba-marquee-label { background: var(--c-gold); color: black; padding: 0 20px; display: flex; align-items: center; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.1em; position: relative; z-index: 2; box-shadow: 4px 0 10px rgba(0,0,0,0.3); height: 100%; }
+    .shivba-marquee-window { flex: 1; overflow: hidden; display: flex; align-items: center; position: relative; }
+    .shivba-marquee-track { display: flex; gap: 40px; white-space: nowrap; padding-left: 20px; font-family: var(--font-body); font-weight: 500; animation: marquee 20s linear infinite; }
+    @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-    /* 6. STATS */
-    body.dark-mode .home-hero-stat-number { color: #FFA500 !important; }
-    body.dark-mode .home-hero-stat-label { color: #bbb !important; }
+    /* Header */
+    .shivba-header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid #eaeaea; position: fixed; top: var(--marquee-height); left: 0; width: 100%; height: var(--header-height); z-index: 1000; transition: all 0.3s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .shivba-header-inner { max-width: 1400px; margin: 0 auto; padding: 0 30px; height: 100%; display: flex; align-items: center; justify-content: space-between; }
+    .shivba-logo { font-family: var(--font-logo); font-size: 2rem; font-weight: 900; color: black; cursor: pointer; text-transform: uppercase; letter-spacing: 0.15em; text-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.3s ease; }
+    .shivba-logo:hover { transform: scale(1.02); }
+    .shivba-nav { display: flex; gap: 25px; align-items: center; }
+    .nav-btn { background: none; border: none; font-family: var(--font-body); font-size: 0.85rem; font-weight: 700; color: black; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.05em; position: relative; }
+    .nav-btn::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: var(--c-gold); transition: width 0.3s ease; }
+    .nav-btn:hover::after, .nav-btn.active::after { width: 100%; }
+    .nav-btn:hover, .nav-btn.active { color: black; } 
+    .shivba-header-actions { display: flex; align-items: center; gap: 15px; }
+    .shivba-primary-btn { background: black; color: white; border: none; padding: 12px 24px; border-radius: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.8rem; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+    .shivba-primary-btn:hover { background: var(--c-gold); color: black; transform: translateY(-2px); }
+    .shivba-ghost-btn { background: transparent; border: 1px solid black; padding: 10px 20px; border-radius: 4px; color: black; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; font-weight: 600; text-transform: uppercase; transition: all 0.3s; }
+    .shivba-ghost-btn:hover { background: black; color: white; }
 
-    /* 7. BUTTONS */
-    body.dark-mode button.outline {
-      border: 2px solid #ffffff;
-      color: #ffffff;
-      background: transparent;
-    }
-    body.dark-mode button.outline:hover {
-      background-color: #ffffff;
-      color: #000;
-    }
-
-    /* 8. INPUTS */
-    body.dark-mode input,
-    body.dark-mode textarea {
-      background-color: #2d2d2d !important;
-      color: #ffffff !important;
-      border: 1px solid #555;
-    }
-
-    /* --- FAB Styles --- */
-    .fab-container {
-      position: fixed; bottom: 30px; right: 30px; z-index: 9999;
-      display: flex; flex-direction: column; align-items: center; gap: 15px;
-    }
-    .fab-main {
-      width: 60px; height: 60px; border-radius: 50%;
-      background-color: #FF5722; color: white; border: none; font-size: 24px;
-      cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      display: flex; align-items: center; justify-content: center;
-      transition: transform 0.3s;
-    }
-    .fab-main:hover { transform: scale(1.1); }
-    .fab-main.active { transform: rotate(45deg); background-color: #333; }
+    /* --- FOOTER STYLES (UPDATED) --- */
+    .shivba-footer { background: #0a0a0a; color: #888; padding: 5rem 2rem 2rem; font-size: 0.9rem; border-top: 1px solid #222; position: relative; z-index: 2; }
+    .shivba-footer-inner { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 4rem; }
+    .shivba-footer-logo { font-family: var(--font-logo); font-size: 2.5rem; color: white; margin-bottom: 1rem; opacity: 0.9; }
+    .shivba-footer-text { margin-bottom: 1.5rem; line-height: 1.6; max-width: 300px; }
     
-    .fab-item {
-      width: 50px; height: 50px; border-radius: 50%;
-      background-color: white; color: #333; border: none; font-size: 20px;
-      cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      display: flex; align-items: center; justify-content: center;
-      opacity: 0; transform: translateY(20px) scale(0.8);
-      transition: all 0.3s ease; pointer-events: none; position: relative;
+    /* Social Icons */
+    .shivba-footer-social { display: flex; gap: 15px; margin-top: 1rem; }
+    .shivba-social-link { 
+        display: flex; align-items: center; justify-content: center;
+        width: 40px; height: 40px; border-radius: 50%; 
+        background: rgba(255,255,255,0.05); color: white;
+        transition: all 0.3s ease; text-decoration: none;
     }
-    body.dark-mode .fab-item { background-color: #333; color: #fff; }
+    .shivba-social-link svg { width: 20px; height: 20px; fill: currentColor; }
+    .shivba-social-link:hover { background: var(--c-gold); color: black; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(255, 165, 0, 0.3); }
+
+    .shivba-footer-col h4 { color: #fff; margin-bottom: 1.5rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.2em; }
+    .shivba-footer-col button, .shivba-footer-col a { display: block; background: none; border: none; color: #888; cursor: pointer; padding: 0; margin-bottom: 0.8rem; text-align: left; transition: color 0.3s; text-decoration: none; font-size: 0.9rem; font-family: var(--font-body); }
+    .shivba-footer-col button:hover, .shivba-footer-col a:hover { color: var(--c-gold); padding-left: 5px; }
+
+    /* Professional Input & Join Button */
+    .shivba-footer-input-wrap { 
+        display: flex; gap: 0; margin-top: 1.2rem; 
+        background: #151515; border: 1px solid #333; 
+        border-radius: 6px; overflow: hidden; 
+        transition: border-color 0.3s;
+    }
+    .shivba-footer-input-wrap:focus-within { border-color: var(--c-gold); }
     
+    .shivba-footer-input-wrap input { 
+        padding: 14px 18px; border: none; background: transparent; 
+        color: white; flex: 1; outline: none; font-family: var(--font-body);
+        font-size: 0.9rem;
+    }
+    
+    .shivba-footer-subscribe { 
+        background: var(--c-gold); 
+        color: black; 
+        border: none; 
+        padding: 0 28px; 
+        cursor: pointer; 
+        font-weight: 800; 
+        text-transform: uppercase; 
+        font-size: 0.8rem; 
+        letter-spacing: 0.1em;
+        transition: all 0.3s ease;
+    }
+    .shivba-footer-subscribe:hover { 
+        background: white; 
+        color: black; 
+    }
+
+    .shivba-footer-bottom { max-width: 1400px; margin: 4rem auto 0; padding-top: 2rem; border-top: 1px solid #222; display: flex; justify-content: space-between; color: #555; font-size: 0.8rem; }
+
+    /* FAB & Dark Mode */
+    .fab-container { position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+    .fab-main { width: 60px; height: 60px; border-radius: 50%; background: var(--c-gold); color: black; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 10px 25px rgba(255, 165, 0, 0.4); transition: transform 0.3s; display: flex; align-items: center; justify-content: center; }
+    .fab-main:hover { transform: scale(1.1) rotate(90deg); }
+    .fab-main.active { transform: rotate(45deg); background: var(--c-dark); color: white; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+    .fab-item { width: 48px; height: 48px; border-radius: 50%; background: white; color: var(--c-dark); border: none; font-size: 18px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.1); opacity: 0; transform: translateY(20px) scale(0.8); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; }
     .fab-container.open .fab-item { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
-    .fab-container.open .fab-item:nth-child(3) { transition-delay: 0s; }
-    .fab-container.open .fab-item:nth-child(2) { transition-delay: 0.05s; }
-    .fab-container.open .fab-item:nth-child(1) { transition-delay: 0.1s; }
-    
-    .fab-item::after {
-      content: attr(data-tooltip); position: absolute; right: 60px;
-      background: rgba(0,0,0,0.7); color: white; padding: 4px 8px;
-      border-radius: 4px; font-size: 12px; white-space: nowrap;
-      opacity: 0; pointer-events: none; transition: opacity 0.2s;
-    }
+    .fab-item::after { content: attr(data-tooltip); position: absolute; right: 60px; background: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 4px; font-size: 11px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; top: 12px; font-family: var(--font-body); font-weight: 600; }
     .fab-item:hover::after { opacity: 1; }
+
+    /* Dark Mode Overrides */
+    body.dark-mode { background-color: #050505 !important; color: #e0e0e0 !important; }
+    body.dark-mode .shivba-header { background-color: rgba(20, 20, 20, 0.95); border-bottom: 1px solid #333; }
+    body.dark-mode .shivba-logo { color: white; text-shadow: 0 2px 10px rgba(255, 165, 0, 0.3); }
+    body.dark-mode .nav-btn { color: white; }
+    body.dark-mode .nav-btn:hover, body.dark-mode .nav-btn.active { color: var(--c-gold); }
+    body.dark-mode .shivba-ghost-btn { border-color: white; color: white; }
+    body.dark-mode .shivba-ghost-btn:hover { border-color: white; background: white; color: black; }
+    body.dark-mode .shivba-primary-btn { background: var(--c-gold); color: black; }
+    body.dark-mode .shivba-primary-btn:hover { background: white; }
+
+    @media (max-width: 1024px) {
+      .shivba-nav { display: none; } 
+      .shivba-header-inner { justify-content: space-between; }
+      .shivba-footer-inner { grid-template-columns: 1fr; gap: 3rem; text-align: center; }
+      .shivba-footer-social { justify-content: center; } /* Center icons on mobile */
+      .shivba-footer-logo { margin: 0 auto 1.5rem; display: block; }
+      .shivba-footer-bottom { flex-direction: column; gap: 15px; text-align: center; }
+      .shivba-footer-col button, .shivba-footer-col a { text-align: center; }
+    }
   `}</style>
 );
+/* ------------ Components ------------- */
 
-/* ------------ Header ------------- */
 function Header({ setPage, activePage }) {
   const { t } = useTranslation();
   const goto = (name) => setPage({ name });
@@ -154,7 +176,9 @@ function Header({ setPage, activePage }) {
   return (
     <header className="shivba-header">
       <div className="shivba-header-inner">
+        {/* LOGO */}
         <div className="shivba-logo" onClick={() => goto('home')}>SHIVBA</div>
+        
         <nav className="shivba-nav">
           <button className={navClass('home')} onClick={() => goto('home')}>{t('nav.home')}</button>
           <button className={navClass('about')} onClick={() => goto('about')}>{t('nav.about')}</button>
@@ -165,10 +189,11 @@ function Header({ setPage, activePage }) {
           <button className={navClass('help')} onClick={() => goto('help')}>Help</button>
           <button className={navClass('contact')} onClick={() => goto('contact')}>{t('nav.contact')}</button>
         </nav>
+        
         <div className="shivba-header-actions">
           <LanguageSwitcher />
           <button className="shivba-ghost-btn" onClick={() => goto('account')}>
-            <span className="shivba-user-circle">👤</span> <span>{t('nav.myAccount')}</span>
+            <span>👤</span> <span style={{display: 'none', '@media (min-width: 1200px)': {display: 'inline'}}}>{t('nav.myAccount')}</span>
           </button>
           <button className="shivba-primary-btn" onClick={() => goto('register')}>{t('nav.register')}</button>
         </div>
@@ -177,15 +202,20 @@ function Header({ setPage, activePage }) {
   );
 }
 
-/* ------------ Marquee ------------- */
 function MarqueeBar() {
   const { t } = useTranslation();
   return (
-    <div className="shivba-marquee" style={{ marginTop: '3px' }}>
+    <div className="shivba-marquee">
       <div className="shivba-marquee-label">{t('hero.latestUpdates')}</div>
       <div className="shivba-marquee-window">
         <div className="shivba-marquee-track">
+          {/* Content repeated to create flow */}
           <span>{t('hero.tickerText')}</span>
+          <span>•</span>
+          <span>Admissions Open for 2025 Batch</span>
+          <span>•</span>
+          <span>New Hostel Wing Opening Soon</span>
+          <span>•</span>
           <span>{t('hero.tickerText')}</span>
         </div>
       </div>
@@ -193,19 +223,21 @@ function MarqueeBar() {
   );
 }
 
-/* ------------ Modal ------------- */
 function Modal({ show, title, message, content, type, onClose }) {
   if (!show) return null;
   return (
     <div className="modal-overlay" onClick={onClose} style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 10000,
-      display: 'flex', justifyContent: 'center', alignItems: 'center'
+      backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 10000,
+      display: 'flex', justifyContent: 'center', alignItems: 'center', backdropFilter: 'blur(5px)'
     }}>
-      <div className={`modal ${type}`} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px', width: '90%' }}>
-        <h2>{title}</h2>
-        {content ? content : <p>{message}</p>}
-        <div style={{ marginTop: '10px', textAlign: 'right' }}>
+      <div className={`modal ${type}`} onClick={(e) => e.stopPropagation()} style={{ 
+          background: 'white', padding: '2.5rem', borderRadius: '16px', maxWidth: '500px', width: '90%',
+          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)'
+      }}>
+        <h2 style={{marginTop:0, fontFamily:'Cinzel, serif', fontSize:'1.8rem', color:'#1a1a1a'}}>{title}</h2>
+        {content ? content : <p style={{lineHeight:1.6, color:'#555', fontFamily:'Montserrat, sans-serif'}}>{message}</p>}
+        <div style={{ marginTop: '25px', textAlign: 'right' }}>
           <button onClick={onClose} className="shivba-primary-btn">Close</button>
         </div>
       </div>
@@ -213,7 +245,6 @@ function Modal({ show, title, message, content, type, onClose }) {
   );
 }
 
-/* ------------ Footer ------------- */
 function Footer({ setPage }) {
   const handleSubscribeClick = () => {
     setPage({ name: 'register' });
@@ -225,12 +256,7 @@ function Footer({ setPage }) {
       <div className="shivba-footer-inner">
         <div className="shivba-footer-col brand">
           <div className="shivba-footer-logo">SHIVBA</div>
-          <p className="shivba-footer-text">Strengthening bodies, minds, and communities through talim, education, and cultural programs.</p>
-          <div className="shivba-footer-social">
-            <a href="https://www.instagram.com/iin_education_hub/" aria-label="Instagram"><i className="bi bi-instagram" /></a>
-            <a href="https://www.instagram.com/shivbastalim/" aria-label="Instagram"><i className="bi bi-instagram" /></a>
-            <a href="https://www.facebook.com/profile.php?id=100017188563264" aria-label="Facebook"><i className="bi bi-facebook" /></a>
-          </div>
+          <p className="shivba-footer-text">Forging legacy through strength, culture, and community excellence. Join the revolution today.</p>
         </div>
         <div className="shivba-footer-col">
           <h4>Explore</h4>
@@ -240,7 +266,6 @@ function Footer({ setPage }) {
           <button onClick={() => setPage({ name: 'events' })}>Events</button>
           <button onClick={() => setPage({ name: 'gallery' })}>Gallery</button>
           <button onClick={() => setPage({ name: 'faq' })}>FAQ</button>
-          <button onClick={() => setPage({ name: 'help' })}>Help</button>
         </div>
         <div className="shivba-footer-col">
           <h4>Contact</h4>
@@ -249,17 +274,17 @@ function Footer({ setPage }) {
           <p>+91 97672 34353</p>
         </div>
         <div className="shivba-footer-col newsletter">
-          <h4>Stay Updated</h4>
-          <p>Get updates about new batches, workshops, and events.</p>
+          <h4>Stay Connected</h4>
+          <p>Receive updates on new batches and community events.</p>
           <div className="shivba-footer-input-wrap">
-            <input type="email" placeholder="Enter your email" />
-            <button className="shivba-footer-subscribe" onClick={handleSubscribeClick}>Subscribe</button>
+            <input type="email" placeholder="Your email address" />
+            <button className="shivba-footer-subscribe" onClick={handleSubscribeClick}>Join</button>
           </div>
         </div>
       </div>
       <div className="shivba-footer-bottom">
-        <span>© {new Date().getFullYear()} Shivba. All rights reserved.</span>
-        <span className="shivba-footer-bottom-right">Crafted with care in Pune, India.</span>
+        <span>© {new Date().getFullYear()} Shivba Group. All rights reserved.</span>
+        <span className="shivba-footer-bottom-right">Designed with precision in Pune, India.</span>
       </div>
     </footer>
   );
@@ -269,42 +294,27 @@ function Footer({ setPage }) {
 function App() {
   const [page, setPage] = useState(() => {
     const path = window.location.pathname;
+    if (path === '/reset-password') return { name: 'reset-password' };
     
-    // 1. Critical URL check
-    if (path === '/reset-password') {
-      return { name: 'reset-password' };
-    }
-    
-    // 2. CHECK SESSION: Have we seen the intro in this browser session?
     const hasSeenIntro = sessionStorage.getItem('shivba_intro_shown');
-
     if (!hasSeenIntro) {
-      // First time in session -> Show Animation
       sessionStorage.setItem('shivba_intro_shown', 'true');
       return { name: 'starter-anima' };
     }
 
-    // 3. PAGE RESTORE: If intro seen, try to load last page from localStorage
     try {
       const savedPage = localStorage.getItem('shivba_page');
       if (savedPage) {
         const parsed = JSON.parse(savedPage);
-        // Ensure we don't accidentally load the animation page from storage
-        if (parsed && parsed.name && parsed.name !== 'starter-anima') {
-           return parsed;
-        }
+        if (parsed && parsed.name && parsed.name !== 'starter-anima') return parsed;
       }
-    } catch (e) {
-      console.error("Failed to restore page:", e);
-    }
+    } catch (e) { console.error("Page restore failed", e); }
 
-    // Default Fallback
     return { name: 'home' };
   });
 
   const [history, setHistory] = useState([]);
   const [future, setFuture] = useState([]);
-
   const [modalState, setModalState] = useState({ show: false, title: '', message: '', content: null, type: 'info' });
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
@@ -316,7 +326,6 @@ function App() {
   const isFirstRender = useRef(true);
   const [accountMember, setAccountMember] = useState(null);
 
-  /* Dark mode toggling */
   useEffect(() => {
     if (darkMode) {
       document.body.classList.add('dark-mode');
@@ -363,7 +372,6 @@ function App() {
     window.scrollTo(0, 0);
   }, [page.name]);
 
-  // SAVE PAGE STATE: This ensures we know where to go back to after refresh
   useEffect(() => {
     if (page.name !== 'starter-anima') {
       try { localStorage.setItem('shivba_page', JSON.stringify(page)); } catch {}
@@ -374,13 +382,8 @@ function App() {
     const handleGlobalKeys = (e) => {
       if (e.key === 'Escape') closeModal();
       if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
-
-      if (e.altKey && (e.key === 'ArrowLeft' || e.key === 'Backspace' || e.key === '<')) {
-        e.preventDefault(); goBack();
-      }
-      if (e.altKey && (e.key === 'ArrowRight' || e.key === '>')) {
-        e.preventDefault(); goForward();
-      }
+      if (e.altKey && (e.key === 'ArrowLeft' || e.key === 'Backspace')) { e.preventDefault(); goBack(); }
+      if (e.altKey && (e.key === 'ArrowRight')) { e.preventDefault(); goForward(); }
       if (e.altKey) {
         if(e.key.toLowerCase() === 'h') handleSetPage({ name: 'home' });
         if(e.key.toLowerCase() === 'a') handleSetPage({ name: 'about' });
@@ -388,10 +391,6 @@ function App() {
         if(e.key.toLowerCase() === 'e') handleSetPage({ name: 'events' });
         if(e.key.toLowerCase() === 'g') handleSetPage({ name: 'gallery' });
         if(e.key.toLowerCase() === 'c') handleSetPage({ name: 'contact' });
-        if(e.key.toLowerCase() === 'l') handleSetPage({ name: 'account' });
-        if(e.key.toLowerCase() === 'r') handleSetPage({ name: 'register' });
-        if(e.key.toLowerCase() === 'p') handleSetPage({ name: 'help' });
-        if(e.key.toLowerCase() === 'o') handleSetPage({ name: 'owner' });
       }
     };
     window.addEventListener('keydown', handleGlobalKeys);
@@ -399,14 +398,8 @@ function App() {
   }, [handleSetPage, closeModal, goBack, goForward]);
 
   let content;
-  // Special Handling for Starter Page: Render immediately
   if (page.name === 'starter-anima') {
-    return (
-      <div className="App">
-        <GlobalStyles />
-        <StarterAnimaPage setPage={handleSetPage} />
-      </div>
-    );
+    return <div className="App"><GlobalStyles /><StarterAnimaPage setPage={handleSetPage} /></div>;
   }
 
   switch (page.name) {
@@ -416,7 +409,7 @@ function App() {
     case 'service-detail': content = <ServiceDetailPage serviceId={page.params?.id || 'talim'} setPage={handleSetPage} />; break;
     case 'service-checkout': content = <ServiceCheckoutPage serviceId={page.params?.id || 'talim'} userInfo={{ email: verifiedEmail }} setPage={handleSetPage} />; break;
     case 'account-service-detail': content = <AccountServiceDetailPage member={accountMember} serviceIndex={page.params?.index || 0} setPage={handleSetPage} />; break;
-    case 'gallery': content = <GalleryPage />; break;
+    case 'gallery': content = <GalleryPage setPage={handleSetPage} />; break;
     case 'events': content = <EventsPage setPage={handleSetPage} setSelectedEvent={setSelectedEvent} />; break;
     case 'event-register': content = <EventRegisterPage event={selectedEvent} setPage={handleSetPage} setModalState={setModalState} />; break;
     case 'contact': content = <ContactPage setModalState={setModalState} />; break;
@@ -426,44 +419,32 @@ function App() {
     case 'verify': content = <VerifyCodePage defaultEmail={page.params?.email || ''} onVerified={(email) => { setVerifiedEmail(email); handleSetPage({ name: 'account' }); }} setPage={handleSetPage} />; break;
     case 'account': content = <MyAccountPage defaultEmail={verifiedEmail} setPage={handleSetPage} onLoaded={setAccountMember} />; break;
     case 'reset-password': content = <ResetPasswordPage setPage={handleSetPage} />; break;
-    
     default: content = <HomePage setPage={handleSetPage} />;
   }
 
-  // Debugging
-  try {
-    // eslint-disable-next-line no-console
-    console.debug('Rendering page:', page.name);
-  } catch (e) {
-    console.error('Error inspecting content before render', e);
-  }
-
-  if (!React.isValidElement(content)) {
-    content = (
-      <div style={{ padding: 24, color: '#b91c1c', background: '#fff6f6' }}>
-        <h3>App Render Error — Invalid Component</h3>
-        <p>The page <strong>{String(page?.name)}</strong> produced an invalid React element.</p>
-      </div>
-    );
-  }
-
-  // Main Return for Standard Pages
   return (
     <div className="App">
       <GlobalStyles />
       <Modal show={modalState.show} title={modalState.title} message={modalState.message} content={modalState.content} type={modalState.type} onClose={closeModal} />
       
-      {page.name !== 'owner' && <Header setPage={handleSetPage} activePage={page.name} />}
+      {/* LAYOUT FIX: 
+         1. Marquee (Top)
+         2. Header (Below Marquee)
+         3. Main Content (Padded to avoid overlap)
+      */}
       {page.name !== 'owner' && <MarqueeBar />}
+      {page.name !== 'owner' && <Header setPage={handleSetPage} activePage={page.name} />}
       
-      <main className="animate-fadeIn">{content}</main>
+      <main className="animate-fadeUp" key={page.name}>
+        {content}
+      </main>
       
       {page.name !== 'owner' && <Footer setPage={handleSetPage} />}
 
       <div className={`fab-container ${settingsOpen ? 'open' : ''}`}>
-        <button className="fab-item" onClick={scrollToTop} data-tooltip="Scroll Top" tabIndex={settingsOpen ? 0 : -1}>⬆️</button>
-        <button className="fab-item" onClick={toggleDarkMode} data-tooltip="Dark Mode" tabIndex={settingsOpen ? 0 : -1}>{darkMode ? '☀️' : '🌙'}</button>
-        <button className="fab-item" onClick={showShortcuts} data-tooltip="Help" tabIndex={settingsOpen ? 0 : -1}>❓</button>
+        <button className="fab-item" onClick={scrollToTop} data-tooltip="Scroll Top">⬆️</button>
+        <button className="fab-item" onClick={toggleDarkMode} data-tooltip="Dark Mode">{darkMode ? '☀️' : '🌙'}</button>
+        <button className="fab-item" onClick={showShortcuts} data-tooltip="Help">❓</button>
         <button className={`fab-main ${settingsOpen ? 'active' : ''}`} onClick={() => setSettingsOpen(!settingsOpen)}>⚙️</button>
       </div>
     </div>

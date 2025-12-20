@@ -1,390 +1,426 @@
-import React, { useState, useEffect } from 'react';
-import { API_BASE_URL } from '../config';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion'; 
 
-// Pricing Structure
-const SERVICE_PRICING = {
+// --- 1. ANIMATION VARIANTS (Cinematic) ---
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { type: "spring", stiffness: 60, damping: 15 }
+  }
+};
+
+const sliderVariants = {
+  enter: (direction) => ({
+    x: direction > 0 ? 50 : -50,
+    opacity: 0,
+    scale: 0.95
+  }),
+  center: {
+    zIndex: 1,
+    x: 0,
+    opacity: 1,
+    scale: 1
+  },
+  exit: (direction) => ({
+    zIndex: 0,
+    x: direction < 0 ? 50 : -50,
+    opacity: 0,
+    scale: 0.95
+  })
+};
+
+// --- 2. CONFIGURATION (Same Data, Better Presentation) ---
+const SERVICE_CONFIG = {
   talim: {
-    title: 'Shivba Talim (General)',
-    icon: '🏋️',
+    title: 'Shivba Talim',
+    subtitle: 'Forging strength through tradition and modern science.',
+    image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop', // Gym Image
+    priceLabel: 'Membership Plans',
+    startingPrice: 1200, 
     plans: [
-      { duration: '1 Month', amount: 1200 },
-      { duration: '3 Months', amount: 3000, recommended: true },
-      { duration: '6 Months', amount: 5500 },
-      { duration: '12 Months', amount: 8000 },
-      { duration: '15 Months', amount: 12000 },
+      { label: '1 Month', price: 1200 },
+      { label: '3 Months', price: 3000, recommended: true },
+      { label: '6 Months', price: 5500 },
+      { label: '1 Year', price: 8000 },
+    ],
+    description: [
+      'Access to modern strength & cardio equipment',
+      'General training guidance included',
+      'Fusion of traditional Kusti & modern gym'
+    ],
+    benefits: [
+      'Build authentic strength',
+      'Disciplined routine & community',
+      'Expert guidance available'
     ]
   },
   library: {
     title: 'Shivba Library',
-    icon: '📚',
+    subtitle: 'A sanctuary for focus, knowledge, and growth.',
+    image: 'https://images.unsplash.com/photo-1507842217121-9e96e44303f0?q=80&w=2070&auto=format&fit=crop', // Library Image
+    priceLabel: 'Library Access',
+    startingPrice: 900,
     plans: [
-      { duration: '1 Month', amount: 900 },
-      { duration: '3 Months', amount: 2500, recommended: true },
-      { duration: '6 Months', amount: 5000 },
-      { duration: '12 Months', amount: 7000 },
-      { duration: '15 Months', amount: 8000 },
-    ]
-  },
-  personal_training: {
-    title: 'Personal Training',
-    icon: '💪',
-    plans: [
-      { duration: '1 Month', amount: 6000 },
-      { duration: '2 Months', amount: 10000 },
-      { duration: '3 Months', amount: 12000, recommended: true },
+      { label: '1 Month', price: 900 },
+      { label: '3 Months', price: 2500, recommended: true },
+      { label: '6 Months', price: 5000 },
+      { label: '1 Year', price: 7000 },
+    ],
+    description: [
+      'Extensive physical book collection',
+      'High-speed WiFi & digital resources',
+      'Dedicated silent reading zones'
+    ],
+    benefits: [
+      'Uninterrupted focus',
+      'Competitive exam preparation support',
+      'Ergonomic seating & lighting'
     ]
   },
   hostel: {
     title: 'Shivba Hostel',
-    icon: '🏠',
-    plans: [
-      { duration: 'Monthly Fee', amount: 2200 }
+    subtitle: 'Safe, secure, and community-driven accommodation.',
+    image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?q=80&w=1469&auto=format&fit=crop', // Hostel Image
+    priceLabel: 'Monthly Rent',
+    startingPrice: 2499,
+    plans: null, // Single plan fallback
+    description: [
+      'Comfortable shared & single options',
+      '24/7 Security & CCTV surveillance',
+      'High-speed internet included'
+    ],
+    benefits: [
+      'Peaceful study environment',
+      'Network with like-minded peers',
+      'Proximity to Library & Talim'
+    ]
+  },
+  social: {
+    title: 'Social Awareness',
+    subtitle: 'Building a better society through action and education.',
+    image: 'https://images.unsplash.com/photo-1544027993-37dbfe43562a?q=80&w=1470&auto=format&fit=crop', // Social Image
+    priceLabel: 'Contribution',
+    startingPrice: 299,
+    plans: null, 
+    description: [
+      'Weekly awareness workshops',
+      'Community clean-up & aid drives',
+      'Youth leadership development'
+    ],
+    benefits: [
+      'Real-world impact',
+      'Develop soft skills & leadership',
+      'Certificate of participation'
     ]
   }
 };
 
-function loadRazorpayScript() {
-  return new Promise((resolve) => {
-    if (window.Razorpay) return resolve(true);
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-}
-
-function ServiceCheckoutPage({ serviceId = 'talim', userInfo = {}, setPage }) {
-  const serviceCategory = SERVICE_PRICING[serviceId] || SERVICE_PRICING.talim;
+function ServiceDetailPage({ serviceId = 'talim', setPage }) {
+  const cfg = SERVICE_CONFIG[serviceId] || SERVICE_CONFIG.talim;
   
-  // State for Plan
-  const [selectedPlan, setSelectedPlan] = useState(serviceCategory.plans[0]);
-  
-  // State for User Details (Editable form state)
-  const [userData, setUserData] = useState({
-    name: '',
-    email: '',
-    phone: ''
-  });
-  
-  const [isPaying, setIsPaying] = useState(false);
-  const [error, setError] = useState('');
+  // Slider Logic
+  const plans = cfg.plans && cfg.plans.length > 0 
+    ? cfg.plans 
+    : [{ label: 'Standard Plan', price: cfg.startingPrice }];
 
-  // 1. Reset plan when service changes
-  useEffect(() => {
-     setSelectedPlan(serviceCategory.plans[0]);
-  }, [serviceId, serviceCategory]);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [direction, setDirection] = useState(0);
 
-  // 2. ATTEMPT TO AUTO-FILL (But don't block if fails)
-  // This just makes it easier for returning users, but allows guests too.
-  useEffect(() => {
-    const fetchUserSession = async () => {
-      let emailToCheck = userInfo.email;
-      if (!emailToCheck) emailToCheck = localStorage.getItem('shivba_user_email');
-
-      if (!emailToCheck) return; // No saved user, just leave form blank
-
-      try {
-        const response = await fetch(`${API_BASE_URL}/account/find`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: emailToCheck })
-        });
-        
-        const data = await response.json();
-
-        if (response.ok) {
-          setUserData({
-            name: data.fullName || data.name || '',
-            email: data.email || '',
-            phone: data.mobileNumber || data.phone || ''
-          });
-        }
-      } catch (err) {
-        console.warn("Could not auto-fill user details. User can type manually.");
-      }
-    };
-
-    fetchUserSession();
-  }, [userInfo.email]);
-
-  // Handle Input Changes (For Guest Users)
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setUserData(prev => ({ ...prev, [name]: value }));
+  const nextPlan = () => {
+    setDirection(1);
+    setActiveIndex((prev) => (prev + 1) % plans.length);
   };
 
-  const handleBack = () => {
-    setPage({ name: 'service-detail', params: { id: serviceId } });
+  const prevPlan = () => {
+    setDirection(-1);
+    setActiveIndex((prev) => (prev - 1 + plans.length) % plans.length);
   };
 
-  const handlePayNow = async () => {
-    try {
-      setError('');
+  const currentPlan = plans[activeIndex];
 
-      // VALIDATION: Ensure fields are filled before paying
-      if (!userData.name || !userData.email || !userData.phone) {
-        throw new Error('Please fill in your Name, Email, and Phone Number.');
-      }
-
-      setIsPaying(true);
-
-      const ok = await loadRazorpayScript();
-      if (!ok) throw new Error('Unable to load Razorpay. Check your internet connection.');
-
-      const createRes = await fetch(`${API_BASE_URL}/api/payment/create-order`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: selectedPlan.amount * 100 }) 
-      });
-
-      const order = await createRes.json();
-      if (!createRes.ok) throw new Error(order.message || 'Failed to create Razorpay order.');
-
-      const options = {
-        key: process.env.REACT_APP_RAZORPAY_KEY_ID,
-        amount: order.amount,
-        currency: order.currency,
-        name: 'Shivba',
-        description: `${serviceCategory.title} - ${selectedPlan.duration}`,
-        order_id: order.id,
-        handler: async function (response) {
-          try {
-            const verifyRes = await fetch(`${API_BASE_URL}/api/payment/verify-payment`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                registrationData: {
-                  name: userData.name,
-                  email: userData.email,
-                  phone: userData.phone,
-                  eventName: serviceCategory.title,
-                  planDuration: selectedPlan.duration,
-                  amount: selectedPlan.amount
-                }
-              })
-            });
-
-            const verifyData = await verifyRes.json();
-            if (!verifyRes.ok || !verifyData.signatureIsValid) {
-              throw new Error(verifyData.message || 'Payment verification failed.');
-            }
-
-            alert('Payment successful! Welcome to Shivba.');
-            setPage({ name: 'account' });
-          } catch (err) {
-            alert(err.message);
-          }
-        },
-        prefill: {
-          name: userData.name,
-          email: userData.email,
-          contact: userData.phone
-        },
-        theme: { color: '#fd7e14' }
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsPaying(false);
-    }
+  const handlePayNow = () => {
+    setPage({
+      name: 'service-checkout',
+      params: { id: serviceId, selectedPlanIndex: activeIndex }
+    });
   };
 
   return (
-    <>
+    <motion.div 
+      className="service-detail-container"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
+      {/* --- INJECTED CSS --- */}
       <style>{`
-        .shivba-gradient {
-          background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+        /* 1. Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;500;600&display=swap');
+
+        /* 2. Typography */
+        .service-detail-container h1, 
+        .service-detail-container h2,
+        .service-detail-container h3,
+        .price-amount {
+            font-family: 'Cinzel', serif !important;
+            letter-spacing: 0.05em;
         }
-        .plan-card {
-          cursor: pointer;
-          transition: all 0.2s ease;
-          border: 2px solid #dee2e6;
+
+        .service-detail-container p, 
+        .service-detail-container li, 
+        .service-detail-container button,
+        .price-label {
+            font-family: 'Montserrat', sans-serif !important;
         }
-        .plan-card:hover {
-          border-color: #fd7e14;
-          background-color: #fff7ed;
+
+        /* 3. Hero */
+        .service-detail-hero {
+            position: relative;
+            padding: 4rem 2rem;
+            text-align: center;
+            background: #1a1a1a;
+            color: white;
+            overflow: hidden;
         }
-        .plan-card.active {
-          border-color: #fd7e14;
-          background-color: #fff7ed;
-          box-shadow: 0 4px 6px rgba(253, 126, 20, 0.2);
-          transform: translateY(-2px);
+        .service-detail-back {
+            background: none; border: none; color: #aaa; 
+            cursor: pointer; text-transform: uppercase; letter-spacing: 0.1em;
+            font-size: 0.8rem; margin-bottom: 1rem; transition: color 0.3s;
         }
-        .btn-shivba-dark {
-          background-color: #212529;
-          color: white;
-          border: none;
+        .service-detail-back:hover { color: #FFA500; }
+        .service-detail-hero h1 { font-size: 3rem; margin-bottom: 0.5rem; color: #fff; }
+        .service-detail-hero p { font-size: 1.1rem; color: #ccc; max-width: 600px; margin: 0 auto; }
+
+        /* 4. Layout */
+        .service-detail-grid {
+            max-width: 1100px;
+            margin: -50px auto 50px; /* Overlap Hero */
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 2rem;
+            padding: 0 20px;
+            position: relative;
+            z-index: 10;
         }
-        .btn-shivba-dark:hover {
-          background-color: #000;
-          color: white;
+        @media (max-width: 800px) {
+            .service-detail-grid { grid-template-columns: 1fr; margin-top: 2rem; }
         }
-        .form-control:focus {
-          border-color: #fd7e14;
-          box-shadow: 0 0 0 0.25rem rgba(253, 126, 20, 0.25);
+
+        /* 5. Cards */
+        .service-detail-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border: 1px solid rgba(0,0,0,0.05);
         }
+        body.dark-mode .service-detail-card {
+            background: #1e1e1e; border-color: #333;
+        }
+
+        /* 6. Content Styling */
+        .service-detail-image-wrapper {
+            border-radius: 12px; overflow: hidden; margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .service-detail-image {
+            width: 100%; height: 350px; object-fit: cover;
+            transition: transform 0.5s;
+        }
+        .service-detail-image:hover { transform: scale(1.03); }
+
+        .service-list { list-style: none; padding: 0; margin-bottom: 2rem; }
+        .service-list li {
+            margin-bottom: 0.8rem; color: #444; display: flex; align-items: flex-start; gap: 10px;
+        }
+        body.dark-mode .service-list li { color: #ccc; }
+
+        /* 7. Pricing Slider */
+        .pricing-slider-container {
+            position: relative; height: 180px; 
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+        .pricing-card {
+            position: absolute; width: 100%; height: 100%;
+            background: #fff7ed; border: 2px solid #ffedd5;
+            border-radius: 16px;
+            display: flex; flexDirection: column; align-items: center; justify-content: center;
+            box-shadow: 0 10px 20px rgba(234, 88, 12, 0.1);
+        }
+        body.dark-mode .pricing-card {
+            background: #2a1c15; border-color: #5a3a2a;
+        }
+        
+        .arrow-btn {
+            position: absolute; z-index: 20;
+            background: rgba(0,0,0,0.05); border: none; border-radius: 50%;
+            width: 36px; height: 36px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .arrow-btn:hover { background: #FFA500; color: white; }
+        .arrow-left { left: -10px; }
+        .arrow-right { right: -10px; }
+
+        /* 8. Action Buttons */
+        .pay-btn {
+            width: 100%; padding: 14px;
+            background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+            color: white; border: none; border-radius: 8px;
+            font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;
+            cursor: pointer; margin-bottom: 10px;
+            box-shadow: 0 4px 15px rgba(234, 88, 12, 0.4);
+        }
+        .secondary-btn {
+            width: 100%; padding: 12px;
+            background: transparent; color: #666;
+            border: 1px solid #ddd; border-radius: 8px;
+            cursor: pointer; font-size: 0.9rem;
+        }
+        body.dark-mode .secondary-btn { color: #aaa; border-color: #444; }
+        body.dark-mode .secondary-btn:hover { border-color: #fff; color: #fff; }
+
       `}</style>
 
-      <div className="container py-5 min-vh-100 d-flex align-items-center justify-content-center animate-fadeIn">
-        <div className="card border-0 shadow-lg rounded-4 overflow-hidden" style={{ maxWidth: '900px', width: '100%' }}>
-          <div className="row g-0">
-            
-            {/* --- Left Column: Summary & Gradient --- */}
-            <div className="col-lg-5 shivba-gradient text-white p-5 d-flex flex-column justify-content-between relative">
-              <div>
-                <button onClick={handleBack} className="btn btn-link text-white text-decoration-none p-0 mb-4 fw-bold">
-                  <i className="bi bi-arrow-left me-2"></i> Back
-                </button>
-                
-                <div className="display-3 mb-3">{serviceCategory.icon || '✨'}</div>
-                <h2 className="fw-bold mb-3">{serviceCategory.title}</h2>
-                <p className="text-white-50 small">
-                  Complete your registration to access world-class facilities and join the Shivba community.
-                </p>
-              </div>
+      {/* --- HERO SECTION --- */}
+      <section className="service-detail-hero">
+        <motion.div variants={itemVariants}>
+          <button className="service-detail-back" onClick={() => setPage({ name: 'services' })}>
+            ← Back to Services
+          </button>
+          <h1>{cfg.title}</h1>
+          <p>{cfg.subtitle}</p>
+        </motion.div>
+      </section>
 
-              <div className="mt-4 pt-4 border-top border-white-50">
-                <div className="d-flex justify-content-between align-items-end">
-                  <div>
-                    <span className="text-white-50 text-uppercase small d-block mb-1">Total Payable</span>
-                    <h1 className="fw-bold m-0">₹{selectedPlan.amount}</h1>
-                  </div>
-                  <div className="text-end">
-                    <span className="text-white-50 small d-block">Duration</span>
-                    <span className="fw-bold fs-5">{selectedPlan.duration}</span>
-                  </div>
-                </div>
-              </div>
+      <section className="service-detail-main">
+        <div className="service-detail-grid">
+          
+          {/* --- LEFT CARD: INFO --- */}
+          <motion.div 
+            className="service-detail-card"
+            variants={itemVariants}
+          >
+            <div className="service-detail-image-wrapper">
+              <img src={cfg.image} alt={cfg.title} className="service-detail-image" />
             </div>
 
-            {/* --- Right Column: Form & Selection --- */}
-            <div className="col-lg-7 bg-white p-5">
-              
-              {/* Step 1: Plan Selection */}
-              <div className="mb-4">
-                <h5 className="fw-bold text-dark mb-4 d-flex align-items-center">
-                  <span className="badge rounded-circle bg-warning text-dark me-2 d-flex align-items-center justify-content-center" style={{width:'30px', height:'30px'}}>1</span>
-                  Select Your Plan
-                </h5>
+            <h2 style={{ fontSize: '1.8rem', marginBottom: '1rem', borderLeft: '4px solid #FFA500', paddingLeft: '15px' }}>What You Get</h2>
+            <ul className="service-list">
+              {cfg.description.map((item, idx) => (
+                <li key={idx}>➜ {item}</li>
+              ))}
+            </ul>
 
-                <div className="row g-3">
-                  {serviceCategory.plans.map((plan, index) => {
-                    const isSelected = selectedPlan.duration === plan.duration;
-                    return (
-                      <div className="col-6 col-md-4" key={index}>
-                        <div 
-                          className={`card plan-card h-100 text-center py-3 px-2 ${isSelected ? 'active' : ''}`}
-                          onClick={() => setSelectedPlan(plan)}
-                        >
-                          {plan.recommended && (
-                            <span className="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-success" style={{fontSize: '0.65rem'}}>
-                              BEST VALUE
-                            </span>
-                          )}
-                          <div className="card-body p-0">
-                            <small className={`d-block fw-bold mb-1 ${isSelected ? 'text-warning' : 'text-muted'}`}>
-                              {plan.duration}
-                            </small>
-                            <h5 className="card-title fw-bold m-0 text-dark">₹{plan.amount}</h5>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+            <h3 style={{ fontSize: '1.5rem', marginTop: '2rem', marginBottom: '1rem' }}>Key Benefits</h3>
+            <ul className="service-list">
+              {cfg.benefits.map((item, idx) => (
+                <li key={idx}>★ {item}</li>
+              ))}
+            </ul>
+          </motion.div>
 
-              {/* Step 2: Enter Details (Guest or Logged In) */}
-              <div className="mb-4">
-                <h5 className="fw-bold text-dark mb-3 d-flex align-items-center">
-                  <span className="badge rounded-circle bg-warning text-dark me-2 d-flex align-items-center justify-content-center" style={{width:'30px', height:'30px'}}>2</span>
-                  Enter Your Details
-                </h5>
-                
-                <div className="bg-light p-4 rounded-3 border">
-                    <div className="mb-3">
-                        <label className="form-label small text-muted fw-bold">Full Name</label>
-                        <input 
-                            type="text" 
-                            className="form-control border-0 shadow-sm"
-                            name="name"
-                            value={userData.name}
-                            onChange={handleInputChange}
-                            placeholder="e.g. Rahul Patil"
-                        />
-                    </div>
-                    <div className="mb-3">
-                        <label className="form-label small text-muted fw-bold">Email Address</label>
-                        <input 
-                            type="email" 
-                            className="form-control border-0 shadow-sm"
-                            name="email"
-                            value={userData.email}
-                            onChange={handleInputChange}
-                            placeholder="e.g. rahul@example.com"
-                        />
-                    </div>
-                    <div className="mb-0">
-                        <label className="form-label small text-muted fw-bold">Phone Number</label>
-                        <input 
-                            type="tel" 
-                            className="form-control border-0 shadow-sm"
-                            name="phone"
-                            value={userData.phone}
-                            onChange={handleInputChange}
-                            placeholder="e.g. 9876543210"
-                        />
-                    </div>
-                    
-                    <div className="d-flex justify-content-between border-top pt-3 mt-3">
-                      <span className="text-muted small">Selected Service</span>
-                      <span className="fw-bold text-warning small">{serviceCategory.title} ({selectedPlan.duration})</span>
-                    </div>
-                </div>
-              </div>
-
-              {/* Error Alert */}
-              {error && (
-                <div className="alert alert-danger d-flex align-items-center" role="alert">
-                  <i className="bi bi-exclamation-triangle-fill me-2"></i>
-                  <div>{error}</div>
-                </div>
+          {/* --- RIGHT CARD: PRICING --- */}
+          <motion.div 
+            className="service-detail-card"
+            style={{ height: 'fit-content', position: 'sticky', top: '100px' }}
+            variants={itemVariants}
+          >
+            <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', fontSize: '1.5rem' }}>{cfg.priceLabel}</h2>
+            
+            <div className="pricing-slider-container">
+              {plans.length > 1 && (
+                <button className="arrow-btn arrow-left" onClick={prevPlan}>❮</button>
               )}
 
-              {/* Action Buttons */}
-              <div className="d-grid gap-2">
-                <button 
-                  className="btn btn-shivba-dark py-3 fw-bold shadow-sm" 
-                  onClick={handlePayNow}
-                  disabled={isPaying}
-                >
-                  {isPaying ? (
-                    <span><span className="spinner-border spinner-border-sm me-2"></span>Processing...</span>
-                  ) : (
-                    <span>Pay Securely <span className="badge bg-light text-dark ms-2">₹{selectedPlan.amount}</span></span>
-                  )}
-                </button>
+              <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
+                <AnimatePresence initial={false} custom={direction} mode="wait">
+                  <motion.div
+                    key={activeIndex}
+                    custom={direction}
+                    variants={sliderVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
+                    className="pricing-card"
+                  >
+                    {currentPlan.recommended && (
+                      <span style={{ 
+                        position: 'absolute', top: '10px', 
+                        background: '#10b981', color: 'white', 
+                        fontSize: '0.7rem', padding: '4px 10px', borderRadius: '20px', fontWeight: 'bold' 
+                      }}>
+                        BEST VALUE
+                      </span>
+                    )}
+                    <div className="price-label" style={{ fontSize: '1.2rem', color: '#888', marginBottom: '0.5rem' }}>{currentPlan.label}</div>
+                    <div className="price-amount" style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#ea580c' }}>₹{currentPlan.price}</div>
+                  </motion.div>
+                </AnimatePresence>
               </div>
 
-              <div className="text-center mt-3">
-                <small className="text-muted d-flex align-items-center justify-content-center">
-                  <i className="bi bi-shield-lock-fill me-1"></i> SSL Secured Payment via Razorpay
-                </small>
-              </div>
-
+              {plans.length > 1 && (
+                <button className="arrow-btn arrow-right" onClick={nextPlan}>❯</button>
+              )}
             </div>
-          </div>
+
+            {/* Dots */}
+            {plans.length > 1 && (
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '20px' }}>
+                {plans.map((_, idx) => (
+                  <div 
+                    key={idx}
+                    onClick={() => { setDirection(idx > activeIndex ? 1 : -1); setActiveIndex(idx); }}
+                    style={{
+                      width: '8px', height: '8px', borderRadius: '50%', cursor: 'pointer',
+                      backgroundColor: idx === activeIndex ? '#ea580c' : '#ccc',
+                      transition: 'background-color 0.3s'
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+
+            <p style={{ textAlign: 'center', fontSize: '0.8rem', color: '#999', marginBottom: '1rem' }}>
+              Secure online payment powered by Razorpay.
+            </p>
+
+            <motion.button 
+              className="pay-btn" 
+              onClick={handlePayNow}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Proceed to Pay ₹{currentPlan.price}
+            </motion.button>
+            
+            <button
+              className="secondary-btn"
+              onClick={() => setPage({ name: 'register', params: { serviceId: serviceId } })}
+            >
+              Register Interest Instead
+            </button>
+          </motion.div>
+
         </div>
-      </div>
-    </>
+      </section>
+    </motion.div>
   );
 }
 
-export default ServiceCheckoutPage;
+export default ServiceDetailPage;

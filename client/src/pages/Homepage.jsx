@@ -2,7 +2,28 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// --- COMPONENT 1: EMOJI ORBIT ANIMATION (The "Real" Look) ---
+/* --- 1. ANIMATION VARIANTS (The "Cinematic" Motion) --- */
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15, // Cascading effect (items appear one by one)
+      delayChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 40 }, // Start 40px lower
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { type: "spring", stiffness: 50, damping: 20 } // Smooth slide up
+  }
+};
+
+/* --- 2. EMOJI ORBIT COMPONENT --- */
 const EmojiOrbitAnimation = () => {
   const emojis = ['🏋️', '🛌', '📚', '👥', '🧘', '💪', '🏆'];
   const [index, setIndex] = useState(0);
@@ -10,30 +31,28 @@ const EmojiOrbitAnimation = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setIndex((prev) => (prev + 1) % emojis.length);
-    }, 2500); // Change emoji every 2.5 seconds
+    }, 2500); 
     return () => clearInterval(timer);
   }, [emojis.length]);
 
   return (
     <div className="emoji-orbit-wrapper">
-      {/* Outer Rotating Ring (Dashed) */}
+      {/* Outer Dashed Ring */}
       <motion.div
         className="orbit-ring-outer"
         animate={{ rotate: 360 }}
         transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
       />
-      
-      {/* Inner Rotating Ring (Solid) */}
+      {/* Inner Solid Ring */}
       <motion.div
         className="orbit-ring-inner"
         animate={{ rotate: -360 }}
         transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
       />
-
-      {/* The Glowing Core Background */}
+      {/* Glow Core */}
       <div className="orbit-core-glow" />
-
-      {/* The Emoji Switcher */}
+      
+      {/* Changing Emoji */}
       <div className="emoji-display">
         <AnimatePresence mode="wait">
           <motion.span
@@ -52,161 +71,222 @@ const EmojiOrbitAnimation = () => {
   );
 };
 
-// --- COMPONENT 2: GRAVITY PLAYGROUND ---
-// function GravitySection() {
-//   const icons = [
-//     { icon: '🏋️', label: 'Talim', color: '#ffe4e6', text: '#db2777' },
-//     { icon: '🛌', label: 'Hostel', color: '#dbeafe', text: '#2563eb' },
-//     { icon: '📚', label: 'Library', color: '#f3f4f6', text: '#4b5563' },
-//     { icon: '👥', label: 'Social', color: '#fae8ff', text: '#a855f7' },
-//     { icon: '🧘', label: 'Yoga', color: '#dcfce7', text: "#16a34a" },
-//     { icon: '💪', label: 'Food', color: '#ffedd5', text: '#ea580c' },
-//     { icon: '🏆', label: 'Sports', color: '#fef9c3', text: '#ca8a04' },
-//   ];
-//   const floatingItems = [...icons, ...icons, ...icons];
-
-//   return (
-//     <section className="gravity-container">
-//       <div className="gravity-header animate-fadeIn">
-//         <h2>Our Ecosystem</h2>
-//         <p>A fluid network of services. Drag them to see the physics.</p>
-//       </div>
-//       <div className="gravity-box">
-//         {floatingItems.map((item, i) => (
-//           <FloatingBubble key={i} item={item} />
-//         ))}
-//       </div>
-//     </section>
-//   );
-// }
-
-// function FloatingBubble({ item }) {
-//   const randomTop = Math.floor(Math.random() * 80) + 10;
-//   const randomLeft = Math.floor(Math.random() * 80) + 10;
-//   const durationX = Math.random() * 10 + 20;
-//   const durationY = Math.random() * 10 + 15;
-
-//   return (
-//     <motion.div
-//       className="gravity-bubble"
-//       style={{
-//         backgroundColor: item.color, color: item.text,
-//         top: `${randomTop}%`, left: `${randomLeft}%`,
-//       }}
-//       animate={{
-//         y: [0, -30, 0, 30, 0], x: [0, 20, 0, -20, 0], rotate: [0, 5, -5, 0],
-//       }}
-//       transition={{
-//         y: { duration: durationY, repeat: Infinity, ease: 'easeInOut' },
-//         x: { duration: durationX, repeat: Infinity, ease: 'easeInOut' },
-//         rotate: { duration: 20, repeat: Infinity, ease: 'linear' },
-//       }}
-//       whileHover={{ scale: 1.1, zIndex: 50, cursor: 'grab' }}
-//       whileTap={{ scale: 1.05, cursor: 'grabbing' }}
-//       drag dragElastic={0.2} dragMomentum={true}
-//       dragTransition={{ bounceStiffness: 200, bounceDamping: 20 }}
-//       dragConstraints={{ left: -100, right: 100, top: -100, bottom: 100 }}
-//     >
-//       <span className="bubble-icon">{item.icon}</span>
-//       <span className="bubble-label">{item.label}</span>
-//     </motion.div>
-//   );
-// }
-
-// --- MAIN PAGE ---
+/* --- 3. MAIN HOMEPAGE COMPONENT --- */
 function HomePage({ setPage }) {
   const { t } = useTranslation();
   const slides = t('home.slides', { returnObjects: true });
   const [current, setCurrent] = useState(0);
 
+  // Auto-rotate hero slides
   useEffect(() => {
     const id = setInterval(() => setCurrent((prev) => (prev + 1) % slides.length), 5000);
     return () => clearInterval(id);
   }, [slides.length]);
 
   return (
-    <div className="home-container">
-      {/* 1. Hero */}
+    <motion.div 
+      className="home-container"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
+      {/* --- INJECTED CSS: FONTS & ORBIT ANIMATION STYLES --- */}
+      <style>{`
+        /* 1. Import Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;500;600&display=swap');
+
+        /* 2. Global Font Assignments for Home */
+        .home-container h1, 
+        .home-container h2, 
+        .home-container h3,
+        .stat-number {
+            font-family: 'Cinzel', serif !important;
+            letter-spacing: 0.05em;
+        }
+
+        .home-container p, 
+        .home-container button, 
+        .home-container span, 
+        .home-container .link,
+        .stat-label {
+            font-family: 'Montserrat', sans-serif !important;
+        }
+
+        /* 3. Button Styling (Sharp & Cinematic) */
+        .btn-primary, .btn-outline, .btn-glow {
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-weight: 600;
+            border-radius: 0 !important;
+        }
+
+        /* 4. Emoji Orbit CSS (Embedded for portability) */
+        .emoji-orbit-wrapper {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .orbit-ring-outer {
+            position: absolute;
+            width: 100%; height: 100%;
+            border: 2px dashed rgba(255, 165, 0, 0.3); /* Orange tint */
+            border-radius: 50%;
+        }
+        .orbit-ring-inner {
+            position: absolute;
+            width: 70%; height: 70%;
+            border: 2px solid rgba(255, 165, 0, 0.6);
+            border-left-color: transparent;
+            border-radius: 50%;
+        }
+        .orbit-core-glow {
+            position: absolute;
+            width: 40%; height: 40%;
+            background: radial-gradient(circle, rgba(255,165,0,0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(10px);
+        }
+        .emoji-display {
+            font-size: 5rem;
+            z-index: 10;
+        }
+        .real-emoji {
+            display: block;
+        }
+
+        /* 5. Hero Overrides */
+        .hero-content h1 {
+            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            font-size: 3.5rem;
+        }
+        .hero-subtitle {
+            font-weight: 300;
+            letter-spacing: 0.1em;
+            font-size: 1.1rem;
+        }
+      `}</style>
+
+      {/* --- SECTION 1: HERO --- */}
       <section className="home-hero">
+        {/* Background Slides */}
         {slides.map((slide, index) => (
           <div key={index} className={`hero-slide ${index === current ? 'active' : ''}`}>
             <div className="hero-overlay" />
             <img src={slide.image} alt="Background" />
           </div>
         ))}
-        <div className="hero-content animate-fadeIn">
-          <h1>{t('home.heroTitle')}</h1>
-          <p className="hero-subtitle">{t('home.heroSubtitle')}</p>
-          <div className="hero-buttons">
+        
+        {/* Animated Content */}
+        <motion.div className="hero-content" variants={containerVariants}>
+          <motion.h1 variants={itemVariants}>{t('home.heroTitle')}</motion.h1>
+          <motion.p className="hero-subtitle" variants={itemVariants}>{t('home.heroSubtitle')}</motion.p>
+          
+          <motion.div className="hero-buttons" variants={itemVariants}>
             <button className="btn-primary" onClick={() => setPage({ name: 'register' })}>
               {t('home.heroPrimary')}
             </button>
             <button className="btn-outline" onClick={() => setPage({ name: 'contact' })}>
               {t('home.heroSecondary')}
             </button>
-          </div>
-          <div className="hero-stats">
+          </motion.div>
+
+          <motion.div className="hero-stats" variants={containerVariants}>
             <StatBox number={t('home.stats.membersNumber')} label={t('home.stats.membersLabel')} />
             <StatBox number={t('home.stats.workshopsNumber')} label={t('home.stats.workshopsLabel')} />
             <StatBox number={t('home.stats.yearsNumber')} label={t('home.stats.yearsLabel')} />
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
-      {/* 2. Services */}
+      {/* --- SECTION 2: SERVICES --- */}
       <section className="home-section">
-        <div className="section-header">
-          <h2>{t('home.servicesTitle')}</h2>
-          <p>{t('home.servicesSubtitle')}</p>
-        </div>
-        <div className="cards-grid">
+        <motion.div 
+            className="section-header" 
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+        >
+          <motion.h2 variants={itemVariants}>{t('home.servicesTitle')}</motion.h2>
+          <motion.p variants={itemVariants}>{t('home.servicesSubtitle')}</motion.p>
+        </motion.div>
+        
+        <motion.div 
+            className="cards-grid"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible" 
+            viewport={{ once: true, margin: "-100px" }}
+        >
           <HomeCard title={t('home.cards.talim.title')} text={t('home.cards.talim.text')} onClick={() => setPage({ name: 'service-detail', params: { id: 'talim' } })} />
           <HomeCard title={t('home.cards.hostel.title')} text={t('home.cards.hostel.text')} onClick={() => setPage({ name: 'service-detail', params: { id: 'hostel' } })} />
           <HomeCard title={t('home.cards.library.title')} text={t('home.cards.library.text')} onClick={() => setPage({ name: 'service-detail', params: { id: 'library' } })} />
           <HomeCard title={t('home.cards.social.title')} text={t('home.cards.social.text')} onClick={() => setPage({ name: 'service-detail', params: { id: 'social' } })} />
-        </div>
+        </motion.div>
       </section>
 
-      {/* 4. Register + NEW EMOJI ANIMATION */}
-      <section className="particle-register-section">
+      {/* --- SECTION 3: REGISTER / REVOLUTION --- */}
+      <motion.section 
+        className="particle-register-section"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={containerVariants}
+      >
         <div className="particle-content">
-          <h2>Join the <br /> Revolution</h2>
-          <p>Experience the new era of management. <br /> Sign up now to access exclusive services.</p>
-          <div className="particle-buttons">
+          <motion.h2 variants={itemVariants}>Join the <br /> Revolution</motion.h2>
+          <motion.p variants={itemVariants}>Experience the new era of management. <br /> Sign up now to access exclusive services.</motion.p>
+          <motion.div className="particle-buttons" variants={itemVariants}>
             <button className="btn-glow" onClick={() => setPage({ name: 'register' })}>
               Register Now
             </button>
             <button className="btn-text" onClick={() => setPage({ name: 'contact' })}>
               Contact Support
             </button>
-          </div>
+          </motion.div>
         </div>
-        <div className="particle-visual">
-          {/* Replaced IconMorph with EmojiOrbit */}
+        
+        {/* Right Side: Emoji Orbit */}
+        <motion.div className="particle-visual" variants={itemVariants}>
           <EmojiOrbitAnimation />
-        </div>
-      </section>
-    </div>
+        </motion.div>
+      </motion.section>
+    </motion.div>
   );
 }
 
+/* --- HELPER COMPONENTS --- */
+
 function StatBox({ number, label }) {
   return (
-    <div className="stat-box">
+    <motion.div className="stat-box" variants={itemVariants}>
       <span className="stat-number">{number}</span>
       <span className="stat-label">{label}</span>
-    </div>
+    </motion.div>
   );
 }
 
 function HomeCard({ title, text, onClick }) {
   return (
-    <div className="info-card animate-fadeIn" onClick={onClick}>
+    <motion.div 
+        className="info-card" 
+        onClick={onClick}
+        variants={itemVariants}
+        whileHover={{ 
+            y: -10, 
+            boxShadow: "0 15px 30px rgba(0,0,0,0.2)",
+            borderColor: "#FFA500"
+        }}
+        whileTap={{ scale: 0.98 }}
+    >
       <h3>{title}</h3>
       <p>{text}</p>
       <span className="link">Learn more →</span>
-    </div>
+    </motion.div>
   );
 }
 
-export default HomePage;
+export default HomePage;  

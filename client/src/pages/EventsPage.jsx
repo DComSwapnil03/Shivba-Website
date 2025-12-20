@@ -1,30 +1,21 @@
 import React, { useMemo, useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
+// --- 1. CONFIGURATION & HELPERS ---
 const EVENT_CATEGORIES = ['All', 'Wellness', 'Education', 'Culture', 'Fitness'];
-
-// Helper to get today's date in YYYY-MM-DD format
 const getTodayStr = () => new Date().toISOString().split('T')[0];
 
-/* --- 1. NEW HELPER: PARSE DATE & TIME STRINGS ---
-   This converts "2025-01-20" and "8:00 AM – 9:00 AM" into real Date objects.
-   Returns: { start: Date, end: Date, status: 'upcoming'|'ongoing'|'ended' }
-*/
+/* --- Date/Time Parser Logic (Preserved) --- */
 const calculateEventStatus = (dateStr, timeStr, currentTime) => {
     try {
-        // 1. Parse the Date
         const dateParts = dateStr.split('-');
         const year = parseInt(dateParts[0]);
-        const month = parseInt(dateParts[1]) - 1; // Month is 0-indexed
+        const month = parseInt(dateParts[1]) - 1; 
         const day = parseInt(dateParts[2]);
 
-        // 2. Parse the Time Range (Expected format: "8:00 AM – 9:00 AM")
-        // We split by '–' (en-dash) or '-' (hyphen)
         const times = timeStr.split(/[–-]/).map(t => t.trim());
         
         if (times.length < 2) {
-            // Fallback: If no end time provided, assume it lasts 1 hour or just check date
-            // For this logic to work perfectly, we need a Start and End time.
-            // Returning date-only status if format is bad:
             const evtDate = new Date(year, month, day);
             const today = new Date();
             evtDate.setHours(0,0,0,0);
@@ -36,16 +27,10 @@ const calculateEventStatus = (dateStr, timeStr, currentTime) => {
         const parseTime = (timeString) => {
             const [time, modifier] = timeString.split(' ');
             let [hours, minutes] = time.split(':');
-            
             hours = parseInt(hours);
             minutes = parseInt(minutes);
-
-            if (hours === 12) {
-                hours = modifier.toUpperCase() === 'PM' ? 12 : 0;
-            } else if (modifier.toUpperCase() === 'PM') {
-                hours += 12;
-            }
-            
+            if (hours === 12) hours = modifier.toUpperCase() === 'PM' ? 12 : 0;
+            else if (modifier.toUpperCase() === 'PM') hours += 12;
             const d = new Date(year, month, day);
             d.setHours(hours, minutes, 0, 0);
             return d;
@@ -54,26 +39,22 @@ const calculateEventStatus = (dateStr, timeStr, currentTime) => {
         const startTime = parseTime(times[0]);
         const endTime = parseTime(times[1]);
 
-        // 3. Compare with Current Time
         if (currentTime < startTime) return 'upcoming';
         if (currentTime >= startTime && currentTime <= endTime) return 'ongoing';
         return 'ended';
 
     } catch (error) {
         console.error("Time parse error", error);
-        return 'upcoming'; // Default fallback
+        return 'upcoming'; 
     }
 };
 
 const INITIAL_EVENTS = [
-  // --- ONGOING EVENT EXAMPLE (Dynamic Time) ---
-  // This calculates a time range covering "Now" so you can see it in "Ongoing" immediately
   {
     id: 'fitness-zumba-live',
     title: 'Morning Zumba Blast',
     category: 'Fitness',
     date: getTodayStr(), 
-    // Setting time to encompass "now" for demonstration purposes
     time: '6:00 AM – 11:59 PM', 
     location: 'Shivba Main Hall',
     imageUrl: 'https://images.pexels.com/photos/3775566/pexels-photo-3775566.jpeg?auto=compress&w=800',
@@ -81,7 +62,6 @@ const INITIAL_EVENTS = [
     highlights: ['Live Instructor', 'Free Water', 'Music System'], 
     attendees: 20
   },
-  // --- UPCOMING EVENTS ---
   {
     id: 'wellness-yoga-camp',
     title: 'Weekend Yoga Camp',
@@ -106,7 +86,6 @@ const INITIAL_EVENTS = [
     highlights: ['Expert Panel', 'Q&A Session', 'Free Resources'],
     attendees: 120
   },
-  // --- PAST EVENT EXAMPLE ---
   {
     id: 'past-marathon',
     title: 'Annual Shivba Marathon',
@@ -122,29 +101,38 @@ const INITIAL_EVENTS = [
   },
 ];
 
+// --- 2. ANIMATION VARIANTS ---
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+};
+
+const modalVariants = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: { opacity: 1, scale: 1, transition: { type: "spring", duration: 0.5 } },
+  exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } }
+};
+
 function EventsPage({ setPage, setSelectedEvent }) {
   const [events, setEvents] = useState(INITIAL_EVENTS);
   const [activeCategory, setActiveCategory] = useState('All');
-  
-  // Registration Persistence State
   const [registeredEventIds, setRegisteredEventIds] = useState([]);
-
-  // Modal States
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEndedModal, setShowEndedModal] = useState(false);
   const [selectedEndedEvent, setSelectedEndedEvent] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false); 
-
-  // --- 2. NEW STATE: CURRENT TIME TICKER ---
   const [now, setNow] = useState(new Date());
-
   const [newEvent, setNewEvent] = useState({
     title: '', category: 'Wellness', date: '', time: '', location: '', imageUrl: '', shortDescription: '', notifyUsers: false 
   });
 
   const isLoggedIn = !!localStorage.getItem('shivba_user_email');
 
-  // --- Load Registered Events ---
   useEffect(() => {
     try {
         const stored = JSON.parse(localStorage.getItem('shivba_registrations') || '[]');
@@ -152,16 +140,11 @@ function EventsPage({ setPage, setSelectedEvent }) {
     } catch (e) { console.error(e); }
   }, []);
 
-  // --- 3. NEW EFFECT: UPDATE TIME EVERY MINUTE ---
   useEffect(() => {
-    const timer = setInterval(() => {
-        setNow(new Date()); // Update "now" every 30 seconds to refresh the UI
-    }, 30000); 
-
+    const timer = setInterval(() => { setNow(new Date()); }, 30000); 
     return () => clearInterval(timer);
   }, []);
 
-  // --- 4. UPDATED MEMO: FILTER BASED ON EXACT TIME ---
   const { ongoingEvents, upcomingEvents, pastEvents } = useMemo(() => {
     let filtered = events;
     if (activeCategory !== 'All') {
@@ -173,29 +156,18 @@ function EventsPage({ setPage, setSelectedEvent }) {
     const past = [];
 
     filtered.forEach(evt => {
-      // Use the new helper with the "now" state
       const status = calculateEventStatus(evt.date, evt.time, now);
-      
-      if (status === 'ongoing') {
-          ongoing.push(evt);
-      } else if (status === 'upcoming') {
-          upcoming.push(evt);
-      } else {
-          past.push(evt);
-      }
+      if (status === 'ongoing') ongoing.push(evt);
+      else if (status === 'upcoming') upcoming.push(evt);
+      else past.push(evt);
     });
 
-    // Sorting
     ongoing.sort((a, b) => new Date(a.date) - new Date(b.date)); 
     upcoming.sort((a, b) => new Date(a.date) - new Date(b.date)); 
     past.sort((a, b) => new Date(b.date) - new Date(a.date)); 
 
-    return { 
-        ongoingEvents: ongoing, 
-        upcomingEvents: upcoming, 
-        pastEvents: past 
-    };
-  }, [events, activeCategory, now]); // Added 'now' to dependencies
+    return { ongoingEvents: ongoing, upcomingEvents: upcoming, pastEvents: past };
+  }, [events, activeCategory, now]);
 
   const handleAddClick = () => {
     if (isLoggedIn) {
@@ -224,10 +196,8 @@ function EventsPage({ setPage, setSelectedEvent }) {
   const handleAddEvent = async (e) => {
     e.preventDefault();
     if (!newEvent.title || !newEvent.date || !newEvent.imageUrl) return;
-    
-    // VALIDATION: Ensure time format is correct for our parser
     if (!newEvent.time.includes('-') && !newEvent.time.includes('–')) {
-        alert("Please use the time format: 'Start – End' (e.g., 6:00 PM – 7:00 PM) so we can track when it ends.");
+        alert("Please use the time format: 'Start – End' (e.g., 6:00 PM – 7:00 PM)");
         return;
     }
 
@@ -235,7 +205,6 @@ function EventsPage({ setPage, setSelectedEvent }) {
     try {
         const id = newEvent.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now().toString(36);
         if (newEvent.notifyUsers) {
-            console.log("📨 Sending notifications...");
             await new Promise(resolve => setTimeout(resolve, 1500)); 
             alert(`Success! Event published and notifications sent.`);
         }
@@ -260,18 +229,12 @@ function EventsPage({ setPage, setSelectedEvent }) {
 
   const renderEventButton = (event, isOngoing = false) => {
     const isRegistered = registeredEventIds.includes(event.id);
-
     if (isRegistered) {
-        return (
-            <button className="event-register-btn registered" disabled>
-               ✓ Registered
-            </button>
-        );
+        return <button className="event-btn registered" disabled>✓ Registered</button>;
     }
-
     return (
         <button
-            className={`event-register-btn ${isOngoing ? 'pulse-btn' : ''}`}
+            className={`event-btn ${isOngoing ? 'pulse-btn' : ''}`}
             onClick={() => handleRegisterClick(event)}
         >
             {isOngoing ? 'Join Now' : 'Register Now'}
@@ -280,211 +243,348 @@ function EventsPage({ setPage, setSelectedEvent }) {
   };
 
   return (
-    <div className="animate-fadeIn min-h-screen bg-gray-50">
+    <motion.div 
+      className="events-container"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
+      {/* --- INJECTED CSS --- */}
       <style>{`
-        .past-event-card { opacity: 0.85; filter: grayscale(30%); transition: all 0.3s ease; }
-        .past-event-card:hover { opacity: 1; filter: grayscale(0%); transform: translateY(-5px); }
-        .badge-ended { background-color: #6b7280; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
-        .badge-ongoing { background-color: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; animation: pulse 2s infinite; }
-        
-        .event-register-btn.registered { background-color: #10b981; border-color: #10b981; color: white; cursor: default; }
-        .event-register-btn.pulse-btn { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0.7); animation: pulse-shadow 2s infinite; }
+        /* 1. Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;500;600&display=swap');
 
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
-        @keyframes pulse-shadow { 
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(234, 88, 12, 0.7); } 
-            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(234, 88, 12, 0); } 
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(234, 88, 12, 0); } 
+        /* 2. Global Type */
+        .events-container h1, 
+        .events-container h2,
+        .events-container h3,
+        .gallery-modal h2 {
+            font-family: 'Cinzel', serif !important;
+            letter-spacing: 0.05em;
         }
 
-        .event-highlights-list { list-style: none; padding: 0; margin: 15px 0; }
-        .event-highlights-list li { padding: 5px 0; border-bottom: 1px solid #eee; font-size: 0.95rem; color: #555; }
-        .event-highlights-list li:before { content: '✓'; color: #10b981; margin-right: 10px; font-weight: bold; }
-        .file-upload-wrapper { border: 2px dashed #ccc; padding: 20px; text-align: center; border-radius: 8px; cursor: pointer; background: #fafafa; margin-top: 5px; }
-        .file-upload-wrapper:hover { border-color: #f97316; background: #fff7ed; }
-        .image-preview { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-top: 10px; border: 1px solid #ddd; }
+        .events-container p, 
+        .events-container span, 
+        .events-container button, 
+        .events-container label, 
+        .events-container input,
+        .gallery-filter-chip {
+            font-family: 'Montserrat', sans-serif !important;
+        }
+
+        /* 3. Hero */
+        .events-hero {
+            padding: 4rem 2rem;
+            text-align: center;
+            background: #1a1a1a;
+            color: white;
+            margin-bottom: 2rem;
+        }
+        .events-hero h1 { font-size: 3rem; margin-bottom: 0.5rem; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .events-hero p { font-size: 1.1rem; color: #ccc; max-width: 600px; margin: 0 auto; }
+
+        /* 4. Toolbar */
+        .gallery-toolbar {
+            padding: 1rem 2rem;
+            max-width: 1200px; margin: 0 auto 2rem;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 1rem;
+        }
+        .gallery-filters { display: flex; gap: 10px; flex-wrap: wrap; }
+        .gallery-filter-chip {
+            padding: 8px 16px; border-radius: 20px; border: 1px solid #ddd;
+            background: white; cursor: pointer; transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        .gallery-filter-chip.active, .gallery-filter-chip:hover {
+            background: #1a1a1a; color: white; border-color: #1a1a1a;
+        }
+        body.dark-mode .gallery-filter-chip { background: #333; color: #ccc; border-color: #444; }
+        body.dark-mode .gallery-filter-chip.active { background: #FFA500; color: #000; }
+
+        .add-event-btn {
+            background: #FFA500; color: white; border: none; padding: 10px 20px;
+            border-radius: 8px; font-weight: 600; cursor: pointer; text-transform: uppercase;
+            font-size: 0.85rem; letter-spacing: 0.05em; transition: transform 0.2s;
+        }
+        .add-event-btn:hover { transform: translateY(-2px); }
+
+        /* 5. Grid Layout */
+        .events-section { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+        .events-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
         
-        .notify-checkbox-wrapper { display: flex; align-items: center; gap: 10px; background: #eef2ff; padding: 15px; border-radius: 8px; border: 1px solid #c7d2fe; margin-top: 15px; }
-        .notify-checkbox-wrapper input[type="checkbox"] { width: 20px; height: 20px; accent-color: #4f46e5; }
+        /* 6. Event Card */
+        .event-card {
+            background: white; border-radius: 12px; overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex; flex-direction: column; height: 100%;
+        }
+        .event-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+        
+        body.dark-mode .event-card { background: #1e1e1e; border: 1px solid #333; }
+
+        .event-image { height: 200px; width: 100%; object-fit: cover; }
+        .event-body { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; }
+        
+        .event-meta { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.8rem; color: #666; }
+        .event-category { background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-weight: 600; text-transform: uppercase; }
+        
+        .event-card h3 { font-size: 1.4rem; margin-bottom: 0.5rem; color: #1a1a1a; }
+        body.dark-mode .event-card h3 { color: #fff; }
+        
+        .event-location { font-size: 0.9rem; color: #888; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+        .event-desc { font-size: 0.95rem; color: #555; margin-bottom: 1.5rem; flex: 1; line-height: 1.5; }
+        body.dark-mode .event-desc { color: #aaa; }
+
+        .event-btn {
+            width: 100%; padding: 12px; border: none; border-radius: 6px;
+            background: #1a1a1a; color: white; font-weight: 600; cursor: pointer;
+            text-transform: uppercase; letter-spacing: 0.05em; transition: background 0.3s;
+        }
+        .event-btn:hover { background: #FFA500; color: black; }
+        .event-btn.registered { background: #10b981; cursor: default; color: white; }
+        .event-btn.pulse-btn { 
+            background: #ef4444; animation: pulse-shadow 2s infinite; 
+        }
+        @keyframes pulse-shadow {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        /* 7. Badges */
+        .badge-live { 
+            background: #ef4444; color: white; padding: 4px 10px; 
+            border-radius: 20px; font-size: 0.7rem; font-weight: bold; 
+            text-transform: uppercase; animation: pulse 2s infinite; 
+        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        .badge-ended {
+            background: #6b7280; color: white; padding: 4px 8px;
+            border-radius: 4px; font-size: 0.7rem; font-weight: bold;
+            text-transform: uppercase;
+        }
+        .past-card { opacity: 0.8; filter: grayscale(0.5); }
+        .past-card:hover { opacity: 1; filter: grayscale(0); }
+
+        /* 8. Modal Styles */
+        .modal-backdrop {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+            display: flex; align-items: center; justify-content: center; z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        .gallery-modal {
+            background: white; width: 90%; max-width: 500px; padding: 2rem;
+            border-radius: 16px; position: relative; max-height: 90vh; overflow-y: auto;
+        }
+        body.dark-mode .gallery-modal { background: #1e1e1e; color: white; }
+        
+        .gallery-modal input, .gallery-modal select {
+            width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px;
+            border: 1px solid #ddd; border-radius: 6px;
+        }
+        .gallery-modal label { font-size: 0.9rem; font-weight: 600; display: block; }
+        
+        /* 9. CTA */
+        .events-cta {
+            background: #f9fafb; padding: 4rem 2rem; text-align: center; margin-top: 4rem;
+        }
+        body.dark-mode .events-cta { background: #111; }
       `}</style>
 
-      {/* Hero */}
-      <section className="contact-hero">
-        <div className="contact-hero-inner">
+      {/* --- HERO --- */}
+      <section className="events-hero">
+        <motion.div variants={cardVariants} initial="hidden" animate="visible">
           <h1>Events & Workshops</h1>
           <p>Join us for upcoming gatherings or browse our successful past events.</p>
-        </div>
+        </motion.div>
       </section>
 
-      <section className="gallery-toolbar">
-        <div className="gallery-toolbar-inner">
-          <div className="gallery-filters">
-            {EVENT_CATEGORIES.map((cat) => (
-              <button key={cat} className={'gallery-filter-chip' + (activeCategory === cat ? ' active' : '')} onClick={() => setActiveCategory(cat)}>{cat}</button>
-            ))}
-          </div>
-          <button className="gallery-add-btn" onClick={handleAddClick}>
-            {isLoggedIn ? '+ Add Event' : '🔒 Add Event'}
-          </button>
+      {/* --- TOOLBAR --- */}
+      <div className="gallery-toolbar">
+        <div className="gallery-filters">
+          {EVENT_CATEGORIES.map((cat) => (
+            <button 
+                key={cat} 
+                className={`gallery-filter-chip ${activeCategory === cat ? 'active' : ''}`} 
+                onClick={() => setActiveCategory(cat)}
+            >
+                {cat}
+            </button>
+          ))}
         </div>
-      </section>
+        <button className="add-event-btn" onClick={handleAddClick}>
+          {isLoggedIn ? '+ Add Event' : '🔒 Add Event'}
+        </button>
+      </div>
 
-      {/* --- SECTION 1: ONGOING EVENTS --- */}
+      {/* --- ONGOING EVENTS --- */}
       {ongoingEvents.length > 0 && (
-        <section className="events-grid-section" style={{background: '#fff7ed'}}>
-            <div className="events-grid-inner">
-                <div style={{display:'flex', alignItems:'center', gap:'10px', marginBottom:'1.5rem'}}>
-                    <h2 className="text-2xl font-bold border-l-4 border-red-500 pl-3 m-0">Happening Now</h2>
-                    <span className="badge-ongoing">LIVE</span>
-                </div>
-                
-                <div className="events-grid">
+        <section className="events-section" style={{ background: '#fff7ed', borderRadius: '16px', marginBottom: '2rem' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:'15px', marginBottom:'1.5rem' }}>
+                <h2 style={{ fontSize: '1.8rem', color: '#ea580c', margin: 0 }}>Happening Now</h2>
+                <span className="badge-live">LIVE</span>
+            </div>
+            <motion.div className="events-grid" variants={containerVariants} initial="hidden" animate="visible">
                 {ongoingEvents.map((event) => (
-                    <article key={event.id} className="event-card" style={{border: '2px solid #ef4444'}}>
-                    <div className="event-card-image"><img src={event.imageUrl} alt={event.title} loading="lazy" /></div>
-                    <div className="event-card-body">
-                        <div className="event-card-header-row">
-                        <span className="gallery-tag">{event.category}</span>
-                        <span className="event-date-pill" style={{color:'#ef4444', fontWeight:'bold'}}>TODAY • {event.time}</span>
+                    <motion.article key={event.id} className="event-card" style={{ border: '2px solid #ef4444' }} variants={cardVariants}>
+                        <img src={event.imageUrl} alt={event.title} className="event-image" />
+                        <div className="event-body">
+                            <div className="event-meta">
+                                <span className="event-category">{event.category}</span>
+                                <span style={{ color: '#ef4444', fontWeight: 'bold' }}>Ends: {event.time.split('–')[1] || 'Soon'}</span>
+                            </div>
+                            <h3>{event.title}</h3>
+                            <p className="event-location">📍 {event.location}</p>
+                            <p className="event-desc">{event.shortDescription}</p>
+                            {renderEventButton(event, true)}
                         </div>
-                        <h3>{event.title}</h3>
-                        <p className="event-location">📍 {event.location}</p>
-                        <p className="event-desc">{event.shortDescription}</p>
-                        {renderEventButton(event, true)}
-                    </div>
+                    </motion.article>
+                ))}
+            </motion.div>
+        </section>
+      )}
+
+      {/* --- UPCOMING EVENTS --- */}
+      <section className="events-section">
+        <h2 style={{ fontSize: '2rem', marginBottom: '1.5rem', borderLeft: '5px solid #1a1a1a', paddingLeft: '15px' }}>Upcoming Events</h2>
+        {upcomingEvents.length === 0 ? (
+            <p style={{ color: '#888', fontStyle: 'italic' }}>No upcoming events currently scheduled.</p>
+        ) : (
+            <motion.div className="events-grid" variants={containerVariants} initial="hidden" animate="visible">
+                {upcomingEvents.map((event) => (
+                    <motion.article key={event.id} className="event-card" variants={cardVariants}>
+                        <img src={event.imageUrl} alt={event.title} className="event-image" />
+                        <div className="event-body">
+                            <div className="event-meta">
+                                <span className="event-category">{event.category}</span>
+                                <span>{event.date}</span>
+                            </div>
+                            <h3>{event.title}</h3>
+                            <p className="event-location">📍 {event.location} • {event.time}</p>
+                            <p className="event-desc">{event.shortDescription}</p>
+                            {renderEventButton(event, false)}
+                        </div>
+                    </motion.article>
+                ))}
+            </motion.div>
+        )}
+      </section>
+
+      {/* --- PAST EVENTS --- */}
+      {pastEvents.length > 0 && (
+        <section className="events-section" style={{ borderTop: '1px solid #eee', paddingTop: '3rem' }}>
+            <h2 style={{ fontSize: '1.8rem', marginBottom: '1.5rem', color: '#666' }}>Past Events</h2>
+            <div className="events-grid">
+                {pastEvents.map((event) => (
+                    <article key={event.id} className="event-card past-card">
+                        <div style={{ position: 'relative' }}>
+                            <img src={event.imageUrl} alt={event.title} className="event-image" />
+                            <div style={{ position: 'absolute', top: 10, right: 10, background: 'rgba(0,0,0,0.6)', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold' }}>ENDED</div>
+                        </div>
+                        <div className="event-body">
+                            <div className="event-meta">
+                                <span className="event-category">{event.category}</span>
+                                <span>{event.date}</span>
+                            </div>
+                            <h3 style={{ color: '#666' }}>{event.title}</h3>
+                            <p className="event-desc">{event.shortDescription}</p>
+                            <button className="event-btn" style={{ background: 'transparent', color: '#1a1a1a', border: '1px solid #ddd' }} onClick={() => handlePastEventClick(event)}>
+                                View Summary
+                            </button>
+                        </div>
                     </article>
                 ))}
-                </div>
             </div>
         </section>
       )}
 
-      {/* --- SECTION 2: UPCOMING EVENTS --- */}
-      <section className="events-grid-section">
-        <div className="events-grid-inner">
-          <h2 className="text-2xl font-bold mb-6 border-l-4 border-orange-500 pl-3">Upcoming Events</h2>
-          {upcomingEvents.length === 0 ? (
-            <div className="gallery-empty">No upcoming events scheduled.</div>
-          ) : (
-            <div className="events-grid">
-              {upcomingEvents.map((event) => (
-                <article key={event.id} className="event-card">
-                  <div className="event-card-image"><img src={event.imageUrl} alt={event.title} loading="lazy" /></div>
-                  <div className="event-card-body">
-                    <div className="event-card-header-row">
-                      <span className="gallery-tag">{event.category}</span>
-                      <span className="event-date-pill">{event.date} • {event.time}</span>
-                    </div>
-                    <h3>{event.title}</h3>
-                    <p className="event-location">📍 {event.location}</p>
-                    <p className="event-desc">{event.shortDescription}</p>
-                    {renderEventButton(event, false)}
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </div>
+      {/* --- CTA --- */}
+      <section className="events-cta">
+        <h2>Want to Host an Event?</h2>
+        <button className="add-event-btn" style={{ fontSize: '1rem', marginTop: '1rem' }} onClick={handleHostClick}>Get in Touch</button>
       </section>
 
-      {/* --- SECTION 3: PAST EVENTS --- */}
-      {pastEvents.length > 0 && (
-        <section className="events-grid-section bg-gray-100 pt-10 border-t">
-          <div className="events-grid-inner">
-            <h2 className="text-2xl font-bold mb-6 border-l-4 border-gray-500 pl-3 text-gray-700">Past Events</h2>
-            <div className="events-grid">
-              {pastEvents.map((event) => (
-                <article key={event.id} className="event-card past-event-card">
-                  <div className="event-card-image">
-                    <img src={event.imageUrl} alt={event.title} loading="lazy" />
-                    <div style={{position:'absolute', top:'10px', right:'10px', backgroundColor:'rgba(0,0,0,0.6)', color:'white', padding:'4px 8px', borderRadius:'4px', fontSize:'0.8rem', fontWeight:'bold'}}>COMPLETED</div>
-                  </div>
-                  <div className="event-card-body">
-                    <div className="event-card-header-row">
-                      <span className="gallery-tag" style={{backgroundColor:'#9ca3af'}}>{event.category}</span>
-                      <span className="badge-ended">Ended</span>
-                    </div>
-                    <h3 className="text-gray-600">{event.title}</h3>
-                    <p className="event-location text-gray-500">{event.date} • {event.time}</p>
-                    <p className="event-desc text-gray-500">{event.shortDescription}</p>
-                    <button className="event-register-btn" style={{ backgroundColor: '#fff', color: '#333', border: '1px solid #ccc' }} onClick={() => handlePastEventClick(event)}>View Summary</button>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      <section className="home-cta">
-        <div className="home-cta-inner">
-          <h2>Want to Host an Event?</h2>
-          <div className="home-hero-buttons"><button onClick={handleHostClick}>Get in Touch</button></div>
-        </div>
-      </section>
-
-      {/* --- ADD EVENT MODAL --- */}
-      {showAddModal && (
-        <div className="gallery-modal-backdrop" onClick={() => !isSubmitting && setShowAddModal(false)}>
-          <div className="gallery-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Add New Event</h2>
-            <form className="gallery-modal-form" onSubmit={handleAddEvent}>
-              <label>Title <input type="text" name="title" value={newEvent.title} onChange={handleNewEventChange} required disabled={isSubmitting} /></label>
-              <label>Category
-                <select name="category" value={newEvent.category} onChange={handleNewEventChange} disabled={isSubmitting}>
-                  {EVENT_CATEGORIES.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </label>
-              <div style={{display:'flex', gap:'10px'}}>
-                  <label style={{flex:1}}>Date <input type="date" name="date" value={newEvent.date} onChange={handleNewEventChange} required disabled={isSubmitting} /></label>
-                  <label style={{flex:1}}>Time (e.g. 2:00 PM – 3:00 PM) <input type="text" name="time" value={newEvent.time} onChange={handleNewEventChange} placeholder="Start PM – End PM" disabled={isSubmitting} /></label>
-              </div>
-              <label>Location <input type="text" name="location" value={newEvent.location} onChange={handleNewEventChange} disabled={isSubmitting} /></label>
-              <label>Event Image
-                <div className="file-upload-wrapper">
-                    <input type="file" accept="image/*" onChange={handleImageUpload} style={{display: newEvent.imageUrl ? 'none' : 'block'}} required={!newEvent.imageUrl} disabled={isSubmitting} />
-                    {newEvent.imageUrl ? (
-                        <div style={{position: 'relative'}}>
-                            <img src={newEvent.imageUrl} alt="Preview" className="image-preview" />
-                            <button type="button" onClick={() => setNewEvent(prev => ({...prev, imageUrl: ''}))} style={{position: 'absolute', top: '15px', right: '5px', background: 'red', color:'white', border:'none', borderRadius:'50%', width:'25px', height:'25px', cursor:'pointer'}} disabled={isSubmitting}>✕</button>
+      {/* --- ADD MODAL --- */}
+      <AnimatePresence>
+        {showAddModal && (
+            <motion.div className="modal-backdrop" onClick={() => !isSubmitting && setShowAddModal(false)} initial="hidden" animate="visible" exit="exit">
+                <motion.div className="gallery-modal" onClick={e => e.stopPropagation()} variants={modalVariants}>
+                    <h2 style={{ marginBottom: '1.5rem' }}>Publish New Event</h2>
+                    <form onSubmit={handleAddEvent}>
+                        <label>Event Title</label>
+                        <input type="text" name="title" value={newEvent.title} onChange={handleNewEventChange} required disabled={isSubmitting} />
+                        
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <div style={{ flex: 1 }}>
+                                <label>Category</label>
+                                <select name="category" value={newEvent.category} onChange={handleNewEventChange} disabled={isSubmitting}>
+                                    {EVENT_CATEGORIES.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <label>Date</label>
+                                <input type="date" name="date" value={newEvent.date} onChange={handleNewEventChange} required disabled={isSubmitting} />
+                            </div>
                         </div>
-                    ) : (
-                        <span style={{color:'#888', fontSize:'0.9rem'}}>Click to upload photo</span>
-                    )}
-                </div>
-              </label>
-              <label>Description <input type="text" name="shortDescription" value={newEvent.shortDescription} onChange={handleNewEventChange} disabled={isSubmitting} /></label>
-              <div className="notify-checkbox-wrapper">
-                  <input type="checkbox" name="notifyUsers" checked={newEvent.notifyUsers} onChange={handleNewEventChange} disabled={isSubmitting} />
-                  <div><strong style={{color:'#1e1b4b'}}>Notify All Members?</strong><p style={{fontSize:'0.8rem', color:'#6366f1', margin:0}}>Send an email blast to all registered users.</p></div>
-              </div>
-              <div className="gallery-modal-actions">
-                <button type="button" className="outline" onClick={() => setShowAddModal(false)} disabled={isSubmitting}>Cancel</button>
-                <button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Publishing...' : 'Publish Event'}</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
-      {/* --- ENDED EVENT MODAL --- */}
-      {showEndedModal && selectedEndedEvent && (
-        <div className="gallery-modal-backdrop" onClick={() => setShowEndedModal(false)}>
-          <div className="gallery-modal" onClick={(e) => e.stopPropagation()} style={{maxWidth:'600px'}}>
-            <div style={{position: 'relative'}}>
-                <img src={selectedEndedEvent.imageUrl} alt={selectedEndedEvent.title} style={{width:'100%', height:'200px', objectFit:'cover', borderRadius:'8px 8px 0 0', marginBottom:'20px'}} />
-                <button onClick={() => setShowEndedModal(false)} style={{position:'absolute', top:'-10px', right:'-10px', background:'white', border:'none', borderRadius:'50%', width:'30px', height:'30px', cursor:'pointer', boxShadow:'0 2px 5px rgba(0,0,0,0.2)'}}>✕</button>
-            </div>
-            <h2 style={{marginBottom:'5px'}}>{selectedEndedEvent.title}</h2>
-            <div style={{display:'flex', gap:'15px', color:'#666', fontSize:'0.9rem', marginBottom:'20px'}}><span>📅 {selectedEndedEvent.date}</span><span>📍 {selectedEndedEvent.location}</span></div>
-            <p style={{lineHeight:'1.6', color:'#444'}}>{selectedEndedEvent.shortDescription}</p>
-            <div className="gallery-modal-actions" style={{marginTop:'20px'}}>
-              <button onClick={() => setShowEndedModal(false)} style={{width:'100%'}}>Close Summary</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+                        <label>Time (Format: 2:00 PM – 4:00 PM)</label>
+                        <input type="text" name="time" value={newEvent.time} onChange={handleNewEventChange} placeholder="Start PM – End PM" required disabled={isSubmitting} />
+
+                        <label>Location</label>
+                        <input type="text" name="location" value={newEvent.location} onChange={handleNewEventChange} required disabled={isSubmitting} />
+
+                        <label>Image Upload</label>
+                        <input type="file" accept="image/*" onChange={handleImageUpload} style={{ border: '1px dashed #ccc', padding: '20px' }} required={!newEvent.imageUrl} disabled={isSubmitting} />
+                        
+                        <label style={{ marginTop: '10px' }}>Short Description</label>
+                        <input type="text" name="shortDescription" value={newEvent.shortDescription} onChange={handleNewEventChange} required disabled={isSubmitting} />
+
+                        <div style={{ background: '#f0fdf4', padding: '10px', borderRadius: '8px', marginTop: '10px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                            <input type="checkbox" name="notifyUsers" checked={newEvent.notifyUsers} onChange={handleNewEventChange} style={{ width: '20px', margin: 0 }} disabled={isSubmitting} />
+                            <div>
+                                <strong style={{ fontSize: '0.9rem' }}>Notify Members?</strong>
+                                <p style={{ fontSize: '0.75rem', margin: 0, color: '#166534' }}>Send email blast to all users.</p>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                            <button type="button" onClick={() => setShowAddModal(false)} style={{ flex: 1, background: '#eee', color: '#333' }} disabled={isSubmitting}>Cancel</button>
+                            <button type="submit" style={{ flex: 1, background: '#1a1a1a', color: 'white' }} disabled={isSubmitting}>{isSubmitting ? 'Publishing...' : 'Publish'}</button>
+                        </div>
+                    </form>
+                </motion.div>
+            </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* --- PAST EVENT MODAL --- */}
+      <AnimatePresence>
+        {showEndedModal && selectedEndedEvent && (
+            <motion.div className="modal-backdrop" onClick={() => setShowEndedModal(false)} initial="hidden" animate="visible" exit="exit">
+                <motion.div className="gallery-modal" onClick={e => e.stopPropagation()} variants={modalVariants}>
+                    <img src={selectedEndedEvent.imageUrl} alt={selectedEndedEvent.title} style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '8px', marginBottom: '1rem' }} />
+                    <h2>{selectedEndedEvent.title}</h2>
+                    <p style={{ color: '#666', fontSize: '0.9rem', marginBottom: '1rem' }}>Ended on {selectedEndedEvent.date}</p>
+                    <p style={{ lineHeight: '1.6' }}>{selectedEndedEvent.shortDescription}</p>
+                    
+                    <h3 style={{ fontSize: '1rem', marginTop: '1.5rem' }}>Highlights</h3>
+                    <ul style={{ paddingLeft: '20px', color: '#555' }}>
+                        {selectedEndedEvent.highlights && selectedEndedEvent.highlights.map((h, i) => <li key={i}>{h}</li>)}
+                    </ul>
+
+                    <button onClick={() => setShowEndedModal(false)} style={{ width: '100%', background: '#1a1a1a', color: 'white', padding: '12px', borderRadius: '6px', border: 'none', marginTop: '1.5rem', cursor: 'pointer' }}>Close</button>
+                </motion.div>
+            </motion.div>
+        )}
+      </AnimatePresence>
+
+    </motion.div>
   );
 }
 

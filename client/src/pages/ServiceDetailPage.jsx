@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion'; 
 
-// --- 2. Define Animation Variants ---
-
+// --- 1. ANIMATION VARIANTS (Cinematic) ---
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -15,29 +14,19 @@ const containerVariants = {
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 15 },
+  hidden: { opacity: 0, y: 30 },
   visible: { 
     opacity: 1, 
     y: 0,
-    transition: { type: "spring", stiffness: 100, damping: 12 }
+    transition: { type: "spring", stiffness: 60, damping: 15 }
   }
 };
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 40 },
-  visible: { 
-    opacity: 1, 
-    y: 0,
-    transition: { duration: 0.5, ease: "easeOut" }
-  }
-};
-
-// Slider Animation Variants
 const sliderVariants = {
   enter: (direction) => ({
     x: direction > 0 ? 50 : -50,
     opacity: 0,
-    scale: 0.9
+    scale: 0.95
   }),
   center: {
     zIndex: 1,
@@ -49,116 +38,92 @@ const sliderVariants = {
     zIndex: 0,
     x: direction < 0 ? 50 : -50,
     opacity: 0,
-    scale: 0.9
+    scale: 0.95
   })
 };
 
-// --- Updated Configuration with Images ---
+// --- 2. CONFIGURATION (Same Data, Better Presentation) ---
 const SERVICE_CONFIG = {
   talim: {
-    title: 'Shivba Talim – Fitness Center',
-    subtitle: 'State-of-the-art equipment, expert trainers, and focused workout plans.',
-    image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop',
-    priceLabel: 'Talim Membership',
+    title: 'Shivba Talim',
+    subtitle: 'Forging strength through tradition and modern science.',
+    image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop', // Gym Image
+    priceLabel: 'Membership Plans',
     startingPrice: 1200, 
     plans: [
       { label: '1 Month', price: 1200 },
       { label: '3 Months', price: 3000, recommended: true },
       { label: '6 Months', price: 5500 },
       { label: '1 Year', price: 8000 },
-      { label: '15 Months', price: 12000 },
     ],
     description: [
-      'Modern strength and cardio equipment',
-      'General training guidance',
-      'Traditional & Modern workout fusion'
+      'Access to modern strength & cardio equipment',
+      'General training guidance included',
+      'Fusion of traditional Kusti & modern gym'
     ],
     benefits: [
-      'Improved strength and stamina',
-      'Disciplined fitness routine',
-      'Supportive community of members'
+      'Build authentic strength',
+      'Disciplined routine & community',
+      'Expert guidance available'
     ]
   },
   library: {
     title: 'Shivba Library',
-    subtitle: 'Books, digital resources, and quiet spaces for deep work.',
-    image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=1528&auto=format&fit=crop',
-    priceLabel: 'Library Membership',
+    subtitle: 'A sanctuary for focus, knowledge, and growth.',
+    image: 'https://images.unsplash.com/photo-1507842217121-9e96e44303f0?q=80&w=2070&auto=format&fit=crop', // Library Image
+    priceLabel: 'Library Access',
     startingPrice: 900,
     plans: [
       { label: '1 Month', price: 900 },
       { label: '3 Months', price: 2500, recommended: true },
       { label: '6 Months', price: 5000 },
       { label: '1 Year', price: 7000 },
-      { label: '15 Months', price: 8000 },
     ],
     description: [
       'Extensive physical book collection',
-      'Digital resources and newspapers',
-      'Dedicated silent reading hall'
+      'High-speed WiFi & digital resources',
+      'Dedicated silent reading zones'
     ],
     benefits: [
-      'Better concentration and knowledge',
-      'Academic and competitive exam support',
-      'Comfortable seating and lighting'
-    ]
-  },
-  personal_training: {
-    title: 'Personal Training',
-    subtitle: 'One-on-one coaching for maximum results.',
-    image: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=1470&auto=format&fit=crop',
-    priceLabel: 'Personal Training',
-    startingPrice: 6000,
-    plans: [
-      { label: '1 Month', price: 6000 },
-      { label: '2 Months', price: 10000 },
-      { label: '3 Months', price: 12000, recommended: true },
-    ],
-    description: [
-        'Customized diet plans',
-        '1-on-1 workout attention',
-        'Weekly progress tracking'
-    ],
-    benefits: [
-        'Faster results',
-        'Injury prevention',
-        'Personalized motivation'
+      'Uninterrupted focus',
+      'Competitive exam preparation support',
+      'Ergonomic seating & lighting'
     ]
   },
   hostel: {
-    title: 'Shivba Hostel Room',
-    subtitle: 'Safe, clean accommodation for focused study and growth.',
-    image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?q=80&w=1469&auto=format&fit=crop',
-    priceLabel: 'Hostel Monthly Fee',
+    title: 'Shivba Hostel',
+    subtitle: 'Safe, secure, and community-driven accommodation.',
+    image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?q=80&w=1469&auto=format&fit=crop', // Hostel Image
+    priceLabel: 'Monthly Rent',
     startingPrice: 2499,
-    plans: null, // No specific array, will fallback to startingPrice logic
+    plans: null, // Single plan fallback
     description: [
-      'Comfortable shared and single rooms',
-      '24×7 security and CCTV',
-      'High‑speed internet and study zones'
+      'Comfortable shared & single options',
+      '24/7 Security & CCTV surveillance',
+      'High-speed internet included'
     ],
     benefits: [
-      'Peaceful environment for students',
-      'Like‑minded roommates',
-      'Easy access to Talim and Library'
+      'Peaceful study environment',
+      'Network with like-minded peers',
+      'Proximity to Library & Talim'
     ]
   },
   social: {
-    title: 'Social Awareness Program',
-    subtitle: 'Workshops, events, and initiatives that build a better society.',
-    image: 'https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?q=80&w=1470&auto=format&fit=crop',
-    priceLabel: 'Program Support',
+    title: 'Social Awareness',
+    subtitle: 'Building a better society through action and education.',
+    image: 'https://images.unsplash.com/photo-1544027993-37dbfe43562a?q=80&w=1470&auto=format&fit=crop', // Social Image
+    priceLabel: 'Contribution',
     startingPrice: 299,
     plans: null, 
     description: [
       'Weekly awareness workshops',
-      'Community development projects',
-      'Youth leadership and soft skills'
+      'Community clean-up & aid drives',
+      'Youth leadership development'
     ],
     benefits: [
-      'Improved social awareness',
-      'Real‑world impact opportunities',
-      'Networking with mentors and peers'
+      'Real-world impact',
+      'Develop soft skills & leadership',
+      'Certificate of participation'
     ]
   }
 };
@@ -166,8 +131,7 @@ const SERVICE_CONFIG = {
 function ServiceDetailPage({ serviceId = 'talim', setPage }) {
   const cfg = SERVICE_CONFIG[serviceId] || SERVICE_CONFIG.talim;
   
-  // --- SLIDER LOGIC ---
-  // Normalize plans: if no plans array, create a single 'default' plan
+  // Slider Logic
   const plans = cfg.plans && cfg.plans.length > 0 
     ? cfg.plans 
     : [{ label: 'Standard Plan', price: cfg.startingPrice }];
@@ -190,28 +154,152 @@ function ServiceDetailPage({ serviceId = 'talim', setPage }) {
   const handlePayNow = () => {
     setPage({
       name: 'service-checkout',
-      params: { 
-        id: serviceId,
-        selectedPlanIndex: activeIndex // Pass preference to checkout
-      }
+      params: { id: serviceId, selectedPlanIndex: activeIndex }
     });
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16 overflow-hidden">
-      
-      {/* Hero Section */}
+    <motion.div 
+      className="service-detail-container"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
+      {/* --- INJECTED CSS --- */}
+      <style>{`
+        /* 1. Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;500;600&display=swap');
+
+        /* 2. Typography */
+        .service-detail-container h1, 
+        .service-detail-container h2,
+        .service-detail-container h3,
+        .price-amount {
+            font-family: 'Cinzel', serif !important;
+            letter-spacing: 0.05em;
+        }
+
+        .service-detail-container p, 
+        .service-detail-container li, 
+        .service-detail-container button,
+        .price-label {
+            font-family: 'Montserrat', sans-serif !important;
+        }
+
+        /* 3. Hero */
+        .service-detail-hero {
+            position: relative;
+            padding: 4rem 2rem;
+            text-align: center;
+            background: #1a1a1a;
+            color: white;
+            overflow: hidden;
+        }
+        .service-detail-back {
+            background: none; border: none; color: #aaa; 
+            cursor: pointer; text-transform: uppercase; letter-spacing: 0.1em;
+            font-size: 0.8rem; margin-bottom: 1rem; transition: color 0.3s;
+        }
+        .service-detail-back:hover { color: #FFA500; }
+        .service-detail-hero h1 { font-size: 3rem; margin-bottom: 0.5rem; color: #fff; }
+        .service-detail-hero p { font-size: 1.1rem; color: #ccc; max-width: 600px; margin: 0 auto; }
+
+        /* 4. Layout */
+        .service-detail-grid {
+            max-width: 1100px;
+            margin: -50px auto 50px; /* Overlap Hero */
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 2rem;
+            padding: 0 20px;
+            position: relative;
+            z-index: 10;
+        }
+        @media (max-width: 800px) {
+            .service-detail-grid { grid-template-columns: 1fr; margin-top: 2rem; }
+        }
+
+        /* 5. Cards */
+        .service-detail-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        body.dark-mode .service-detail-card {
+            background: #1e1e1e; border-color: #333;
+        }
+
+        /* 6. Content Styling */
+        .service-detail-image-wrapper {
+            border-radius: 12px; overflow: hidden; margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .service-detail-image {
+            width: 100%; height: 350px; object-fit: cover;
+            transition: transform 0.5s;
+        }
+        .service-detail-image:hover { transform: scale(1.03); }
+
+        .service-list { list-style: none; padding: 0; margin-bottom: 2rem; }
+        .service-list li {
+            margin-bottom: 0.8rem; color: #444; display: flex; align-items: flex-start; gap: 10px;
+        }
+        body.dark-mode .service-list li { color: #ccc; }
+
+        /* 7. Pricing Slider */
+        .pricing-slider-container {
+            position: relative; height: 180px; 
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+        .pricing-card {
+            position: absolute; width: 100%; height: 100%;
+            background: #fff7ed; border: 2px solid #ffedd5;
+            border-radius: 16px;
+            display: flex; flexDirection: column; align-items: center; justify-content: center;
+            box-shadow: 0 10px 20px rgba(234, 88, 12, 0.1);
+        }
+        body.dark-mode .pricing-card {
+            background: #2a1c15; border-color: #5a3a2a;
+        }
+        
+        .arrow-btn {
+            position: absolute; z-index: 20;
+            background: rgba(0,0,0,0.05); border: none; border-radius: 50%;
+            width: 36px; height: 36px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .arrow-btn:hover { background: #FFA500; color: white; }
+        .arrow-left { left: -10px; }
+        .arrow-right { right: -10px; }
+
+        /* 8. Action Buttons */
+        .pay-btn {
+            width: 100%; padding: 14px;
+            background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+            color: white; border: none; border-radius: 8px;
+            font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;
+            cursor: pointer; margin-bottom: 10px;
+            box-shadow: 0 4px 15px rgba(234, 88, 12, 0.4);
+        }
+        .secondary-btn {
+            width: 100%; padding: 12px;
+            background: transparent; color: #666;
+            border: 1px solid #ddd; border-radius: 8px;
+            cursor: pointer; font-size: 0.9rem;
+        }
+        body.dark-mode .secondary-btn { color: #aaa; border-color: #444; }
+        body.dark-mode .secondary-btn:hover { border-color: #fff; color: #fff; }
+
+      `}</style>
+
+      {/* --- HERO SECTION --- */}
       <section className="service-detail-hero">
-        <motion.div 
-          className="service-detail-hero-inner"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <button
-            className="service-detail-back"
-            onClick={() => setPage({ name: 'services' })}
-          >
+        <motion.div variants={itemVariants}>
+          <button className="service-detail-back" onClick={() => setPage({ name: 'services' })}>
             ← Back to Services
           </button>
           <h1>{cfg.title}</h1>
@@ -222,97 +310,44 @@ function ServiceDetailPage({ serviceId = 'talim', setPage }) {
       <section className="service-detail-main">
         <div className="service-detail-grid">
           
-          {/* Left Card: Image + Information & Staggered Lists */}
+          {/* --- LEFT CARD: INFO --- */}
           <motion.div 
             className="service-detail-card"
-            variants={cardVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
+            variants={itemVariants}
           >
-            {/* Content Image Section */}
-            <motion.div 
-              className="service-detail-image-wrapper"
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-              style={{ marginBottom: '2rem', borderRadius: '12px', overflow: 'hidden' }}
-            >
-              <img 
-                src={cfg.image} 
-                alt={cfg.title} 
-                style={{ 
-                  width: '100%', 
-                  height: '300px', 
-                  objectFit: 'cover',
-                  display: 'block' 
-                }} 
-              />
-            </motion.div>
+            <div className="service-detail-image-wrapper">
+              <img src={cfg.image} alt={cfg.title} className="service-detail-image" />
+            </div>
 
-            <h2>What you get</h2>
-            
-            <motion.ul
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-            >
-              {cfg.description.map((item, index) => (
-                <motion.li key={index} variants={itemVariants}>
-                  • {item}
-                </motion.li>
+            <h2 style={{ fontSize: '1.8rem', marginBottom: '1rem', borderLeft: '4px solid #FFA500', paddingLeft: '15px' }}>What You Get</h2>
+            <ul className="service-list">
+              {cfg.description.map((item, idx) => (
+                <li key={idx}>➜ {item}</li>
               ))}
-            </motion.ul>
+            </ul>
 
-            <h3 style={{ marginTop: '20px' }}>Benefits</h3>
-            
-            <motion.ul
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-            >
-              {cfg.benefits.map((item, index) => (
-                <motion.li key={index} variants={itemVariants}>
-                  • {item}
-                </motion.li>
+            <h3 style={{ fontSize: '1.5rem', marginTop: '2rem', marginBottom: '1rem' }}>Key Benefits</h3>
+            <ul className="service-list">
+              {cfg.benefits.map((item, idx) => (
+                <li key={idx}>★ {item}</li>
               ))}
-            </motion.ul>
+            </ul>
           </motion.div>
 
-          {/* Right Card: Pricing Slider */}
+          {/* --- RIGHT CARD: PRICING --- */}
           <motion.div 
-            className="service-detail-card pricing"
-            variants={cardVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{ delay: 0.2 }}
-            style={{ display: 'flex', flexDirection: 'column', height: 'fit-content' }}
+            className="service-detail-card"
+            style={{ height: 'fit-content', position: 'sticky', top: '100px' }}
+            variants={itemVariants}
           >
-            <h2 style={{ textAlign: 'center', marginBottom: '1.5rem' }}>{cfg.priceLabel}</h2>
+            <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', fontSize: '1.5rem' }}>{cfg.priceLabel}</h2>
             
-            {/* --- SLIDER CONTAINER --- */}
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '180px', marginBottom: '20px' }}>
-              
-              {/* Left Arrow */}
+            <div className="pricing-slider-container">
               {plans.length > 1 && (
-                <button 
-                  onClick={prevPlan}
-                  style={{
-                    position: 'absolute', left: '-10px', zIndex: 10,
-                    background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '50%',
-                    width: '40px', height: '40px', cursor: 'pointer', fontSize: '1.2rem',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                  }}
-                >
-                  ❮
-                </button>
+                <button className="arrow-btn arrow-left" onClick={prevPlan}>❮</button>
               )}
 
-              {/* Animated Slides */}
-              <div style={{ width: '100%', overflow: 'hidden', height: '100%', position: 'relative' }}>
+              <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
                 <AnimatePresence initial={false} custom={direction} mode="wait">
                   <motion.div
                     key={activeIndex}
@@ -321,70 +356,39 @@ function ServiceDetailPage({ serviceId = 'talim', setPage }) {
                     initial="enter"
                     animate="center"
                     exit="exit"
-                    transition={{
-                      x: { type: "spring", stiffness: 300, damping: 30 },
-                      opacity: { duration: 0.2 }
-                    }}
-                    style={{
-                      position: 'absolute', width: '100%', height: '100%',
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                      background: '#fff7ed', borderRadius: '16px', border: '2px solid #ffedd5'
-                    }}
+                    transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
+                    className="pricing-card"
                   >
                     {currentPlan.recommended && (
                       <span style={{ 
                         position: 'absolute', top: '10px', 
                         background: '#10b981', color: 'white', 
-                        fontSize: '0.7rem', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' 
+                        fontSize: '0.7rem', padding: '4px 10px', borderRadius: '20px', fontWeight: 'bold' 
                       }}>
                         BEST VALUE
                       </span>
                     )}
-                    
-                    <h3 style={{ fontSize: '1.2rem', color: '#666', marginBottom: '0.5rem' }}>
-                      {currentPlan.label}
-                    </h3>
-                    <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#ea580c' }}>
-                      ₹{currentPlan.price}
-                    </div>
-                    {plans.length > 1 && (
-                      <span style={{ fontSize: '0.8rem', color: '#999', marginTop: '5px' }}>
-                        Plan {activeIndex + 1} of {plans.length}
-                      </span>
-                    )}
+                    <div className="price-label" style={{ fontSize: '1.2rem', color: '#888', marginBottom: '0.5rem' }}>{currentPlan.label}</div>
+                    <div className="price-amount" style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#ea580c' }}>₹{currentPlan.price}</div>
                   </motion.div>
                 </AnimatePresence>
               </div>
 
-              {/* Right Arrow */}
               {plans.length > 1 && (
-                <button 
-                  onClick={nextPlan}
-                  style={{
-                    position: 'absolute', right: '-10px', zIndex: 10,
-                    background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '50%',
-                    width: '40px', height: '40px', cursor: 'pointer', fontSize: '1.2rem',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                  }}
-                >
-                  ❯
-                </button>
+                <button className="arrow-btn arrow-right" onClick={nextPlan}>❯</button>
               )}
             </div>
-            
-            {/* Dots Indicator */}
+
+            {/* Dots */}
             {plans.length > 1 && (
               <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '20px' }}>
                 {plans.map((_, idx) => (
                   <div 
                     key={idx}
-                    onClick={() => {
-                        setDirection(idx > activeIndex ? 1 : -1);
-                        setActiveIndex(idx);
-                    }}
+                    onClick={() => { setDirection(idx > activeIndex ? 1 : -1); setActiveIndex(idx); }}
                     style={{
                       width: '8px', height: '8px', borderRadius: '50%', cursor: 'pointer',
-                      backgroundColor: idx === activeIndex ? '#ea580c' : '#e5e7eb',
+                      backgroundColor: idx === activeIndex ? '#ea580c' : '#ccc',
                       transition: 'background-color 0.3s'
                     }}
                   />
@@ -392,24 +396,22 @@ function ServiceDetailPage({ serviceId = 'talim', setPage }) {
               </div>
             )}
 
-            <p className="service-detail-note" style={{ textAlign: 'center', marginBottom: '20px' }}>
+            <p style={{ textAlign: 'center', fontSize: '0.8rem', color: '#999', marginBottom: '1rem' }}>
               Secure online payment powered by Razorpay.
             </p>
-            
+
             <motion.button 
-              className="service-detail-pay-btn" 
+              className="pay-btn" 
               onClick={handlePayNow}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
               Proceed to Pay ₹{currentPlan.price}
             </motion.button>
             
             <button
-              className="service-detail-secondary-btn"
-              onClick={() =>
-                setPage({ name: 'register', params: { serviceId: serviceId } })
-              }
+              className="secondary-btn"
+              onClick={() => setPage({ name: 'register', params: { serviceId: serviceId } })}
             >
               Register Interest Instead
             </button>
@@ -417,7 +419,7 @@ function ServiceDetailPage({ serviceId = 'talim', setPage }) {
 
         </div>
       </section>
-    </div>
+    </motion.div>
   );
 }
 

@@ -1,5 +1,25 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { API_BASE_URL } from '../config';
+
+// --- 1. ANIMATION VARIANTS ---
+const containerVariants = {
+  hidden: { opacity: 0, x: -20 },
+  visible: { 
+    opacity: 1, 
+    x: 0,
+    transition: { duration: 0.6, staggerChildren: 0.1 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, x: -20 },
+  visible: { 
+    opacity: 1, 
+    x: 0,
+    transition: { type: "spring", stiffness: 50 } 
+  }
+};
 
 function RegisterPage({ setPage, setModalState }) {
   const [formData, setFormData] = useState({
@@ -8,7 +28,7 @@ function RegisterPage({ setPage, setModalState }) {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Instant Validation
+  // Instant Validation Logic
   const p = formData.password;
   const passwordCriteria = {
       length: p.length >= 8,
@@ -27,7 +47,7 @@ function RegisterPage({ setPage, setModalState }) {
     e.preventDefault();
     
     if (!allCriteriaMet) {
-        setModalState({ show: true, title: 'Weak Password', message: 'Please meet all requirements.', type: 'error' });
+        setModalState({ show: true, title: 'Weak Password', message: 'Please meet all password requirements.', type: 'error' });
         return;
     }
     if (formData.password !== formData.confirmPassword) {
@@ -45,7 +65,6 @@ function RegisterPage({ setPage, setModalState }) {
           password: formData.password
       };
 
-      // 1. Send Request
       const res = await fetch(`${API_BASE_URL}/api/register-interest-simple`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -54,103 +73,217 @@ function RegisterPage({ setPage, setModalState }) {
 
       const data = await res.json();
 
-      // 2. Handle Errors
-      if (!res.ok) {
-        throw new Error(data.message || 'Registration failed.');
-      }
+      if (!res.ok) throw new Error(data.message || 'Registration failed.');
 
-      // 3. SUCCESS - Redirect Logic
-      // We show the modal, but we navigate immediately in the background
+      // Success
       setModalState({
         show: true,
-        title: '🚀 Success!',
-        message: `Code sent to ${data.email}. Redirecting...`,
+        title: '🚀 Code Sent!',
+        message: `Verification code sent to ${data.email}. Check your inbox!`,
         type: 'success'
       });
 
-      // Clear form
       setFormData({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
 
-      // FORCE NAVIGATION after 1 second (gives user time to read "Success")
+      // Navigate after short delay
       setTimeout(() => {
-          setModalState(prev => ({ ...prev, show: false })); // Close modal
+          setModalState(prev => ({ ...prev, show: false }));
           setPage({ name: 'verify', params: { email: data.email } });
-      }, 1000);
+      }, 1500);
 
     } catch (error) {
-      setModalState({
-        show: true,
-        title: '❌ Failed',
-        message: error.message,
-        type: 'error'
-      });
+      setModalState({ show: true, title: '❌ Failed', message: error.message, type: 'error' });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="animate-fadeIn min-h-screen bg-gray-50 py-16">
-      <div className="register-page-wrapper">
-        <div className="register-card">
-          <h1 className="register-title">Create Account</h1>
-          <form onSubmit={handleSubmit} className="register-form">
-            
-            <div className="register-field">
-              <label>Full Name *</label>
-              <input type="text" name="name" value={formData.name} onChange={handleChange} required />
-            </div>
+    <div className="register-container">
+      {/* --- INJECTED CSS --- */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;500;600&display=swap');
 
-            <div className="register-field">
-              <label>Email Address *</label>
-              <input type="email" name="email" value={formData.email} onChange={handleChange} required />
-            </div>
+        .register-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f3f4f6;
+            font-family: 'Montserrat', sans-serif;
+            padding: 2rem;
+        }
+        body.dark-mode .register-container { background: #111; }
 
-            <div className="register-field">
-              <label>Phone Number *</label>
-              <input type="tel" name="phone" value={formData.phone} onChange={handleChange} required />
-            </div>
+        /* Split Layout */
+        .register-card {
+            display: grid; grid-template-columns: 1fr 1.2fr;
+            width: 100%; max-width: 1000px;
+            background: white; border-radius: 20px; overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            min-height: 600px;
+        }
+        body.dark-mode .register-card { background: #1e1e1e; border: 1px solid #333; }
 
-            <div className="register-field">
-                <label>Password *</label>
-                <input type="password" name="password" value={formData.password} onChange={handleChange} required 
-                   style={{ borderColor: allCriteriaMet ? '#10b981' : '' }} />
-                
-                {/* Simple Checklist */}
-                <div style={{fontSize: '0.75rem', marginTop: '5px', color: '#666', display: 'flex', gap: '10px', flexWrap: 'wrap'}}>
-                   <span style={{color: passwordCriteria.length ? 'green' : '#ccc'}}>8+ Chars</span>
-                   <span style={{color: passwordCriteria.number ? 'green' : '#ccc'}}>Number</span>
-                   <span style={{color: passwordCriteria.upper ? 'green' : '#ccc'}}>Uppercase</span>
-                   <span style={{color: passwordCriteria.special ? 'green' : '#ccc'}}>Symbol</span>
-                </div>
-            </div>
+        @media (max-width: 900px) {
+            .register-card { grid-template-columns: 1fr; }
+            .register-visual { display: none; }
+        }
 
-            <div className="register-field">
-                <label>Confirm Password *</label>
-                <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} required />
-            </div>
+        /* Left Side: Visual */
+        .register-visual {
+            background: url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=2070&auto=format&fit=crop') no-repeat center center/cover;
+            position: relative;
+            display: flex; flex-direction: column; justify-content: flex-end;
+            padding: 3rem; color: white;
+        }
+        .visual-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.3));
+        }
+        .visual-content { position: relative; z-index: 2; }
+        .visual-content h2 {
+            font-family: 'Cinzel', serif; font-size: 2.5rem; margin-bottom: 1rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .visual-content p { font-size: 1.1rem; color: #ddd; line-height: 1.6; }
 
-            <button 
-                type="submit" 
-                disabled={isSubmitting || !allCriteriaMet}
-                style={{ 
-                    marginTop: '20px', 
-                    padding: '12px', 
-                    width: '100%', 
-                    background: isSubmitting ? '#ccc' : '#4f46e5', 
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: '8px',
-                    fontWeight: 'bold',
-                    cursor: isSubmitting ? 'wait' : 'pointer'
-                }}
+        /* Right Side: Form */
+        .register-form-wrapper { padding: 3rem; display: flex; flex-direction: column; justify-content: center; }
+        
+        .register-header h1 {
+            font-family: 'Cinzel', serif; font-size: 2.2rem; color: #1a1a1a; margin-bottom: 0.5rem;
+        }
+        body.dark-mode .register-header h1 { color: white; }
+        .register-header p { color: #666; margin-bottom: 2rem; }
+        body.dark-mode .register-header p { color: #aaa; }
+
+        .reg-input-group { margin-bottom: 1.2rem; position: relative; }
+        .reg-input-group label {
+            display: block; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.05em; color: #666; margin-bottom: 0.5rem;
+        }
+        body.dark-mode .reg-input-group label { color: #aaa; }
+
+        .reg-input {
+            width: 100%; padding: 12px 16px; border: 1px solid #ddd;
+            border-radius: 8px; font-size: 1rem; background: #f9fafb;
+            transition: all 0.3s;
+        }
+        .reg-input:focus {
+            border-color: #FFA500; background: white; outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 165, 0, 0.1);
+        }
+        body.dark-mode .reg-input { background: #2d2d2d; border-color: #444; color: white; }
+        body.dark-mode .reg-input:focus { border-color: #FFA500; background: #222; }
+
+        /* Password Checklist */
+        .pwd-checklist {
+            display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; font-size: 0.75rem;
+        }
+        .check-item {
+            padding: 2px 8px; border-radius: 4px; background: #eee; color: #888; transition: all 0.3s;
+        }
+        .check-item.valid { background: #dcfce7; color: #166534; font-weight: bold; }
+
+        /* Button */
+        .reg-btn {
+            width: 100%; padding: 14px; background: #1a1a1a; color: white;
+            border: none; border-radius: 8px; font-weight: 600; font-size: 1rem;
+            text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer;
+            transition: all 0.3s; margin-top: 1.5rem;
+        }
+        .reg-btn:hover:not(:disabled) { background: #FFA500; color: black; transform: translateY(-2px); }
+        .reg-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        .login-link {
+            text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: #666;
+        }
+        .login-link button {
+            background: none; border: none; color: #FFA500; font-weight: bold; cursor: pointer; text-decoration: underline;
+        }
+
+      `}</style>
+
+      <motion.div 
+        className="register-card"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
+        {/* LEFT: VISUAL */}
+        <div className="register-visual">
+          <div className="visual-overlay"></div>
+          <div className="visual-content">
+            <h2>Start Your Journey</h2>
+            <p>Join a community dedicated to strength, culture, and growth. Your legacy begins here.</p>
+          </div>
+        </div>
+
+        {/* RIGHT: FORM */}
+        <div className="register-form-wrapper">
+          <div className="register-header">
+            <h1>Create Account</h1>
+            <p>Enter your details to register.</p>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            <motion.div className="reg-input-group" variants={itemVariants}>
+              <label>Full Name</label>
+              <input type="text" name="name" className="reg-input" value={formData.name} onChange={handleChange} required placeholder="John Doe" />
+            </motion.div>
+
+            <motion.div className="reg-input-group" variants={itemVariants}>
+              <label>Email Address</label>
+              <input type="email" name="email" className="reg-input" value={formData.email} onChange={handleChange} required placeholder="john@example.com" />
+            </motion.div>
+
+            <motion.div className="reg-input-group" variants={itemVariants}>
+              <label>Phone Number</label>
+              <input type="tel" name="phone" className="reg-input" value={formData.phone} onChange={handleChange} required placeholder="+91 00000 00000" />
+            </motion.div>
+
+            <motion.div className="reg-input-group" variants={itemVariants}>
+              <label>Password</label>
+              <input 
+                type="password" 
+                name="password" 
+                className="reg-input" 
+                value={formData.password} 
+                onChange={handleChange} 
+                required 
+                placeholder="••••••••"
+                style={{ borderColor: allCriteriaMet ? '#10b981' : '' }}
+              />
+              <div className="pwd-checklist">
+                 <span className={`check-item ${passwordCriteria.length ? 'valid' : ''}`}>8+ Chars</span>
+                 <span className={`check-item ${passwordCriteria.number ? 'valid' : ''}`}>Number</span>
+                 <span className={`check-item ${passwordCriteria.upper ? 'valid' : ''}`}>Uppercase</span>
+                 <span className={`check-item ${passwordCriteria.special ? 'valid' : ''}`}>Symbol</span>
+              </div>
+            </motion.div>
+
+            <motion.div className="reg-input-group" variants={itemVariants}>
+              <label>Confirm Password</label>
+              <input type="password" name="confirmPassword" className="reg-input" value={formData.confirmPassword} onChange={handleChange} required placeholder="••••••••" />
+            </motion.div>
+
+            <motion.button 
+              type="submit" 
+              className="reg-btn"
+              disabled={isSubmitting || !allCriteriaMet}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-                {isSubmitting ? 'Processing...' : 'Register & Verify'}
-            </button>
+              {isSubmitting ? 'Processing...' : 'Register & Verify'}
+            </motion.button>
 
+            <div className="login-link">
+              Already have an account? <button type="button" onClick={() => setPage({ name: 'account' })}>Login here</button>
+            </div>
           </form>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

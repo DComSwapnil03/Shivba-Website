@@ -1,4 +1,3 @@
-// src/components/Header.jsx
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher'; 
@@ -7,8 +6,7 @@ function Header({ setPage, activePage }) {
   const [open, setOpen] = useState(false);
   const { t } = useTranslation();
 
-  // Owner button removed — access controlled via backend now
-
+  // Helper to change page and close mobile menu automatically
   const goto = (name) => {
     setPage({ name });
     setOpen(false); 
@@ -20,12 +18,12 @@ function Header({ setPage, activePage }) {
   return (
     <header className="shivba-header">
       <div className="shivba-header-inner">
-        {/* Logo */}
+        {/* 1. Logo */}
         <div className="shivba-logo" onClick={() => goto('home')}>
           SHIVBA
         </div>
 
-        {/* Desktop navigation */}
+        {/* 2. Desktop Navigation (Hidden on Mobile via CSS) */}
         <nav className="shivba-nav">
           <button className={navClass('home')} onClick={() => goto('home')}>
             {t('nav.home')}
@@ -46,16 +44,14 @@ function Header({ setPage, activePage }) {
             {t('nav.faq')}
           </button>
           <button className={navClass('help')} onClick={() => goto('help')}>
-            {t('nav.help')}
+            {t('nav.help') || 'Help'}
           </button>
           <button className={navClass('contact')} onClick={() => goto('contact')}>
             {t('nav.contact')}
           </button>
-
-          {/* Owner panel removed from nav */}
         </nav>
 
-        {/* Desktop right actions */}
+        {/* 3. Header Actions (Right Side) */}
         <div className="shivba-header-actions">
           <LanguageSwitcher /> 
           
@@ -64,29 +60,32 @@ function Header({ setPage, activePage }) {
             onClick={() => goto('account')}
           >
             <span className="shivba-user-circle">👤</span>
-            <span>{t('nav.myAccount')}</span>
+            
+            {/* FIX: Replaced inline style error with CSS class */}
+            <span className="desktop-only">{t('nav.myAccount')}</span>
           </button>
+
           <button
             className="shivba-primary-btn"
             onClick={() => goto('register')}
           >
             {t('nav.register')}
           </button>
+          
+          {/* Mobile Hamburger Toggle */}
+          <button
+            className="shivba-menu-toggle"
+            onClick={() => setOpen(!open)}
+            aria-label="Toggle navigation"
+          >
+            <span />
+            <span />
+            <span />
+          </button>
         </div>
-
-        {/* Mobile menu button (hamburger) */}
-        <button
-          className="shivba-menu-toggle"
-          onClick={() => setOpen((v) => !v)}
-          aria-label="Toggle navigation"
-        >
-          <span />
-          <span />
-          <span />
-        </button>
       </div>
 
-      {/* Mobile dropdown menu */}
+      {/* 4. Mobile Dropdown Menu */}
       {open && (
         <div className="shivba-mobile-menu">
           <button className={navClass('home')} onClick={() => goto('home')}>
@@ -108,18 +107,16 @@ function Header({ setPage, activePage }) {
             {t('nav.faq')}
           </button>
           <button className={navClass('help')} onClick={() => goto('help')}>
-            {t('nav.help')}
+            {t('nav.help') || 'Help'}
           </button>
           <button className={navClass('contact')} onClick={() => goto('contact')}>
             {t('nav.contact')}
           </button>
 
-          {/* Owner panel removed from mobile menu */}
-          
           <hr />
           
           {/* Mobile Actions */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px', gap: '10px' }}>
              <LanguageSwitcher />
           </div>
           <button onClick={() => goto('account')}>{t('nav.myAccount')}</button>
