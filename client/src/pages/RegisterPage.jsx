@@ -3,17 +3,12 @@ import { API_BASE_URL } from '../config';
 
 function RegisterPage({ setPage, setModalState }) {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: ''
+    name: '', email: '', phone: '', password: '', confirmPassword: ''
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // --- OPTIMIZATION: DERIVED STATE (No useEffect needed) ---
-  // Calculating this on the fly makes typing instant and removes input lag.
+  // Instant Validation
   const p = formData.password;
   const passwordCriteria = {
       length: p.length >= 8,
@@ -28,18 +23,13 @@ function RegisterPage({ setPage, setModalState }) {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleCancel = () => {
-      setFormData({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!allCriteriaMet) {
-        setModalState({ show: true, title: 'Weak Password', message: 'Please meet all password requirements.', type: 'error' });
+        setModalState({ show: true, title: 'Weak Password', message: 'Please meet all requirements.', type: 'error' });
         return;
     }
-
     if (formData.password !== formData.confirmPassword) {
         setModalState({ show: true, title: 'Error', message: 'Passwords do not match.', type: 'error' });
         return;
@@ -55,46 +45,43 @@ function RegisterPage({ setPage, setModalState }) {
           password: formData.password
       };
 
-      // Set a 15-second timeout so the user isn't stuck forever if the server hangs
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
-
+      // 1. Send Request
       const res = await fetch(`${API_BASE_URL}/api/register-interest-simple`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        signal: controller.signal
+        body: JSON.stringify(payload)
       });
-
-      clearTimeout(timeoutId); // Clear timeout if successful
 
       const data = await res.json();
 
+      // 2. Handle Errors
       if (!res.ok) {
-        throw new Error(data.message || 'Failed to submit registration.');
+        throw new Error(data.message || 'Registration failed.');
       }
 
-      handleCancel(); 
-
+      // 3. SUCCESS - Redirect Logic
+      // We show the modal, but we navigate immediately in the background
       setModalState({
         show: true,
-        title: '✅ Registration Successful!',
-        message: `Verification code sent to ${data.email}! Check your inbox.`,
+        title: '🚀 Success!',
+        message: `Code sent to ${data.email}. Redirecting...`,
         type: 'success'
       });
 
-      setPage({ name: 'verify', params: { email: data.email } });
+      // Clear form
+      setFormData({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
+
+      // FORCE NAVIGATION after 1 second (gives user time to read "Success")
+      setTimeout(() => {
+          setModalState(prev => ({ ...prev, show: false })); // Close modal
+          setPage({ name: 'verify', params: { email: data.email } });
+      }, 1000);
 
     } catch (error) {
-      let errorMsg = error.message;
-      if (error.name === 'AbortError') {
-          errorMsg = "Server took too long to respond. Please check your connection.";
-      }
-      
       setModalState({
         show: true,
-        title: '❌ Registration Failed',
-        message: errorMsg,
+        title: '❌ Failed',
+        message: error.message,
         type: 'error'
       });
     } finally {
@@ -107,137 +94,63 @@ function RegisterPage({ setPage, setModalState }) {
       <div className="register-page-wrapper">
         <div className="register-card">
           <h1 className="register-title">Create Account</h1>
-          <div className="register-section-title">Your Information</div>
-
           <form onSubmit={handleSubmit} className="register-form">
-            {/* Standard Fields */}
+            
             <div className="register-field">
-              <label>Full Name <span className="required">*</span></label>
-              <input type="text" name="name" value={formData.name} onChange={handleChange} required disabled={isSubmitting} />
+              <label>Full Name *</label>
+              <input type="text" name="name" value={formData.name} onChange={handleChange} required />
             </div>
 
             <div className="register-field">
-              <label>Email Address <span className="required">*</span></label>
-              <input type="email" name="email" value={formData.email} onChange={handleChange} required disabled={isSubmitting} />
+              <label>Email Address *</label>
+              <input type="email" name="email" value={formData.email} onChange={handleChange} required />
             </div>
 
             <div className="register-field">
-              <label>Phone Number <span className="required">*</span></label>
-              <input type="tel" name="phone" value={formData.phone} onChange={handleChange} required disabled={isSubmitting} />
+              <label>Phone Number *</label>
+              <input type="tel" name="phone" value={formData.phone} onChange={handleChange} required />
             </div>
 
-            {/* --- STRICT PASSWORD SECTION --- */}
             <div className="register-field">
-                <label>Create Password <span className="required">*</span></label>
-                <input
-                    type="password"
-                    name="password"
-                    placeholder="Enter strong password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    disabled={isSubmitting}
-                    style={{ 
-                        border: allCriteriaMet ? '2px solid #10b981' : '1px solid #d1d5db',
-                        backgroundColor: allCriteriaMet ? '#f0fdf4' : 'white'
-                    }}
-                />
+                <label>Password *</label>
+                <input type="password" name="password" value={formData.password} onChange={handleChange} required 
+                   style={{ borderColor: allCriteriaMet ? '#10b981' : '' }} />
                 
-                {/* Visual Checklist */}
-                <div style={{ marginTop: '10px', background: '#f9fafb', padding: '10px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-                    <p style={{ fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '5px', color: '#374151' }}>
-                        Password must contain:
-                    </p>
-                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '0.8rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px' }}>
-                        <li style={{ color: passwordCriteria.length ? '#10b981' : '#ef4444', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            {passwordCriteria.length ? '✅' : '❌'} 8+ Characters
-                        </li>
-                        <li style={{ color: passwordCriteria.number ? '#10b981' : '#ef4444', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            {passwordCriteria.number ? '✅' : '❌'} A Number (0-9)
-                        </li>
-                        <li style={{ color: passwordCriteria.upper ? '#10b981' : '#ef4444', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            {passwordCriteria.upper ? '✅' : '❌'} Uppercase (A-Z)
-                        </li>
-                        <li style={{ color: passwordCriteria.special ? '#10b981' : '#ef4444', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            {passwordCriteria.special ? '✅' : '❌'} Symbol (!@#$)
-                        </li>
-                    </ul>
+                {/* Simple Checklist */}
+                <div style={{fontSize: '0.75rem', marginTop: '5px', color: '#666', display: 'flex', gap: '10px', flexWrap: 'wrap'}}>
+                   <span style={{color: passwordCriteria.length ? 'green' : '#ccc'}}>8+ Chars</span>
+                   <span style={{color: passwordCriteria.number ? 'green' : '#ccc'}}>Number</span>
+                   <span style={{color: passwordCriteria.upper ? 'green' : '#ccc'}}>Uppercase</span>
+                   <span style={{color: passwordCriteria.special ? 'green' : '#ccc'}}>Symbol</span>
                 </div>
             </div>
 
             <div className="register-field">
-                <label>Confirm Password <span className="required">*</span></label>
-                <input
-                    type="password"
-                    name="confirmPassword"
-                    placeholder="Retype password"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    required
-                    disabled={isSubmitting}
-                />
-                {formData.confirmPassword && formData.password !== formData.confirmPassword && (
-                    <div style={{ color: 'red', fontSize: '0.8rem', marginTop: '5px' }}>⚠️ Passwords do not match</div>
-                )}
+                <label>Confirm Password *</label>
+                <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} required />
             </div>
 
-            <div className="form-actions" style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-                <button 
-                    type="submit" 
-                    disabled={isSubmitting || !allCriteriaMet || !formData.name || !formData.email || !formData.phone}
-                    className={isSubmitting ? 'submitting' : ''}
-                    style={{ 
-                        flex: 1, 
-                        opacity: allCriteriaMet ? 1 : 0.5, 
-                        cursor: (allCriteriaMet && !isSubmitting) ? 'pointer' : 'not-allowed',
-                        background: allCriteriaMet ? 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)' : '#9ca3af',
-                        position: 'relative',
-                        color: 'white',
-                        fontWeight: 'bold'
-                    }}
-                >
-                    {isSubmitting ? (
-                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                         <span className="spinner-border"></span> Processing...
-                      </span>
-                    ) : (
-                      allCriteriaMet ? 'Register Now' : 'Fix Password to Register'
-                    )}
-                </button>
-
-                <button 
-                    type="button" 
-                    onClick={handleCancel}
-                    disabled={isSubmitting}
-                    style={{ flex: 0.5, backgroundColor: '#e5e7eb', color: '#374151', border: '1px solid #d1d5db' }}
-                >
-                    Clear
-                </button>
-            </div>
+            <button 
+                type="submit" 
+                disabled={isSubmitting || !allCriteriaMet}
+                style={{ 
+                    marginTop: '20px', 
+                    padding: '12px', 
+                    width: '100%', 
+                    background: isSubmitting ? '#ccc' : '#4f46e5', 
+                    color: 'white', 
+                    border: 'none', 
+                    borderRadius: '8px',
+                    fontWeight: 'bold',
+                    cursor: isSubmitting ? 'wait' : 'pointer'
+                }}
+            >
+                {isSubmitting ? 'Processing...' : 'Register & Verify'}
+            </button>
 
           </form>
-
-          <p className="register-note">
-            <span className="required">*</span> Required fields
-          </p>
         </div>
       </div>
-      
-      {/* INJECTED CSS FOR SPINNER */}
-      <style>{`
-        .spinner-border {
-          width: 16px;
-          height: 16px;
-          border: 2px solid #ffffff;
-          border-top: 2px solid transparent;
-          border-radius: 50%;
-          animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }

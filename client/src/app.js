@@ -45,17 +45,17 @@ const GlobalStyles = () => (
     body.dark-mode .nav-btn:hover,
     body.dark-mode .nav-btn.active { color: #FFA500; }
 
-    /* 3. HOME PAGE SECTIONS - FORCE DARK BACKGROUNDS */
+    /* 3. HOME PAGE SECTIONS */
     body.dark-mode .home-hero,
     body.dark-mode .home-hero-mid,
     body.dark-mode .home-section,
     body.dark-mode .home-cta,
     body.dark-mode .home-hero-inner {
-      background-color: #121212 !important; /* Main Dark Background */
+      background-color: #121212 !important;
       color: #ffffff !important;
     }
 
-    /* 4. HOME PAGE TEXT - FORCE BRIGHT TEXT */
+    /* 4. HOME PAGE TEXT */
     body.dark-mode h1, 
     body.dark-mode h2, 
     body.dark-mode h3, 
@@ -66,25 +66,23 @@ const GlobalStyles = () => (
     body.dark-mode .home-section-header p,
     body.dark-mode .home-cta h2,
     body.dark-mode .home-cta p {
-      color: #ffffff !important; /* Pure White Text */
+      color: #ffffff !important;
     }
 
-    /* 5. CARDS & BOXES (Services, etc.) */
+    /* 5. CARDS & BOXES */
     body.dark-mode .home-card,
     body.dark-mode .service-row,
     body.dark-mode .modal,
     body.dark-mode .home-hero-panel {
-      background-color: #1e1e1e !important; /* Lighter Dark for cards */
+      background-color: #1e1e1e !important;
       border: 1px solid #333;
       box-shadow: 0 4px 6px rgba(0,0,0,0.5);
     }
-    
-    /* Text inside Cards */
-    body.dark-mode .home-card h3 { color: #FFA500 !important; } /* Orange title */
-    body.dark-mode .home-card p { color: #dddddd !important; } /* Light Grey text */
+    body.dark-mode .home-card h3 { color: #FFA500 !important; }
+    body.dark-mode .home-card p { color: #dddddd !important; }
     body.dark-mode .home-card-link { color: #4db6ac !important; }
 
-    /* 6. STATS (Numbers) */
+    /* 6. STATS */
     body.dark-mode .home-hero-stat-number { color: #FFA500 !important; }
     body.dark-mode .home-hero-stat-label { color: #bbb !important; }
 
@@ -107,7 +105,7 @@ const GlobalStyles = () => (
       border: 1px solid #555;
     }
 
-    /* --- FAB Styles (Unchanged) --- */
+    /* --- FAB Styles --- */
     .fab-container {
       position: fixed; bottom: 30px; right: 30px; z-index: 9999;
       display: flex; flex-direction: column; align-items: center; gap: 15px;
@@ -183,7 +181,6 @@ function Header({ setPage, activePage }) {
 function MarqueeBar() {
   const { t } = useTranslation();
   return (
-    // Adjusted top margin to ensure visibility
     <div className="shivba-marquee" style={{ marginTop: '3px' }}>
       <div className="shivba-marquee-label">{t('hero.latestUpdates')}</div>
       <div className="shivba-marquee-window">
@@ -273,23 +270,35 @@ function App() {
   const [page, setPage] = useState(() => {
     const path = window.location.pathname;
     
-    // 1. Check URL for Reset Password Route (Critical functionality)
+    // 1. Critical URL check
     if (path === '/reset-password') {
       return { name: 'reset-password' };
     }
     
-    // 2. CHECK SESSION STORAGE
-    // If the key 'shivba_intro_shown' exists, the user has been here this session -> Go Home.
-    // If it does not exist, this is a fresh entry -> Show Animation.
+    // 2. CHECK SESSION: Have we seen the intro in this browser session?
     const hasSeenIntro = sessionStorage.getItem('shivba_intro_shown');
 
     if (!hasSeenIntro) {
-      // Mark as seen so next refresh/nav skips animation
+      // First time in session -> Show Animation
       sessionStorage.setItem('shivba_intro_shown', 'true');
       return { name: 'starter-anima' };
     }
 
-    // Default: User has already entered, show home
+    // 3. PAGE RESTORE: If intro seen, try to load last page from localStorage
+    try {
+      const savedPage = localStorage.getItem('shivba_page');
+      if (savedPage) {
+        const parsed = JSON.parse(savedPage);
+        // Ensure we don't accidentally load the animation page from storage
+        if (parsed && parsed.name && parsed.name !== 'starter-anima') {
+           return parsed;
+        }
+      }
+    } catch (e) {
+      console.error("Failed to restore page:", e);
+    }
+
+    // Default Fallback
     return { name: 'home' };
   });
 
@@ -354,10 +363,11 @@ function App() {
     window.scrollTo(0, 0);
   }, [page.name]);
 
+  // SAVE PAGE STATE: This ensures we know where to go back to after refresh
   useEffect(() => {
-    // We still save to localStorage so internal navigation feels persistent if we need it,
-    // but the initialization logic ignores it.
-    try { localStorage.setItem('shivba_page', JSON.stringify(page)); } catch {}
+    if (page.name !== 'starter-anima') {
+      try { localStorage.setItem('shivba_page', JSON.stringify(page)); } catch {}
+    }
   }, [page]);
 
   useEffect(() => {
@@ -381,7 +391,6 @@ function App() {
         if(e.key.toLowerCase() === 'l') handleSetPage({ name: 'account' });
         if(e.key.toLowerCase() === 'r') handleSetPage({ name: 'register' });
         if(e.key.toLowerCase() === 'p') handleSetPage({ name: 'help' });
-        // --- OWNER SHORTCUT (ALT + O) ---
         if(e.key.toLowerCase() === 'o') handleSetPage({ name: 'owner' });
       }
     };
@@ -421,31 +430,21 @@ function App() {
     default: content = <HomePage setPage={handleSetPage} />;
   }
 
-  // Debugging: log page and content type to help locate invalid component errors
+  // Debugging
   try {
     // eslint-disable-next-line no-console
-    console.debug('Rendering page:', page.name, 'contentType:', typeof content, content && content.type ? content.type : null);
+    console.debug('Rendering page:', page.name);
   } catch (e) {
-    // eslint-disable-next-line no-console
     console.error('Error inspecting content before render', e);
   }
 
-  // If `content` isn't a valid React element, render a helpful diagnostic UI
   if (!React.isValidElement(content)) {
-    let contentType = typeof content;
-    let compType = null;
-    try { compType = content && content.type ? content.type : null; } catch (e) { compType = null; }
-    const diag = (
+    content = (
       <div style={{ padding: 24, color: '#b91c1c', background: '#fff6f6' }}>
-        <h3 style={{ marginTop: 0 }}>App Render Error — Invalid Component</h3>
+        <h3>App Render Error — Invalid Component</h3>
         <p>The page <strong>{String(page?.name)}</strong> produced an invalid React element.</p>
-        <p><strong>content typeof:</strong> {contentType}</p>
-        <p><strong>content.type:</strong> {String(compType)}</p>
-        <p>Please check the component import/export (default vs named export) for this page.</p>
-        <p style={{ fontSize: 12, color: '#6b7280' }}>Open the browser console for more details.</p>
       </div>
     );
-    content = diag;
   }
 
   // Main Return for Standard Pages
@@ -454,15 +453,11 @@ function App() {
       <GlobalStyles />
       <Modal show={modalState.show} title={modalState.title} message={modalState.message} content={modalState.content} type={modalState.type} onClose={closeModal} />
       
-      {/* Hide Header on Owner Page */}
       {page.name !== 'owner' && <Header setPage={handleSetPage} activePage={page.name} />}
-      
-      {/* Hide Marquee on Owner Page */}
       {page.name !== 'owner' && <MarqueeBar />}
       
       <main className="animate-fadeIn">{content}</main>
       
-      {/* Hide Footer on Owner Page */}
       {page.name !== 'owner' && <Footer setPage={handleSetPage} />}
 
       <div className={`fab-container ${settingsOpen ? 'open' : ''}`}>
@@ -476,4 +471,3 @@ function App() {
 }
 
 export default App;
-<link rel="stylesheet" href="%PUBLIC_URL%/vendor/bootstrap-icons/bootstrap-icons.css" />

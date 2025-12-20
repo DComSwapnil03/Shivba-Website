@@ -60,7 +60,7 @@ async function sendVerificationEmail({ to, name, token, otp }) {
 }
 
 // ==========================================
-// 2. REGISTER / SEND OTP ROUTE (UPGRADED)
+// 2. REGISTER / SEND OTP ROUTE (OPTIMIZED)
 // ==========================================
 router.post('/register-interest-simple', async (req, res) => {
   console.log('📝 Register/OTP request received');
@@ -83,7 +83,6 @@ router.post('/register-interest-simple', async (req, res) => {
     }
 
     // 3. RATE LIMITING (The "Hold"): Check if OTP was sent recently
-    // If user exists (unverified) and requested an OTP less than 60 seconds ago
     if (existingUser && existingUser.lastOtpSentAt) {
         const timeSinceLastOtp = Date.now() - new Date(existingUser.lastOtpSentAt).getTime();
         const cooldownMs = 60 * 1000; // 1 Minute Cooldown
@@ -106,7 +105,6 @@ router.post('/register-interest-simple', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // 5. UPSERT (Update if exists, Insert if new)
-    // We update 'lastOtpSentAt' here to enforce the rate limit next time
     await InterestRegistration.findOneAndUpdate(
       { email: lowerEmail },
       {
@@ -115,11 +113,11 @@ router.post('/register-interest-simple', async (req, res) => {
         phone: phone.trim(),
         password: hashedPassword, 
         eventName: 'General Interest',
-        isVerified: false, // Ensure they stay unverified until OTP check
+        isVerified: false, 
         otp: otp,           
         verifyToken: token, 
         verifyTokenExpiresAt: expiresAt,
-        lastOtpSentAt: now, // <--- NEW: Tracks when we sent this
+        lastOtpSentAt: now, 
         $setOnInsert: { payments: [], programs: [] }
       },
       { upsert: true, new: true, setDefaultsOnInsert: true }
@@ -127,13 +125,12 @@ router.post('/register-interest-simple', async (req, res) => {
 
     console.log(`💾 Saved New OTP for ${lowerEmail}`);
 
-    // 6. Send Email
-    const emailSent = await sendVerificationEmail({ to: lowerEmail, name: name.trim(), token, otp });
+    // 6. Send Email in BACKGROUND (Fire-and-Forget)
+    // CRITICAL FIX: No 'await' here.
+    sendVerificationEmail({ to: lowerEmail, name: name.trim(), token, otp })
+      .catch(err => console.error("⚠️ Background Email Failed:", err));
 
-    if (!emailSent) {
-        return res.status(500).json({ message: "Failed to send verification email. Please try again." });
-    }
-
+    // 7. Reply Immediately
     return res.status(201).json({
       success: true,
       message: 'Verification code sent! Check your inbox.',
@@ -161,13 +158,11 @@ router.post('/verify-otp', async (req, res) => {
     const lowerEmail = email.toLowerCase().trim();
 
     // Find and Verify atomically
-    // The query specifically checks 'verifyTokenExpiresAt: { $gt: new Date() }'
-    // This ensures the code fails exactly after 10 minutes.
     const user = await InterestRegistration.findOneAndUpdate(
       {
         email: lowerEmail,
         $or: [{ otp: otp }, { verifyToken: token }],
-        verifyTokenExpiresAt: { $gt: new Date() } // <--- CRITICAL EXPIRY CHECK
+        verifyTokenExpiresAt: { $gt: new Date() } // Strict Expiry Check
       },
       {
         $set: { 
@@ -175,15 +170,12 @@ router.post('/verify-otp', async (req, res) => {
             otp: undefined,
             verifyToken: undefined,
             verifyTokenExpiresAt: undefined,
-            // We do NOT clear lastOtpSentAt so we can still track history if needed, 
-            // but it's not strictly necessary to keep.
         }
       },
       { new: true }
     );
 
     if (!user) {
-      // We perform a secondary check to give a better error message
       const expiredUser = await InterestRegistration.findOne({ email: lowerEmail });
       if (expiredUser && (expiredUser.otp === otp || expiredUser.verifyToken === token)) {
           return res.status(400).json({ message: 'Code has expired. Please register again to get a new code.' });
@@ -210,11 +202,6 @@ router.post('/verify-otp', async (req, res) => {
   }
 });
 
-// ... [KEEP LOGIN, PROFILE, FORGOT PASSWORD, AND RESET PASSWORD ROUTES AS THEY WERE] ...
-// (Include the rest of the file here exactly as it was in your previous snippet 
-// unless you want those changed too. For brevity, I assume those are unchanged).
-
-// Copy/Paste the rest of your routes (Login, Profile, etc.) below this line.
 // ==========================================
 // 4. LOGIN ROUTE
 // ==========================================
@@ -305,7 +292,8 @@ router.post('/auth/forgot-password', async (req, res) => {
             const baseUrl = process.env.CLIENT_BASE_URL || 'http://localhost:3000';
             const resetLink = `${baseUrl}/reset-password?token=${resetToken}&email=${encodeURIComponent(lowerEmail)}`;
             
-            await mailer.sendMail({
+            // Fire-and-forget for password reset email as well
+            mailer.sendMail({
                 from: process.env.MAIL_FROM || process.env.MAIL_USER,
                 to: lowerEmail,
                 subject: 'Password Reset Request - Shivba',
@@ -315,7 +303,7 @@ router.post('/auth/forgot-password', async (req, res) => {
                         <a href="${resetLink}">Reset Password</a>
                     </div>
                 `
-            });
+            }).catch(err => console.error("Forgot Password Email Failed:", err));
         }
         return res.json({ success: true, message: 'If an account exists, a reset link has been sent.' });
     } catch (err) {
