@@ -57,11 +57,18 @@ const accountRoutes = require('./src/routes/accountRoutes');
 const eventRegistrationRoutes = require('./src/routes/eventRegistrationRoutes');
 const contactRoutes = require('./src/routes/contactRoutes');
 
+// [NEW] Import Data Routes (Excel Import/Export)
+const dataRoutes = require('./src/routes/dataRoutes');
+
 // --- ROUTE MOUNTING ---
 app.use('/api', authRoutes);
 app.use('/api', accountRoutes);
 app.use('/api', eventRegistrationRoutes);
 app.use('/api', contactRoutes);
+
+// [NEW] Mount Data Routes
+// Final URL: /api/data/import-members AND /api/data/export-members
+app.use('/api/data', dataRoutes);
 
 // Serve static files (Vercel typically ignores express.static, use the 'public' folder directly)
 // app.use(express.static(path.join(__dirname, 'public'))); // KEEP THIS FOR LOCAL DEV
@@ -104,6 +111,6 @@ app.use('/api', (req, res) => res.status(404).json({ message: 'API route not fou
 
 // Generic error handler
 app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({ message: 'Internal server error' });
+  console.error('Unhandled error:', err);
+  res.status(500).json({ message: 'Internal server error' });
 });

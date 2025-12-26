@@ -4,7 +4,7 @@
   "description": "Shivba Backend API",
   "main": "server.js,cjs",
   "engines": {
-    "node": "24.x" 
+    "node": "24.x"
   },
   "scripts": {
     "start": "node server.js",
@@ -28,6 +28,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.4.4",
     "morgan": "^1.10.0",
+    "multer": "^2.0.2",
     "nodemailer": "^6.9.14",
     "razorpay": "^2.9.4",
     "xlsx": "^0.18.5"

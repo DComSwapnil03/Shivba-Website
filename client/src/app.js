@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import './app.css'; // Ensure this file exists, or the GlobalStyles below will handle it
+import './app.css'; 
 
 /* --- Page Imports --- */
 import HomePage from './pages/Homepage';
@@ -20,9 +20,10 @@ import AccountServiceDetailPage from './pages/AccountServiceDetailPage';
 import StarterAnimaPage from './pages/StarterAnimaPage';
 import HelpPage from './pages/HelpPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import Dashboard from './pages/Dashboard'; // <--- [NEW] Imported Dashboard
 import LanguageSwitcher from './components/LanguageSwitcher';
 
-/* ------------ Global Styles (Updated Footer & Icons) ------------- */
+/* ------------ Global Styles ------------- */
 const GlobalStyles = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cinzel+Decorative:wght@700;900&family=Montserrat:wght@300;400;500;600&display=swap');
@@ -50,7 +51,20 @@ const GlobalStyles = () => (
 
     /* Page Animation */
     @keyframes fadeUp { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
-    .animate-fadeUp { animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; width: 100%; position: relative; z-index: 1; padding-top: calc(var(--marquee-height) + var(--header-height)); }
+    
+    /* Standard Page Animation (Offset for Header) */
+    .animate-fadeUp { 
+        animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+        width: 100%; position: relative; z-index: 1; 
+        padding-top: calc(var(--marquee-height) + var(--header-height)); 
+    }
+
+    /* Dashboard Page Animation (No Offset) */
+    .animate-dashboard {
+        animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+        width: 100%; position: relative; z-index: 1; 
+        padding-top: 0; /* Dashboard is full screen */
+    }
 
     /* Utilities */
     .desktop-only { display: none; }
@@ -79,20 +93,14 @@ const GlobalStyles = () => (
     .shivba-ghost-btn { background: transparent; border: 1px solid black; padding: 10px 20px; border-radius: 4px; color: black; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; font-weight: 600; text-transform: uppercase; transition: all 0.3s; }
     .shivba-ghost-btn:hover { background: black; color: white; }
 
-    /* --- FOOTER STYLES (UPDATED) --- */
+    /* Footer */
     .shivba-footer { background: #0a0a0a; color: #888; padding: 5rem 2rem 2rem; font-size: 0.9rem; border-top: 1px solid #222; position: relative; z-index: 2; }
     .shivba-footer-inner { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 4rem; }
     .shivba-footer-logo { font-family: var(--font-logo); font-size: 2.5rem; color: white; margin-bottom: 1rem; opacity: 0.9; }
     .shivba-footer-text { margin-bottom: 1.5rem; line-height: 1.6; max-width: 300px; }
     
-    /* Social Icons */
     .shivba-footer-social { display: flex; gap: 15px; margin-top: 1rem; }
-    .shivba-social-link { 
-        display: flex; align-items: center; justify-content: center;
-        width: 40px; height: 40px; border-radius: 50%; 
-        background: rgba(255,255,255,0.05); color: white;
-        transition: all 0.3s ease; text-decoration: none;
-    }
+    .shivba-social-link { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.05); color: white; transition: all 0.3s ease; text-decoration: none; }
     .shivba-social-link svg { width: 20px; height: 20px; fill: currentColor; }
     .shivba-social-link:hover { background: var(--c-gold); color: black; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(255, 165, 0, 0.3); }
 
@@ -100,41 +108,15 @@ const GlobalStyles = () => (
     .shivba-footer-col button, .shivba-footer-col a { display: block; background: none; border: none; color: #888; cursor: pointer; padding: 0; margin-bottom: 0.8rem; text-align: left; transition: color 0.3s; text-decoration: none; font-size: 0.9rem; font-family: var(--font-body); }
     .shivba-footer-col button:hover, .shivba-footer-col a:hover { color: var(--c-gold); padding-left: 5px; }
 
-    /* Professional Input & Join Button */
-    .shivba-footer-input-wrap { 
-        display: flex; gap: 0; margin-top: 1.2rem; 
-        background: #151515; border: 1px solid #333; 
-        border-radius: 6px; overflow: hidden; 
-        transition: border-color 0.3s;
-    }
+    .shivba-footer-input-wrap { display: flex; gap: 0; margin-top: 1.2rem; background: #151515; border: 1px solid #333; border-radius: 6px; overflow: hidden; transition: border-color 0.3s; }
     .shivba-footer-input-wrap:focus-within { border-color: var(--c-gold); }
-    
-    .shivba-footer-input-wrap input { 
-        padding: 14px 18px; border: none; background: transparent; 
-        color: white; flex: 1; outline: none; font-family: var(--font-body);
-        font-size: 0.9rem;
-    }
-    
-    .shivba-footer-subscribe { 
-        background: var(--c-gold); 
-        color: black; 
-        border: none; 
-        padding: 0 28px; 
-        cursor: pointer; 
-        font-weight: 800; 
-        text-transform: uppercase; 
-        font-size: 0.8rem; 
-        letter-spacing: 0.1em;
-        transition: all 0.3s ease;
-    }
-    .shivba-footer-subscribe:hover { 
-        background: white; 
-        color: black; 
-    }
+    .shivba-footer-input-wrap input { padding: 14px 18px; border: none; background: transparent; color: white; flex: 1; outline: none; font-family: var(--font-body); font-size: 0.9rem; }
+    .shivba-footer-subscribe { background: var(--c-gold); color: black; border: none; padding: 0 28px; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.1em; transition: all 0.3s ease; }
+    .shivba-footer-subscribe:hover { background: white; color: black; }
 
     .shivba-footer-bottom { max-width: 1400px; margin: 4rem auto 0; padding-top: 2rem; border-top: 1px solid #222; display: flex; justify-content: space-between; color: #555; font-size: 0.8rem; }
 
-    /* FAB & Dark Mode */
+    /* FAB */
     .fab-container { position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column; align-items: center; gap: 15px; }
     .fab-main { width: 60px; height: 60px; border-radius: 50%; background: var(--c-gold); color: black; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 10px 25px rgba(255, 165, 0, 0.4); transition: transform 0.3s; display: flex; align-items: center; justify-content: center; }
     .fab-main:hover { transform: scale(1.1) rotate(90deg); }
@@ -144,7 +126,7 @@ const GlobalStyles = () => (
     .fab-item::after { content: attr(data-tooltip); position: absolute; right: 60px; background: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 4px; font-size: 11px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; top: 12px; font-family: var(--font-body); font-weight: 600; }
     .fab-item:hover::after { opacity: 1; }
 
-    /* Dark Mode Overrides */
+    /* Dark Mode */
     body.dark-mode { background-color: #050505 !important; color: #e0e0e0 !important; }
     body.dark-mode .shivba-header { background-color: rgba(20, 20, 20, 0.95); border-bottom: 1px solid #333; }
     body.dark-mode .shivba-logo { color: white; text-shadow: 0 2px 10px rgba(255, 165, 0, 0.3); }
@@ -159,13 +141,14 @@ const GlobalStyles = () => (
       .shivba-nav { display: none; } 
       .shivba-header-inner { justify-content: space-between; }
       .shivba-footer-inner { grid-template-columns: 1fr; gap: 3rem; text-align: center; }
-      .shivba-footer-social { justify-content: center; } /* Center icons on mobile */
+      .shivba-footer-social { justify-content: center; }
       .shivba-footer-logo { margin: 0 auto 1.5rem; display: block; }
       .shivba-footer-bottom { flex-direction: column; gap: 15px; text-align: center; }
       .shivba-footer-col button, .shivba-footer-col a { text-align: center; }
     }
   `}</style>
 );
+
 /* ------------ Components ------------- */
 
 function Header({ setPage, activePage }) {
@@ -176,7 +159,6 @@ function Header({ setPage, activePage }) {
   return (
     <header className="shivba-header">
       <div className="shivba-header-inner">
-        {/* LOGO */}
         <div className="shivba-logo" onClick={() => goto('home')}>SHIVBA</div>
         
         <nav className="shivba-nav">
@@ -193,7 +175,7 @@ function Header({ setPage, activePage }) {
         <div className="shivba-header-actions">
           <LanguageSwitcher />
           <button className="shivba-ghost-btn" onClick={() => goto('account')}>
-            <span>👤</span> <span style={{display: 'none', '@media (min-width: 1200px)': {display: 'inline'}}}>{t('nav.myAccount')}</span>
+            <span>👤</span> <span className="desktop-only">{t('nav.myAccount')}</span>
           </button>
           <button className="shivba-primary-btn" onClick={() => goto('register')}>{t('nav.register')}</button>
         </div>
@@ -209,7 +191,6 @@ function MarqueeBar() {
       <div className="shivba-marquee-label">{t('hero.latestUpdates')}</div>
       <div className="shivba-marquee-window">
         <div className="shivba-marquee-track">
-          {/* Content repeated to create flow */}
           <span>{t('hero.tickerText')}</span>
           <span>•</span>
           <span>Admissions Open for 2025 Batch</span>
@@ -378,12 +359,17 @@ function App() {
     }
   }, [page]);
 
+  // --- GLOBAL KEYBOARD SHORTCUTS ---
   useEffect(() => {
     const handleGlobalKeys = (e) => {
       if (e.key === 'Escape') closeModal();
-      if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+      
+      // Ignore input fields (except for shortcuts that use Alt/Ctrl)
+      if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) && !e.altKey) return;
+
       if (e.altKey && (e.key === 'ArrowLeft' || e.key === 'Backspace')) { e.preventDefault(); goBack(); }
       if (e.altKey && (e.key === 'ArrowRight')) { e.preventDefault(); goForward(); }
+      
       if (e.altKey) {
         if(e.key.toLowerCase() === 'h') handleSetPage({ name: 'home' });
         if(e.key.toLowerCase() === 'a') handleSetPage({ name: 'about' });
@@ -391,6 +377,12 @@ function App() {
         if(e.key.toLowerCase() === 'e') handleSetPage({ name: 'events' });
         if(e.key.toLowerCase() === 'g') handleSetPage({ name: 'gallery' });
         if(e.key.toLowerCase() === 'c') handleSetPage({ name: 'contact' });
+        
+        // --- [NEW] Dashboard Shortcut (Alt + D) ---
+        if(e.key.toLowerCase() === 'd') {
+            e.preventDefault();
+            handleSetPage({ name: 'dashboard' });
+        }
       }
     };
     window.addEventListener('keydown', handleGlobalKeys);
@@ -402,6 +394,7 @@ function App() {
     return <div className="App"><GlobalStyles /><StarterAnimaPage setPage={handleSetPage} /></div>;
   }
 
+  // --- ROUTING LOGIC ---
   switch (page.name) {
     case 'home': content = <HomePage setPage={handleSetPage} />; break;
     case 'about': content = <AboutPage />; break;
@@ -419,27 +412,32 @@ function App() {
     case 'verify': content = <VerifyCodePage defaultEmail={page.params?.email || ''} onVerified={(email) => { setVerifiedEmail(email); handleSetPage({ name: 'account' }); }} setPage={handleSetPage} />; break;
     case 'account': content = <MyAccountPage defaultEmail={verifiedEmail} setPage={handleSetPage} onLoaded={setAccountMember} />; break;
     case 'reset-password': content = <ResetPasswordPage setPage={handleSetPage} />; break;
+    
+    // --- [NEW] Dashboard Route ---
+    case 'dashboard': content = <Dashboard setPage={handleSetPage} />; break;
+    
     default: content = <HomePage setPage={handleSetPage} />;
   }
+
+  // --- LAYOUT LOGIC (Hide Header/Footer for Dashboard/Owner pages) ---
+  const isFullScreenPage = ['owner', 'dashboard'].includes(page.name);
+  const containerClass = isFullScreenPage ? 'animate-dashboard' : 'animate-fadeUp';
 
   return (
     <div className="App">
       <GlobalStyles />
       <Modal show={modalState.show} title={modalState.title} message={modalState.message} content={modalState.content} type={modalState.type} onClose={closeModal} />
       
-      {/* LAYOUT FIX: 
-         1. Marquee (Top)
-         2. Header (Below Marquee)
-         3. Main Content (Padded to avoid overlap)
-      */}
-      {page.name !== 'owner' && <MarqueeBar />}
-      {page.name !== 'owner' && <Header setPage={handleSetPage} activePage={page.name} />}
+      {/* Hide Marquee & Header on Dashboard */}
+      {!isFullScreenPage && <MarqueeBar />}
+      {!isFullScreenPage && <Header setPage={handleSetPage} activePage={page.name} />}
       
-      <main className="animate-fadeUp" key={page.name}>
+      <main className={containerClass} key={page.name}>
         {content}
       </main>
       
-      {page.name !== 'owner' && <Footer setPage={handleSetPage} />}
+      {/* Hide Footer on Dashboard */}
+      {!isFullScreenPage && <Footer setPage={handleSetPage} />}
 
       <div className={`fab-container ${settingsOpen ? 'open' : ''}`}>
         <button className="fab-item" onClick={scrollToTop} data-tooltip="Scroll Top">⬆️</button>

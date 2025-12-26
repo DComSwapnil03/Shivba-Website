@@ -1,0 +1,115 @@
+Workspace Structure
+===================
+
+Root Level
+----------
+- package.json
+- README.md
+- vercel.json
+
+client/
+------
+- .env
+- package.json
+- README.md
+- build/
+    - asset-manifest.json
+    - index.html
+    - static/
+        - css/
+            - main.3c8af28a.css
+        - js/
+            - main.ca55d5d5.js
+            - main.ca55d5d5.js.LICENSE.txt
+    - vendor/
+        - bootstrap-icons/
+- public/
+    - index.html
+    - vendor/
+        - bootstrap-icons/
+- src/
+    - app.css
+    - app.js
+    - config.js
+    - i18n.js
+    - index.css
+    - index.js
+    - StarterAnimaPage.css
+    - components/
+        - ContactInfoCard.jsx
+        - Header.jsx
+        - LanguageSwitcher.jsx
+        - Loader.css
+        - Loader.jsx
+    - hooks/
+        - useKeyboardShortcut.js
+    - pages/
+        - AboutPage.jsx
+        - AccountServiceDetailPage.jsx
+        - ContactPage.jsx
+        - Dashboard.jsx
+        - EventRegisterPage.jsx
+        - EventsPage.jsx
+        - FAQPage.jsx
+        - GalleryPage.jsx
+        - HelpPage.jsx
+        - Homepage.jsx
+        - MyAccountPage.jsx
+        - RegisterPage.jsx
+        - ResetPasswordPage.jsx
+        - ServiceCheckoutPage.jsx
+        - ServiceDetailPage.jsx
+        - ServicesPage.jsx
+        - StarterAnimaPage.jsx
+        - VerifyCodePage.jsx
+    - vendor/
+        - bootstrap-icons/
+
+server/
+------
+- .env
+- account.txt
+- mongo.txt
+- package.json
+- server.cjs
+- server.js
+- simpleregister.txt
+- vercel.json
+- data/
+- public/
+- src/
+    - app.js
+    - config.js
+    - config/
+        - db.js
+        - razorpay.js
+        - seed.js
+    - models/
+        - ContactMessage.js
+        - Event.js
+        - EventRegistration.js
+        - Faq.js
+        - Gallery.js
+        - index.js
+        - InterestRegistration.js
+        - Member.js
+        - Registration.js
+        - Service.js
+        - TeamMember.js
+        - Testimonial.js
+        - Value.js
+    - routes/
+        - accountLookupRoutes.js
+        - accountRoutes.js
+        - accountverifyroutes.js
+        - authRoutes.js
+        - contactRoutes.js
+        - dynamicContentRoutes.js
+        - eventRegistrationRoutes.js
+        - eventRoutes.js
+        - paymentRoutes.js
+        - publicContentRoutes.js
+        - registrationRoutes.js
+        - simpleRegisterRoutes.js
+    - utils/
+        - mailer.js
