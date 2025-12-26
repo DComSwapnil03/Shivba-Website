@@ -74,7 +74,15 @@ const EmojiOrbitAnimation = () => {
 /* --- 3. MAIN HOMEPAGE COMPONENT --- */
 function HomePage({ setPage }) {
   const { t } = useTranslation();
-  const slides = t('home.slides', { returnObjects: true });
+  
+  // --- UPDATED SLIDES CONFIGURATION ---
+  // Using the local images you provided
+  const slides = [
+    { image: '/IMG-20251226-WA0024.jpg', alt: 'Gym Facilities' },        // Gym
+    { image: '/IMG-20251226-WA0005.jpg', alt: 'Library Area' },          // Library
+    { image: '/social.jpg', alt: 'Social Awareness Programs' }           // Social Awareness
+  ];
+
   const [current, setCurrent] = useState(0);
 
   // Auto-rotate hero slides
@@ -175,7 +183,7 @@ function HomePage({ setPage }) {
         {slides.map((slide, index) => (
           <div key={index} className={`hero-slide ${index === current ? 'active' : ''}`}>
             <div className="hero-overlay" />
-            <img src={slide.image} alt="Background" />
+            <img src={slide.image} alt={slide.alt} />
           </div>
         ))}
         
@@ -289,4 +297,4 @@ function HomeCard({ title, text, onClick }) {
   );
 }
 
-export default HomePage;  
+export default HomePage;

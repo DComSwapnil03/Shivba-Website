@@ -3,12 +3,48 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // --- 1. CONFIGURATION ---
 const INITIAL_PHOTOS = [
+  // Existing Data
   { id: 1, category: 'Facilities', title: 'Main Workout Area', url: 'https://images.pexels.com/photos/1552104/pexels-photo-1552104.jpeg?auto=compress&w=800' },
   { id: 2, category: 'Facilities', title: 'Yoga Studio', url: 'https://images.pexels.com/photos/3823063/pexels-photo-3823063.jpeg?auto=compress&w=800' },
   { id: 3, category: 'Events', title: 'Annual Fitness Challenge', url: 'https://images.pexels.com/photos/799165/pexels-photo-799165.jpeg?auto=compress&w=800' },
   { id: 4, category: 'Events', title: 'Cultural Night', url: 'https://images.pexels.com/photos/1190297/pexels-photo-1190297.jpeg?auto=compress&w=800' },
   { id: 5, category: 'Community', title: 'Community Meetup', url: 'https://images.pexels.com/photos/1181395/pexels-photo-1181395.jpeg?auto=compress&w=800' },
   { id: 6, category: 'Community', title: 'Social Awareness Drive', url: 'https://images.pexels.com/photos/6646918/pexels-photo-6646918.jpeg?auto=compress&w=800' },
+  
+  // New Uploads (WhatsApp Dump) - Categories rotated for variety
+  { id: 7, category: 'Facilities', title: 'Gym Interior', url: '/IMG-20251226-WA0005.jpg' },
+  { id: 8, category: 'Events', title: 'Event Highlight (Video)', url: '/VID-20251226-WA0009.mp4' },
+  { id: 9, category: 'Events', title: 'Training Session (Video)', url: '/VID-20251226-WA0008.mp4' },
+  { id: 10, category: 'Community', title: 'Group Activity (Video)', url: '/VID-20251226-WA0007.mp4' },
+  { id: 11, category: 'Facilities', title: 'Equipment Tour (Video)', url: '/VID-20251226-WA0006.mp4' },
+  { id: 12, category: 'Events', title: 'Opening Ceremony (Video)', url: '/VID-20251226-WA0005.mp4' },
+  { id: 13, category: 'Community', title: 'Member Gathering', url: '/IMG-20251226-WA0030.jpg' },
+  { id: 14, category: 'Community', title: 'shivba', url: '/IMG-20251226-WA0029.jpg' },
+  { id: 15, category: 'Events', title: 'Stage Performance', url: '/IMG-20251226-WA0028.jpg' },
+  { id: 16, category: 'Events', title: 'Yoga', url: '/IMG-20251226-WA0027.jpg' },
+  { id: 17, category: 'Events', title: 'Crowd Cheering (Video)', url: '/VID-20251226-WA0004.mp4' },
+  { id: 18, category: 'Facilities', title: 'Entrance View', url: '/IMG-20251226-WA0026.jpg' },
+  { id: 19, category: 'Facilities', title: 'Reception Area', url: '/IMG-20251226-WA0025.jpg' },
+  { id: 20, category: 'Facilities', title: 'Cardio Section', url: '/IMG-20251226-WA0024.jpg' },
+  { id: 21, category: 'Community', title: 'Team Photo', url: '/IMG-20251226-WA0023.jpg' },
+  { id: 22, category: 'Community', title: 'Volunteers', url: '/IMG-20251226-WA0022.jpg' },
+  { id: 23, category: 'Events', title: 'Preparation', url: '/IMG-20251226-WA0021.jpg' },
+  { id: 24, category: 'Events', title: 'Lighting Ceremony', url: '/IMG-20251226-WA0020.jpg' },
+  { id: 25, category: 'Events', title: 'Audience', url: '/IMG-20251226-WA0019.jpg' },
+  { id: 26, category: 'Facilities', title: 'Select on MPSC', url: '/IMG-20251226-WA0018.jpg' },
+  { id: 27, category: 'Facilities', title: 'Lockers', url: '/IMG-20251226-WA0017.jpg' },
+  { id: 28, category: 'Community', title: 'Maharastra police', url: '/IMG-20251226-WA0016.jpg' },
+  { id: 29, category: 'Community', title: 'Celebration', url: '/IMG-20251226-WA0015.jpg' },
+  { id: 30, category: 'Events', title: 'Prize Giving', url: '/IMG-20251226-WA0014.jpg' },
+  { id: 31, category: 'Events', title: 'Highlights (Video)', url: '/VID-20251226-WA0003.mp4' },
+  { id: 32, category: 'Facilities', title: 'Parking Area', url: '/IMG-20251226-WA0013.jpg' },
+  { id: 33, category: 'Facilities', title: 'Office', url: '/IMG-20251226-WA0012.jpg' },
+  { id: 34, category: 'Events', title: 'Flash Mob (Video)', url: '/VID-20251226-WA0002.mp4' },
+  { id: 35, category: 'Community', title: 'Breakfast Meet', url: '/IMG-20251226-WA0011.jpg' },
+  { id: 36, category: 'Community', title: 'Social Gathering', url: '/IMG-20251226-WA0010.jpg' },
+  { id: 37, category: 'Events', title: 'Setup Day', url: '/IMG-20251226-WA0009.jpg' },
+  { id: 38, category: 'Events', title: 'Evening View', url: '/IMG-20251226-WA0007.jpg' },
+  { id: 39, category: 'Facilities', title: 'Overview', url: '/IMG-20251226-WA0006.jpg' },
 ];
 
 const CATEGORIES = ['All', 'Facilities', 'Events', 'Community'];
@@ -94,6 +130,11 @@ function GalleryPage({ setPage }) {
     }
   };
 
+  // Helper to check if url is a video
+  const isVideo = (url) => {
+    return url && (url.toLowerCase().endsWith('.mp4') || url.toLowerCase().endsWith('.webm'));
+  };
+
   return (
     <motion.div 
       className="gallery-container"
@@ -161,10 +202,12 @@ function GalleryPage({ setPage }) {
             position: relative; border-radius: 12px; overflow: hidden;
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
             cursor: pointer;
+            background: #000; /* For videos */
         }
         .gallery-img {
             width: 100%; display: block; transition: transform 0.5s ease;
         }
+        /* Only zoom images, not videos on hover if handled differently, but here we zoom both */
         .gallery-card:hover .gallery-img { transform: scale(1.05); }
         
         .gallery-overlay {
@@ -172,6 +215,7 @@ function GalleryPage({ setPage }) {
             background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
             opacity: 0; transition: opacity 0.3s ease;
             display: flex; flex-direction: column; justify-content: flex-end; padding: 20px;
+            pointer-events: none; /* Allows clicking play on video if needed */
         }
         .gallery-card:hover .gallery-overlay { opacity: 1; }
         
@@ -187,6 +231,7 @@ function GalleryPage({ setPage }) {
             width: 30px; height: 30px; cursor: pointer; color: #ef4444; font-weight: bold;
             display: flex; align-items: center; justify-content: center;
             opacity: 0; transition: opacity 0.3s;
+            pointer-events: auto;
         }
         .gallery-card:hover .delete-btn { opacity: 1; }
 
@@ -261,7 +306,23 @@ function GalleryPage({ setPage }) {
                 animate="visible"
                 exit={{ opacity: 0, scale: 0.9 }}
               >
-                <img src={photo.url} alt={photo.title} className="gallery-img" loading="lazy" />
+                {/* --- CHANGED: CONDITIONAL RENDERING FOR VIDEO OR IMAGE --- */}
+                {isVideo(photo.url) ? (
+                    <video 
+                        src={photo.url} 
+                        className="gallery-img" 
+                        controls 
+                        preload="metadata"
+                        style={{ objectFit: 'cover' }}
+                    />
+                ) : (
+                    <img 
+                        src={photo.url} 
+                        alt={photo.title} 
+                        className="gallery-img" 
+                        loading="lazy" 
+                    />
+                )}
                 
                 <div className="gallery-overlay">
                   <span className="gallery-tag">{photo.category}</span>
@@ -305,15 +366,17 @@ function GalleryPage({ setPage }) {
 
                 <label>Upload Image</label>
                 <div style={{ border: '2px dashed #ccc', padding: '15px', borderRadius: '8px', marginBottom: '15px', textAlign: 'center', cursor: 'pointer', background: '#fafafa' }}>
-                    <input type="file" accept="image/*" onChange={handleFileChange} style={{ width: '100%', marginBottom: 0 }} />
+                    <input type="file" accept="image/*,video/*" onChange={handleFileChange} style={{ width: '100%', marginBottom: 0 }} />
                     <span style={{ fontSize: '0.8rem', color: '#888' }}>or paste URL below</span>
                 </div>
 
-                <label>Image URL (Optional)</label>
+                <label>Image/Video URL (Optional)</label>
                 <input type="url" name="url" value={newPhoto.url} onChange={handleAddPhotoChange} placeholder="https://..." />
 
                 {filePreview && (
-                  <img src={filePreview} alt="Preview" style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px', marginBottom: '15px' }} />
+                  isVideo(filePreview) ? 
+                    <video src={filePreview} controls style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px', marginBottom: '15px' }} /> :
+                    <img src={filePreview} alt="Preview" style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px', marginBottom: '15px' }} />
                 )}
 
                 <div className="modal-actions">

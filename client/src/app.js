@@ -20,7 +20,7 @@ import AccountServiceDetailPage from './pages/AccountServiceDetailPage';
 import StarterAnimaPage from './pages/StarterAnimaPage';
 import HelpPage from './pages/HelpPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
-import Dashboard from './pages/Dashboard'; // <--- [NEW] Imported Dashboard
+import Dashboard from './pages/Dashboard'; 
 import LanguageSwitcher from './components/LanguageSwitcher';
 
 /* ------------ Global Styles ------------- */
@@ -31,8 +31,9 @@ const GlobalStyles = () => (
     :root {
       --c-gold: #FFA500;
       --c-dark: #1a1a1a;
-      --c-darker: #111;
-      --c-light: #f9fafb;
+      --c-darker: #050505;
+      --c-light: #ffffff;
+      --c-gray-bg: #f9fafb;
       --font-heading: 'Cinzel', serif;
       --font-body: 'Montserrat', sans-serif;
       --font-logo: 'Cinzel Decorative', cursive;
@@ -43,7 +44,7 @@ const GlobalStyles = () => (
     body {
       font-family: var(--font-body);
       margin: 0; padding: 0;
-      background-color: var(--c-light);
+      background-color: var(--c-gray-bg);
       color: black;
       -webkit-font-smoothing: antialiased;
     }
@@ -52,18 +53,16 @@ const GlobalStyles = () => (
     /* Page Animation */
     @keyframes fadeUp { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
     
-    /* Standard Page Animation (Offset for Header) */
     .animate-fadeUp { 
         animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
         width: 100%; position: relative; z-index: 1; 
         padding-top: calc(var(--marquee-height) + var(--header-height)); 
     }
 
-    /* Dashboard Page Animation (No Offset) */
     .animate-dashboard {
         animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
         width: 100%; position: relative; z-index: 1; 
-        padding-top: 0; /* Dashboard is full screen */
+        padding-top: 0; 
     }
 
     /* Utilities */
@@ -93,28 +92,99 @@ const GlobalStyles = () => (
     .shivba-ghost-btn { background: transparent; border: 1px solid black; padding: 10px 20px; border-radius: 4px; color: black; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; font-weight: 600; text-transform: uppercase; transition: all 0.3s; }
     .shivba-ghost-btn:hover { background: black; color: white; }
 
-    /* Footer */
-    .shivba-footer { background: #0a0a0a; color: #888; padding: 5rem 2rem 2rem; font-size: 0.9rem; border-top: 1px solid #222; position: relative; z-index: 2; }
+    /* --- PROFESSIONAL FOOTER (PREMIUM DARK) --- */
+    .shivba-footer { 
+        background: #111111; 
+        color: #999; 
+        padding: 5rem 2rem 2rem; 
+        font-size: 0.9rem; 
+        border-top: 3px solid var(--c-gold); 
+        position: relative; 
+        z-index: 2; 
+    }
     .shivba-footer-inner { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 4rem; }
-    .shivba-footer-logo { font-family: var(--font-logo); font-size: 2.5rem; color: white; margin-bottom: 1rem; opacity: 0.9; }
-    .shivba-footer-text { margin-bottom: 1.5rem; line-height: 1.6; max-width: 300px; }
     
-    .shivba-footer-social { display: flex; gap: 15px; margin-top: 1rem; }
-    .shivba-social-link { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.05); color: white; transition: all 0.3s ease; text-decoration: none; }
-    .shivba-social-link svg { width: 20px; height: 20px; fill: currentColor; }
-    .shivba-social-link:hover { background: var(--c-gold); color: black; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(255, 165, 0, 0.3); }
+    .shivba-footer-logo { 
+        font-family: var(--font-logo); 
+        font-size: 2.8rem; 
+        color: white;
+        margin-bottom: 1rem; 
+        opacity: 1; 
+        letter-spacing: 0.1em;
+    }
+    .shivba-footer-text { margin-bottom: 1.5rem; line-height: 1.7; max-width: 320px; color: #aaa; font-size: 0.95rem; }
+    
+    .shivba-footer-social { display: flex; gap: 12px; margin-top: 1.5rem; }
+    .shivba-social-link { 
+        display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 4px; 
+        background: rgba(255,255,255,0.08); color: white; 
+        transition: all 0.3s ease; text-decoration: none; border: 1px solid rgba(255,255,255,0.05);
+    }
+    .shivba-social-link svg { width: 18px; height: 18px; fill: currentColor; }
+    .shivba-social-link:hover { background: var(--c-gold); color: black; transform: translateY(-3px); border-color: var(--c-gold); }
 
-    .shivba-footer-col h4 { color: #fff; margin-bottom: 1.5rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.2em; }
-    .shivba-footer-col button, .shivba-footer-col a { display: block; background: none; border: none; color: #888; cursor: pointer; padding: 0; margin-bottom: 0.8rem; text-align: left; transition: color 0.3s; text-decoration: none; font-size: 0.9rem; font-family: var(--font-body); }
-    .shivba-footer-col button:hover, .shivba-footer-col a:hover { color: var(--c-gold); padding-left: 5px; }
+    .shivba-footer-col h4 { 
+        color: white; 
+        margin-bottom: 1.8rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.25em; font-weight: 700;
+        position: relative; display: inline-block;
+    }
+    .shivba-footer-col h4::after {
+        content: ''; position: absolute; bottom: -8px; left: 0; width: 30px; height: 2px; background: var(--c-gold);
+    }
 
-    .shivba-footer-input-wrap { display: flex; gap: 0; margin-top: 1.2rem; background: #151515; border: 1px solid #333; border-radius: 6px; overflow: hidden; transition: border-color 0.3s; }
-    .shivba-footer-input-wrap:focus-within { border-color: var(--c-gold); }
-    .shivba-footer-input-wrap input { padding: 14px 18px; border: none; background: transparent; color: white; flex: 1; outline: none; font-family: var(--font-body); font-size: 0.9rem; }
-    .shivba-footer-subscribe { background: var(--c-gold); color: black; border: none; padding: 0 28px; cursor: pointer; font-weight: 800; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.1em; transition: all 0.3s ease; }
+    /* --- SQUARE & MOTION BUTTONS --- */
+    .shivba-footer-col button, .shivba-footer-col a { 
+        display: block;
+        width: 100%;
+        padding: 12px 16px; 
+        margin-bottom: 8px;
+        background: rgba(255, 255, 255, 0.03); 
+        border: 1px solid rgba(255, 255, 255, 0.05); 
+        color: #bbb;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); 
+        position: relative;
+        overflow: hidden;
+        font-size: 0.85rem;
+        font-family: var(--font-body);
+        text-decoration: none;
+        border-radius: 0px; 
+    }
+
+    /* Hover State for Buttons */
+    .shivba-footer-col button:hover, .shivba-footer-col a:hover { 
+        background: var(--c-gold);
+        border-color: var(--c-gold);
+        color: black;
+        transform: translateX(8px); 
+        padding-left: 24px; 
+        box-shadow: -4px 4px 0 rgba(255, 255, 255, 0.1); 
+    }
+    
+    .shivba-footer-col p { margin-bottom: 1rem; color: #bbb; }
+
+    /* Newsletter Input Area */
+    .shivba-footer-input-wrap { 
+        display: flex; gap: 0; margin-top: 1.5rem; 
+        background: rgba(255,255,255,0.05); 
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 4px; overflow: hidden; transition: border-color 0.3s; 
+    }
+    .shivba-footer-input-wrap:focus-within { border-color: var(--c-gold); background: black; }
+    .shivba-footer-input-wrap input { 
+        padding: 16px 20px; border: none; background: transparent; 
+        color: white; 
+        flex: 1; outline: none; font-family: var(--font-body); font-size: 0.9rem; 
+    }
+    .shivba-footer-subscribe { background: var(--c-gold); color: black; border: none; padding: 0 30px; cursor: pointer; font-weight: 700; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.1em; transition: all 0.3s ease; }
     .shivba-footer-subscribe:hover { background: white; color: black; }
 
-    .shivba-footer-bottom { max-width: 1400px; margin: 4rem auto 0; padding-top: 2rem; border-top: 1px solid #222; display: flex; justify-content: space-between; color: #555; font-size: 0.8rem; }
+    .shivba-footer-bottom { 
+        max-width: 1400px; margin: 5rem auto 0; padding-top: 2rem; 
+        border-top: 1px solid rgba(255,255,255,0.08); 
+        display: flex; justify-content: space-between; color: #666; font-size: 0.8rem; letter-spacing: 0.05em;
+    }
 
     /* FAB */
     .fab-container { position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column; align-items: center; gap: 15px; }
@@ -126,7 +196,7 @@ const GlobalStyles = () => (
     .fab-item::after { content: attr(data-tooltip); position: absolute; right: 60px; background: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 4px; font-size: 11px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; top: 12px; font-family: var(--font-body); font-weight: 600; }
     .fab-item:hover::after { opacity: 1; }
 
-    /* Dark Mode */
+    /* Dark Mode Body Overrides (Footer stays dark) */
     body.dark-mode { background-color: #050505 !important; color: #e0e0e0 !important; }
     body.dark-mode .shivba-header { background-color: rgba(20, 20, 20, 0.95); border-bottom: 1px solid #333; }
     body.dark-mode .shivba-logo { color: white; text-shadow: 0 2px 10px rgba(255, 165, 0, 0.3); }
@@ -145,6 +215,7 @@ const GlobalStyles = () => (
       .shivba-footer-logo { margin: 0 auto 1.5rem; display: block; }
       .shivba-footer-bottom { flex-direction: column; gap: 15px; text-align: center; }
       .shivba-footer-col button, .shivba-footer-col a { text-align: center; }
+      .shivba-footer-col h4::after { left: 50%; transform: translateX(-50%); } /* Center underline on mobile */
     }
   `}</style>
 );
@@ -238,6 +309,19 @@ function Footer({ setPage }) {
         <div className="shivba-footer-col brand">
           <div className="shivba-footer-logo">SHIVBA</div>
           <p className="shivba-footer-text">Forging legacy through strength, culture, and community excellence. Join the revolution today.</p>
+          
+          <div className="shivba-footer-social">
+            {/* Social Icons SVGs */}
+            <a href="#" className="shivba-social-link" title="Instagram">
+                <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.069-4.85.069-3.204 0-3.584-.012-4.849-.069-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+            </a>
+            <a href="#" className="shivba-social-link" title="Twitter">
+                <svg viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
+            </a>
+            <a href="#" className="shivba-social-link" title="LinkedIn">
+                <svg viewBox="0 0 24 24"><path d="M4.98 3.5c0 1.381-1.11 2.5-2.48 2.5s-2.48-1.119-2.48-2.5c0-1.38 1.11-2.5 2.48-2.5s2.48 1.12 2.48 2.5zm.02 4.5h-5v16h5v-16zm7.982 0h-4.968v16h4.969v-8.399c0-4.67 6.029-5.052 6.029 0v8.399h4.988v-10.131c0-7.88-8.922-7.593-11.018-3.714v-2.155z"/></svg>
+            </a>
+          </div>
         </div>
         <div className="shivba-footer-col">
           <h4>Explore</h4>
@@ -365,11 +449,12 @@ function App() {
       if (e.key === 'Escape') closeModal();
       
       // Ignore input fields (except for shortcuts that use Alt/Ctrl)
-      if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) && !e.altKey) return;
+      if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) && !e.altKey && !e.ctrlKey) return;
 
       if (e.altKey && (e.key === 'ArrowLeft' || e.key === 'Backspace')) { e.preventDefault(); goBack(); }
       if (e.altKey && (e.key === 'ArrowRight')) { e.preventDefault(); goForward(); }
       
+      // 1. Existing Alt shortcuts
       if (e.altKey) {
         if(e.key.toLowerCase() === 'h') handleSetPage({ name: 'home' });
         if(e.key.toLowerCase() === 'a') handleSetPage({ name: 'about' });
@@ -377,12 +462,12 @@ function App() {
         if(e.key.toLowerCase() === 'e') handleSetPage({ name: 'events' });
         if(e.key.toLowerCase() === 'g') handleSetPage({ name: 'gallery' });
         if(e.key.toLowerCase() === 'c') handleSetPage({ name: 'contact' });
-        
-        // --- [NEW] Dashboard Shortcut (Alt + D) ---
-        if(e.key.toLowerCase() === 'd') {
-            e.preventDefault();
-            handleSetPage({ name: 'dashboard' });
-        }
+      }
+
+      // 2. New Dashboard Shortcut (Ctrl + Shift + A)
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        handleSetPage({ name: 'dashboard' });
       }
     };
     window.addEventListener('keydown', handleGlobalKeys);
