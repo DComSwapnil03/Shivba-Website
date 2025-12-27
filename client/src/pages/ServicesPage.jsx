@@ -6,8 +6,8 @@ const services = [
   {
     id: 'talim',
     title: 'Shivba Talim',
-    // Added specific high-res images for the cinematic look
-    imageUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop',
+    // UPDATED: Using your local image for Gym
+    imageUrl: '/IMG-20251226-WA0024.jpg',
     icon: '⚡',
     tagline: 'State-of-the-art equipment for the modern warrior.',
     bullets: [
@@ -22,6 +22,7 @@ const services = [
   {
     id: 'hostel',
     title: 'Shivba Hostel',
+    // Keeping original Unsplash image for Hostel
     imageUrl: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?q=80&w=2069&auto=format&fit=crop',
     icon: '🏠',
     tagline: 'Connect with like-minded individuals in comfort.',
@@ -37,7 +38,8 @@ const services = [
   {
     id: 'library',
     title: 'Shivba Library',
-    imageUrl: 'https://images.unsplash.com/photo-1507842217121-9e96e44303f0?q=80&w=2070&auto=format&fit=crop',
+    // Using local image from public folder (previously updated)
+    imageUrl: '/IMG-20251226-WA0006.jpg',
     icon: '📚',
     tagline: 'Expand your mind with our extensive collection.',
     bullets: [
@@ -52,7 +54,8 @@ const services = [
   {
     id: 'awareness',
     title: 'Social Awareness',
-    imageUrl: 'https://images.unsplash.com/photo-1544027993-37dbfe43562a?q=80&w=2070&auto=format&fit=crop',
+    // Using local image from public folder (previously updated)
+    imageUrl: '/IMG-20251226-WA0012.jpg',
     icon: '🤝',
     tagline: 'Participate in workshops, seminars, and change.',
     bullets: [
@@ -224,7 +227,9 @@ function ServicesPage({ setPage }) {
             width: 60px; height: 60px;
             background: #FFA500;
             border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 2rem;
             margin-bottom: 1.5rem;
             box-shadow: 0 10px 20px rgba(255, 165, 0, 0.3);

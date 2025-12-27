@@ -81,16 +81,56 @@ const GlobalStyles = () => (
     .shivba-header-inner { max-width: 1400px; margin: 0 auto; padding: 0 30px; height: 100%; display: flex; align-items: center; justify-content: space-between; }
     .shivba-logo { font-family: var(--font-logo); font-size: 2rem; font-weight: 900; color: black; cursor: pointer; text-transform: uppercase; letter-spacing: 0.15em; text-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.3s ease; }
     .shivba-logo:hover { transform: scale(1.02); }
+    
     .shivba-nav { display: flex; gap: 25px; align-items: center; }
     .nav-btn { background: none; border: none; font-family: var(--font-body); font-size: 0.85rem; font-weight: 700; color: black; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.05em; position: relative; }
     .nav-btn::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: var(--c-gold); transition: width 0.3s ease; }
     .nav-btn:hover::after, .nav-btn.active::after { width: 100%; }
     .nav-btn:hover, .nav-btn.active { color: black; } 
+    
     .shivba-header-actions { display: flex; align-items: center; gap: 15px; }
     .shivba-primary-btn { background: black; color: white; border: none; padding: 12px 24px; border-radius: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.8rem; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
     .shivba-primary-btn:hover { background: var(--c-gold); color: black; transform: translateY(-2px); }
     .shivba-ghost-btn { background: transparent; border: 1px solid black; padding: 10px 20px; border-radius: 4px; color: black; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; font-weight: 600; text-transform: uppercase; transition: all 0.3s; }
     .shivba-ghost-btn:hover { background: black; color: white; }
+
+    /* --- NEW SIDE DRAWER MOBILE MENU (UPDATED) --- */
+    
+    /* 1. Hamburger Icon */
+    .shivba-menu-toggle { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 5px; z-index: 1002; }
+    .shivba-menu-toggle span { display: block; width: 25px; height: 2px; background-color: black; transition: all 0.3s; }
+
+    /* 2. The Dark Overlay (Backdrop) */
+    .shivba-mobile-overlay {
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+        z-index: 10005; opacity: 0; visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s;
+    }
+    .shivba-mobile-overlay.visible { opacity: 1; visibility: visible; }
+
+    /* 3. The Sliding Drawer */
+    .shivba-mobile-drawer {
+        position: fixed; top: 0; right: 0; width: 80%; max-width: 320px; height: 100%;
+        background: white; z-index: 10010;
+        transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: -5px 0 25px rgba(0,0,0,0.15); display: flex; flex-direction: column;
+    }
+    .shivba-mobile-drawer.open { transform: translateX(0); }
+
+    /* 4. Drawer Internals */
+    .drawer-header { padding: 20px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; background: #fcfcfc; }
+    .drawer-title { font-family: var(--font-heading); font-weight: 700; font-size: 1.2rem; color: var(--c-dark); }
+    .drawer-close-btn { background: none; border: 1px solid #ddd; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #666; cursor: pointer; transition: all 0.2s; }
+    .drawer-close-btn:hover { background: black; color: white; border-color: black; }
+
+    .drawer-content { flex: 1; overflow-y: auto; padding: 10px 0; display: flex; flex-direction: column; }
+    .drawer-link { text-align: left; background: none; border: none; padding: 16px 30px; font-family: var(--font-body); font-size: 1rem; font-weight: 500; color: #333; border-bottom: 1px solid #f5f5f5; cursor: pointer; transition: all 0.2s; }
+    .drawer-link:hover { background: #fafafa; color: var(--c-gold); padding-left: 35px; }
+    .drawer-link.active { color: black; font-weight: 700; border-left: 4px solid var(--c-gold); background: #fffdf5; }
+
+    .drawer-footer { padding: 25px; border-top: 1px solid #eee; background: #fafafa; display: flex; flex-direction: column; gap: 15px; }
+    .drawer-cta-btn { width: 100%; background: var(--c-gold); color: black; border: none; padding: 14px; font-weight: 700; text-transform: uppercase; cursor: pointer; }
 
     /* --- PROFESSIONAL FOOTER (PREMIUM DARK) --- */
     .shivba-footer { 
@@ -207,31 +247,68 @@ const GlobalStyles = () => (
     body.dark-mode .shivba-primary-btn { background: var(--c-gold); color: black; }
     body.dark-mode .shivba-primary-btn:hover { background: white; }
 
+    /* Dark Mode Drawer Overrides */
+    body.dark-mode .shivba-menu-toggle span { background-color: white; }
+    body.dark-mode .shivba-mobile-drawer { background: #1a1a1a; border-left: 1px solid #333; }
+    body.dark-mode .drawer-header { background: #111; border-color: #333; }
+    body.dark-mode .drawer-title { color: white; }
+    body.dark-mode .drawer-content { background: #1a1a1a; }
+    body.dark-mode .drawer-link { color: #ccc; border-color: #2a2a2a; }
+    body.dark-mode .drawer-link:hover { background: #222; color: var(--c-gold); }
+    body.dark-mode .drawer-link.active { background: #222; color: white; }
+    body.dark-mode .drawer-footer { background: #111; border-color: #333; }
+
     @media (max-width: 1024px) {
       .shivba-nav { display: none; } 
       .shivba-header-inner { justify-content: space-between; }
+      .shivba-menu-toggle { display: flex; } /* Show hamburger on mobile */
       .shivba-footer-inner { grid-template-columns: 1fr; gap: 3rem; text-align: center; }
       .shivba-footer-social { justify-content: center; }
       .shivba-footer-logo { margin: 0 auto 1.5rem; display: block; }
       .shivba-footer-bottom { flex-direction: column; gap: 15px; text-align: center; }
       .shivba-footer-col button, .shivba-footer-col a { text-align: center; }
-      .shivba-footer-col h4::after { left: 50%; transform: translateX(-50%); } /* Center underline on mobile */
+      .shivba-footer-col h4::after { left: 50%; transform: translateX(-50%); } 
     }
   `}</style>
 );
 
 /* ------------ Components ------------- */
 
+/* UPDATED HEADER with SIDE DRAWER NAVIGATION */
 function Header({ setPage, activePage }) {
+  const [open, setOpen] = useState(false);
   const { t } = useTranslation();
-  const goto = (name) => setPage({ name });
-  const navClass = (name) => activePage === name ? 'nav-btn active' : 'nav-btn';
+
+  // Lock body scroll when menu is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+  }, [open]);
+
+  // Helper to change page and close mobile menu
+  const goto = (name) => {
+    setPage({ name });
+    setOpen(false); 
+  };
+
+  const navClass = (name) =>
+    activePage === name ? 'nav-btn active' : 'nav-btn';
+
+  const mobileNavClass = (name) => 
+    activePage === name ? 'drawer-link active' : 'drawer-link';
 
   return (
     <header className="shivba-header">
       <div className="shivba-header-inner">
-        <div className="shivba-logo" onClick={() => goto('home')}>SHIVBA</div>
-        
+        {/* 1. Logo (Desktop/Main) */}
+        <div className="shivba-logo" onClick={() => goto('home')}>
+          SHIVBA
+        </div>
+
+        {/* 2. Desktop Navigation */}
         <nav className="shivba-nav">
           <button className={navClass('home')} onClick={() => goto('home')}>{t('nav.home')}</button>
           <button className={navClass('about')} onClick={() => goto('about')}>{t('nav.about')}</button>
@@ -239,16 +316,75 @@ function Header({ setPage, activePage }) {
           <button className={navClass('events')} onClick={() => goto('events')}>{t('nav.events')}</button>
           <button className={navClass('gallery')} onClick={() => goto('gallery')}>{t('nav.gallery')}</button>
           <button className={navClass('faq')} onClick={() => goto('faq')}>{t('nav.faq')}</button>
-          <button className={navClass('help')} onClick={() => goto('help')}>Help</button>
+          <button className={navClass('help')} onClick={() => goto('help')}>{t('nav.help') || 'Help'}</button>
           <button className={navClass('contact')} onClick={() => goto('contact')}>{t('nav.contact')}</button>
         </nav>
-        
+
+        {/* 3. Header Actions */}
         <div className="shivba-header-actions">
-          <LanguageSwitcher />
+          <div className="desktop-only">
+             <LanguageSwitcher />
+          </div>
+          
           <button className="shivba-ghost-btn" onClick={() => goto('account')}>
             <span>👤</span> <span className="desktop-only">{t('nav.myAccount')}</span>
           </button>
-          <button className="shivba-primary-btn" onClick={() => goto('register')}>{t('nav.register')}</button>
+
+          <button className="shivba-primary-btn desktop-only" onClick={() => goto('register')}>
+            {t('nav.register')}
+          </button>
+          
+          {/* Mobile Hamburger Toggle */}
+          <button
+            className={`shivba-menu-toggle ${open ? 'open' : ''}`}
+            onClick={() => setOpen(true)}
+            aria-label="Open navigation"
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+        </div>
+      </div>
+
+      {/* 4. NEW MOBILE SIDE DRAWER */}
+      {/* Overlay Backdrop */}
+      <div 
+        className={`shivba-mobile-overlay ${open ? 'visible' : ''}`} 
+        onClick={() => setOpen(false)}
+      />
+
+      {/* Sliding Drawer */}
+      <div className={`shivba-mobile-drawer ${open ? 'open' : ''}`}>
+        
+        {/* DRAWER HEADER: Now contains the Logo/Brand Navigation */}
+        <div className="drawer-header">
+           <div 
+             className="shivba-logo" 
+             onClick={() => goto('home')} 
+             style={{ fontSize: '1.5rem', cursor: 'pointer' }}
+           >
+             SHIVBA
+           </div>
+           <button className="drawer-close-btn" onClick={() => setOpen(false)}>✕</button>
+        </div>
+
+        {/* DRAWER CONTENT: Navigation Links */}
+        <div className="drawer-content">
+          <button className={mobileNavClass('home')} onClick={() => goto('home')}>{t('nav.home')}</button>
+          <button className={mobileNavClass('about')} onClick={() => goto('about')}>{t('nav.about')}</button>
+          <button className={mobileNavClass('services')} onClick={() => goto('services')}>{t('nav.services')}</button>
+          <button className={mobileNavClass('events')} onClick={() => goto('events')}>{t('nav.events')}</button>
+          <button className={mobileNavClass('gallery')} onClick={() => goto('gallery')}>{t('nav.gallery')}</button>
+          <button className={mobileNavClass('faq')} onClick={() => goto('faq')}>{t('nav.faq')}</button>
+          <button className={mobileNavClass('help')} onClick={() => goto('help')}>{t('nav.help') || 'Help'}</button>
+          <button className={mobileNavClass('contact')} onClick={() => goto('contact')}>{t('nav.contact')}</button>
+        </div>
+
+        {/* DRAWER FOOTER: Actions */}
+        <div className="drawer-footer">
+           <LanguageSwitcher />
+           <button className="drawer-cta-btn" onClick={() => goto('register')}>{t('nav.register')}</button>
         </div>
       </div>
     </header>
@@ -311,17 +447,39 @@ function Footer({ setPage }) {
           <p className="shivba-footer-text">Forging legacy through strength, culture, and community excellence. Join the revolution today.</p>
           
           <div className="shivba-footer-social">
-            {/* Social Icons SVGs */}
-            <a href="#" className="shivba-social-link" title="Instagram">
-                <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.069-4.85.069-3.204 0-3.584-.012-4.849-.069-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-            </a>
-            <a href="#" className="shivba-social-link" title="Twitter">
-                <svg viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
-            </a>
-            <a href="#" className="shivba-social-link" title="LinkedIn">
-                <svg viewBox="0 0 24 24"><path d="M4.98 3.5c0 1.381-1.11 2.5-2.48 2.5s-2.48-1.119-2.48-2.5c0-1.38 1.11-2.5 2.48-2.5s2.48 1.12 2.48 2.5zm.02 4.5h-5v16h5v-16zm7.982 0h-4.968v16h4.969v-8.399c0-4.67 6.029-5.052 6.029 0v8.399h4.988v-10.131c0-7.88-8.922-7.593-11.018-3.714v-2.155z"/></svg>
-            </a>
-          </div>
+    {/* Instagram 1 */}
+    <a 
+        href="https://www.instagram.com/shivbastalim/" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="shivba-social-link" 
+        title="Instagram Main"
+    >
+        <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.069-4.85.069-3.204 0-3.584-.012-4.849-.069-3.204 0-3.584-.012-4.849-.069-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+    </a>
+
+    {/* Instagram 2 */}
+    <a 
+        href="https://www.instagram.com/socialawarenessfoundation/" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="shivba-social-link" 
+        title="Instagram Secondary"
+    >
+        <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.069-4.85.069-3.204 0-3.584-.012-4.849-.069-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948-0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+    </a>
+
+    {/* Facebook */}
+    <a 
+        href="https://www.facebook.com/profile.php?id=100017188563264" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="shivba-social-link" 
+        title="Facebook"
+    >
+        <svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.791-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+    </a>
+</div>
         </div>
         <div className="shivba-footer-col">
           <h4>Explore</h4>
@@ -461,7 +619,9 @@ function App() {
         if(e.key.toLowerCase() === 's') handleSetPage({ name: 'services' });
         if(e.key.toLowerCase() === 'e') handleSetPage({ name: 'events' });
         if(e.key.toLowerCase() === 'g') handleSetPage({ name: 'gallery' });
+        if(e.key.toLowerCase() === 'r') handleSetPage({ name: 'register'});
         if(e.key.toLowerCase() === 'c') handleSetPage({ name: 'contact' });
+        // if(e.key.toLowerCase() === 'l') handleSetPage({ name: 'myaccount'});
       }
 
       // 2. New Dashboard Shortcut (Ctrl + Shift + A)
