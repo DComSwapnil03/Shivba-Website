@@ -24,8 +24,8 @@
 .intro-noise {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
-    /* Base64 Encoded Noise Texture - Impossible to break syntax */
-    background-image: url("data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PScwIDAgMjAwIDIwMCcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48ZmlsdGVyIGlkPSdub2lzZUZpbHRlcic+PGZlVHVyYnVsZW5jZSB0eXBlPSdmcmFjdGFsTm9pc2UnIGJhc2VGcmVxdWVuY3k9JzAuNjUnIG51bU9jdGF2ZXM9JzMnIHN0aXRjaFRpbGVzPSdzdGl0Y2gnLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0nMTAwJScgaGVpZ2h0PScxMDAlJyBmaWx0ZXI9J3VybCgjbm9pc2VGaWx0ZXIpJyBvcGFjaXR5PScwLjA1Jy8+PC9zdmc+");
+    /* Replaced noise image with a simple semi-transparent overlay */
+    background-color: rgba(255, 255, 255, 0.05); 
     pointer-events: none;
     z-index: 1;
 }
