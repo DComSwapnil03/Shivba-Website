@@ -21,18 +21,13 @@ const modalVariants = {
 };
 
 const Dashboard = () => {
+  // --- DASHBOARD STATE ---
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  
-  // --- DATA STATE ---
   const [activeTab, setActiveTab] = useState('users'); 
   const [tableData, setTableData] = useState([]); 
   const [stats, setStats] = useState({ userCount: 0, eventCount: 0, msgCount: 0 });
   const [loadingData, setLoadingData] = useState(false);
-
-  // --- USER DETAIL STATE ---
   const [selectedUser, setSelectedUser] = useState(null);
-
-  // --- IMPORT/EXPORT STATE ---
   const [uploading, setUploading] = useState(false);
   const [statusMsg, setStatusMsg] = useState({ type: '', text: '', subText: '' });
   const fileInputRef = useRef(null);
@@ -67,34 +62,28 @@ const Dashboard = () => {
     }
   };
 
+  // --- EFFECTS ---
   useEffect(() => {
     fetchStats();
     fetchData(activeTab);
   }, [activeTab]);
 
-  // --- MOCK DATA GENERATOR (Simulating Backend Response) ---
+  // --- MOCK DATA GENERATOR ---
   const generateMockUserDetails = (user) => {
-    // 1. Determine Services
     const hasGym = Math.random() > 0.5;
     const hasHostel = Math.random() > 0.5;
     const hasLibrary = Math.random() > 0.5;
-
     const equipped = [];
     const notEquipped = [];
-    
     if (hasGym) equipped.push('Gym'); else notEquipped.push('Gym');
     if (hasHostel) equipped.push('Hostel'); else notEquipped.push('Hostel');
     if (hasLibrary) equipped.push('Library'); else notEquipped.push('Library');
 
-    // 2. Generate Specific Pending Amounts
-    // If user has the service, there is a chance they have pending fees
     const gymPending = hasGym && Math.random() > 0.7 ? 500 : 0;
     const hostelPending = hasHostel && Math.random() > 0.8 ? 2000 : 0;
     const libraryPending = hasLibrary && Math.random() > 0.6 ? 200 : 0;
-
     const totalPending = gymPending + hostelPending + libraryPending;
 
-    // 3. Generate History
     const generateHistory = (service) => {
         if (!equipped.includes(service)) return [];
         return [
@@ -108,17 +97,9 @@ const Dashboard = () => {
         details: {
             equipped,
             notEquipped,
-            pendingBreakdown: {
-                gym: gymPending,
-                hostel: hostelPending,
-                library: libraryPending
-            },
+            pendingBreakdown: { gym: gymPending, hostel: hostelPending, library: libraryPending },
             totalPending,
-            history: {
-                gym: generateHistory('Gym'),
-                hostel: generateHistory('Hostel'),
-                library: generateHistory('Library')
-            }
+            history: { gym: generateHistory('Gym'), hostel: generateHistory('Hostel'), library: generateHistory('Library') }
         }
     };
   };
@@ -132,7 +113,6 @@ const Dashboard = () => {
   const handleDelete = async (e, id) => {
     e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this record?")) return;
-
     try {
         const res = await fetch(`${API_BASE_URL}/api/data/delete/${id}?type=${activeTab}`, { method: 'DELETE' });
         if (res.ok) {
@@ -144,9 +124,7 @@ const Dashboard = () => {
         } else {
             alert("Error deleting record");
         }
-    } catch (error) {
-        alert("Network Error");
-    }
+    } catch (error) { alert("Network Error"); }
   };
 
   // --- IMPORT EXCEL HANDLER ---
@@ -155,24 +133,16 @@ const Dashboard = () => {
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const formData = new FormData();
     formData.append('file', file);
-
     setUploading(true);
     setStatusMsg({ type: 'info', text: 'Uploading Excel file...', subText: 'Processing user data...' });
 
     try {
-        // Send file to backend
-        const response = await fetch(`${API_BASE_URL}/api/data/import`, {
-            method: 'POST',
-            body: formData,
-        });
+        const response = await fetch(`${API_BASE_URL}/api/data/import`, { method: 'POST', body: formData });
         const data = await response.json();
-
         if (response.ok) {
-            setStatusMsg({ type: 'success', text: `✅ Import Successful`, subText: `${data.count || 'Users'} records added from Excel.` });
-            // Refresh the table to show new Excel data
+            setStatusMsg({ type: 'success', text: `✅ Import Successful`, subText: `${data.count || 'Users'} records added.` });
             if (activeTab === 'users') fetchData('users'); 
             fetchStats(); 
         } else {
@@ -195,7 +165,6 @@ const Dashboard = () => {
     const style = { padding: '12px', fontWeight: '600' };
     const common = <><th style={style}>Actions</th></>;
     if (activeTab === 'users') return <><th style={style}>Name</th><th style={style}>Email</th><th style={style}>Phone</th><th style={style}>Status</th>{common}</>;
-    // ... (Other tabs kept same for brevity)
     if (activeTab === 'events') return <><th style={style}>Participant</th><th style={style}>Event</th><th style={style}>Email</th><th style={style}>Date</th>{common}</>;
     if (activeTab === 'messages') return <><th style={style}>Sender</th><th style={style}>Subject</th><th style={style}>Message</th><th style={style}>Sent At</th>{common}</>;
   };
@@ -206,7 +175,6 @@ const Dashboard = () => {
 
     return tableData.map((row) => {
         const rowStyle = { borderBottom: '1px solid #f3f4f6', fontSize: '0.9rem', cursor: activeTab === 'users' ? 'pointer' : 'default' };
-        
         const deleteCell = (
             <td style={style}>
                 <button onClick={(e) => handleDelete(e, row._id)} style={btnStyle}>🗑️ Delete</button>
@@ -222,53 +190,29 @@ const Dashboard = () => {
                 {deleteCell}
             </tr>
         );
-        // ... (Other rows kept same)
         if (activeTab === 'events') return <tr key={row._id} style={rowStyle}><td style={style}><strong>{row.name}</strong></td><td style={style}>{row.eventTitle || row.eventId}</td><td style={style}>{row.email}</td><td style={style}>{new Date(row.registeredAt).toLocaleDateString()}</td>{deleteCell}</tr>;
         if (activeTab === 'messages') return <tr key={row._id} style={rowStyle}><td style={style}><strong>{row.name}</strong></td><td style={style}>{row.subject}</td><td style={style}>{row.message?.substring(0, 20)}...</td><td style={style}>{new Date(row.createdAt).toLocaleDateString()}</td>{deleteCell}</tr>;
         return null;
     });
   };
 
-  // --- RENDER PAYMENT LIST (Updated for Red Alert) ---
   const renderPaymentList = (title, history, pendingAmount) => {
       const isPending = pendingAmount > 0;
-      
-      // Dynamic Styles
-      const boxStyle = {
-          border: isPending ? '2px solid #ef4444' : '1px solid #eee',
-          background: isPending ? '#fff5f5' : 'white',
-          borderRadius: '8px',
-          padding: '15px'
-      };
-      
-      const headerStyle = {
-          borderBottom: isPending ? '1px solid #fca5a5' : '2px solid #eee', 
-          paddingBottom:'5px', 
-          color: isPending ? '#b91c1c' : '#555',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-      };
+      const boxStyle = { border: isPending ? '2px solid #ef4444' : '1px solid #eee', background: isPending ? '#fff5f5' : 'white', borderRadius: '8px', padding: '15px' };
+      const headerStyle = { borderBottom: isPending ? '1px solid #fca5a5' : '2px solid #eee', paddingBottom:'5px', color: isPending ? '#b91c1c' : '#555', display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
 
       return (
         <div className="payment-column" style={boxStyle}>
-            <h4 style={headerStyle}>
-                {title}
-                {isPending && <span style={{fontSize:'0.7rem', background:'#ef4444', color:'white', padding:'2px 6px', borderRadius:'4px'}}>⚠️ Pending: ₹{pendingAmount}</span>}
-            </h4>
-            
+            <h4 style={headerStyle}>{title} {isPending && <span style={{fontSize:'0.7rem', background:'#ef4444', color:'white', padding:'2px 6px', borderRadius:'4px'}}>⚠️ Pending: ₹{pendingAmount}</span>}</h4>
             {history && history.length > 0 ? (
                 <ul style={{listStyle:'none', padding:0}}>
                     {history.map((pay, i) => (
                         <li key={i} style={{display:'flex', justifyContent:'space-between', padding:'8px 0', borderBottom:'1px dashed #eee', fontSize:'0.85rem'}}>
-                            <span>{pay.date}</span>
-                            <span style={{fontWeight:'bold', color:'#065f46'}}>₹{pay.amount}</span>
+                            <span>{pay.date}</span><span style={{fontWeight:'bold', color:'#065f46'}}>₹{pay.amount}</span>
                         </li>
                     ))}
                 </ul>
-            ) : (
-                <p style={{fontStyle:'italic', color:'#999', fontSize:'0.85rem'}}>No payment history</p>
-            )}
+            ) : (<p style={{fontStyle:'italic', color:'#999', fontSize:'0.85rem'}}>No payment history</p>)}
         </div>
       );
   };
@@ -296,13 +240,9 @@ const Dashboard = () => {
         .status-success { background: #d1fae5; color: #065f46; }
         .status-error { background: #fee2e2; color: #991b1b; }
         .hover-row:hover { background-color: #f9fafb; transition: background 0.2s; }
-        
-        /* SEARCH & MODAL */
         .search-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 9999; display: flex; align-items: center; justify-content: center; }
         .search-modal { background: white; width: 90%; max-width: 600px; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
         .user-detail-modal { background: white; width: 90%; max-width: 900px; max-height:90vh; overflow-y:auto; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); padding: 0; }
-        
-        /* USER DETAILS */
         .ud-header { background: #1a1a1a; color: white; padding: 2rem; position: relative; }
         .ud-close { position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
         .ud-body { padding: 2rem; }
@@ -314,7 +254,7 @@ const Dashboard = () => {
         @media (max-width: 768px) { .ud-grid, .payment-grid { grid-template-columns: 1fr; } }
       `}</style>
 
-      {/* Header and Stats (Kept same) */}
+      {/* Header and Stats */}
       <div className="dash-header">
         <div>
           <p style={{color:'#888', fontSize:'0.9rem', textTransform:'uppercase'}}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
@@ -397,7 +337,6 @@ const Dashboard = () => {
         {selectedUser && (
             <motion.div className="search-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedUser(null)}>
                 <motion.div className="user-detail-modal" onClick={(e) => e.stopPropagation()} variants={modalVariants} initial="hidden" animate="visible" exit="exit">
-                    
                     <div className="ud-header">
                         <button className="ud-close" onClick={() => setSelectedUser(null)}>✕</button>
                         <h2 style={{color:'white', margin:0, fontSize:'1.8rem'}}>{selectedUser.name}</h2>
@@ -439,7 +378,6 @@ const Dashboard = () => {
                             {renderPaymentList('📚 Library', selectedUser.details.history.library, selectedUser.details.pendingBreakdown.library)}
                         </div>
                     </div>
-
                 </motion.div>
             </motion.div>
         )}

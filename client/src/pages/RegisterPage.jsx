@@ -83,12 +83,23 @@ function RegisterPage({ setPage, setModalState }) {
         type: 'success'
       });
 
+      // Clear form securely
       setFormData({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
 
       // Navigate after short delay
       setTimeout(() => {
           setModalState(prev => ({ ...prev, show: false }));
-          setPage({ name: 'verify', params: { email: data.email } });
+          
+          // --- CRITICAL UPDATE HERE ---
+          // We pass phone and name so the Verify Page can use them for WhatsApp
+          setPage({ 
+              name: 'verify', 
+              params: { 
+                  email: data.email, 
+                  phone: payload.phone,  // PASSING PHONE
+                  name: payload.name     // PASSING NAME
+              } 
+          });
       }, 1500);
 
     } catch (error) {

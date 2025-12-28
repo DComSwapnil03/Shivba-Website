@@ -4,6 +4,13 @@ const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
 const InterestRegistration = require('../models/InterestRegistration'); 
 
+// --- TWILIO SETUP ---
+require('dotenv').config();
+// Initialize Twilio client only if credentials exist to prevent crash
+const client = (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) 
+    ? require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
+    : null;
+
 const router = express.Router();
 
 console.log("✅ Auth Routes Loaded");
@@ -24,7 +31,7 @@ const mailer = nodemailer.createTransport({
   tls: {
     rejectUnauthorized: false
   },
-  debug: true        // Show logs in console
+  debug: false        // Set to true only if debugging email issues
 });
 
 // Verify connection on startup
@@ -116,7 +123,7 @@ router.post('/register-interest-simple', async (req, res) => {
       {
         name: name.trim(),
         email: lowerEmail,
-        phone: phone.trim(),
+        phone: phone.trim(), // We save raw phone here
         password: hashedPassword,
         isVerified: false,
         otp: otp,
@@ -202,7 +209,66 @@ router.post('/verify-otp', async (req, res) => {
 });
 
 // ==========================================
-// 4. LOGIN & PROFILE
+// 4. ROUTE: SEND WELCOME MESSAGE (TWILIO)
+// ==========================================
+router.post('/send-welcome-message', async (req, res) => {
+    const { phone, name } = req.body;
+
+    // --- DEBUG LOGGING ---
+    console.log("------------------------------------------");
+    console.log("⚠️ [Backend Debug] Welcome Message Triggered");
+    console.log(`📦 Payload: Phone=${phone}, Name=${name}`);
+    
+    // Safety check: if no phone provided, skip without crashing
+    if (!phone) {
+        console.error("❌ Error: Phone number is MISSING in request body.");
+        return res.status(400).json({ message: "Phone number missing" });
+    }
+    
+    // Check if Twilio is configured
+    if (!client) {
+        console.error("❌ Error: Twilio client not initialized. Check .env variables.");
+        return res.status(500).json({ message: "Twilio configuration error" });
+    }
+
+    // --- SANDBOX FORMATTING LOGIC ---
+    // If testing in Sandbox, we MUST prefix 'whatsapp:'. 
+    // Even if using SMS, Twilio prefers E.164 (e.g., +91...)
+    
+    let targetPhone = phone.trim();
+    
+    // If your .env TWILIO_PHONE_NUMBER has 'whatsapp:', we assume we are sending WhatsApp.
+    const isWhatsApp = process.env.TWILIO_PHONE_NUMBER && process.env.TWILIO_PHONE_NUMBER.includes('whatsapp');
+
+    // Only add 'whatsapp:' prefix if it's missing AND we are in WhatsApp mode
+    if (isWhatsApp && !targetPhone.startsWith('whatsapp:')) {
+        targetPhone = 'whatsapp:' + targetPhone;
+    }
+
+    try {
+        console.log(`[Twilio] Sending Welcome Message to ${targetPhone}...`);
+        
+        const message = await client.messages.create({
+            body: `Hello ${name}! 🎉\n\nWelcome to Shivba-Website. Your verification is complete!`,
+            from: process.env.TWILIO_PHONE_NUMBER, // Checks .env
+            to: targetPhone
+        });
+
+        console.log(`[Twilio] Success! SID: ${message.sid}`);
+        console.log("------------------------------------------");
+        return res.status(200).json({ success: true, sid: message.sid });
+
+    } catch (error) {
+        console.error("❌ Twilio Error:", error.message);
+        console.log("------------------------------------------");
+        // We return 200 to Frontend so the UI doesn't show an error to the user
+        // (The user is already verified, so a failed SMS shouldn't scare them)
+        return res.status(200).json({ success: false, error: error.message });
+    }
+});
+
+// ==========================================
+// 5. LOGIN & PROFILE
 // ==========================================
 router.post('/account/login', async (req, res) => {
     try {

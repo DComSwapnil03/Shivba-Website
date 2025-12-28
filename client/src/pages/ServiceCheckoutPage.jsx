@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // --- 1. RAZORPAY HELPER ---
 const loadRazorpay = () => {
@@ -12,35 +12,98 @@ const loadRazorpay = () => {
   });
 };
 
-// --- 2. CONFIG DATA (Shared) ---
+// --- 2. CONFIG DATA ---
 const SERVICE_CONFIG = {
-  talim: { title: 'Shivba Talim', price: 1200, plans: [{ label: '1 Month', price: 1200 }, { label: '3 Months', price: 3000 }, { label: '6 Months', price: 5500 }, { label: '1 Year', price: 8000 }] },
-  library: { title: 'Shivba Library', price: 900, plans: [{ label: '1 Month', price: 900 }, { label: '3 Months', price: 2500 }, { label: '6 Months', price: 5000 }, { label: '1 Year', price: 7000 }] },
-  hostel: { title: 'Shivba Hostel', price: 2499, plans: [{ label: 'Standard Room', price: 2499 }] },
-  social: { title: 'Social Awareness', price: 299, plans: [{ label: 'Volunteer Kit', price: 299 }] }
+  talim: { 
+    title: 'Shivba Talim', 
+    price: 1200, 
+    plans: [
+      { label: '1 Month', price: 1200 }, 
+      { label: '3 Months', price: 3000, save: 'Save ₹600' }, 
+      { label: '6 Months', price: 5500, save: 'Save ₹1700' }, 
+      { label: '1 Year', price: 8000, save: 'Save ₹6400' }
+    ] 
+  },
+  library: { 
+    title: 'Shivba Library', 
+    price: 900, 
+    plans: [
+      { label: '1 Month', price: 900 }, 
+      { label: '3 Months', price: 2500, save: 'Save ₹200' }, 
+      { label: '6 Months', price: 5000, save: 'Save ₹400' }, 
+      { label: '1 Year', price: 7000, save: 'Save ₹3800' }
+    ] 
+  },
+  hostel: { 
+    title: 'Shivba Hostel', 
+    price: 2499, 
+    plans: [{ label: 'Monthly Rent', price: 2499 }] 
+  },
+  social: { 
+    title: 'Social Awareness', 
+    price: 299, 
+    plans: [{ label: 'Volunteer Kit', price: 299 }] 
+  }
+};
+
+// --- WHATSAPP GROUP LINKS ---
+const GROUP_LINKS = {
+    talim: 'https://chat.whatsapp.com/E5d123TalimGroupLink', // Replace with real link
+    library: 'https://chat.whatsapp.com/L8a456LibraryGroupLink',
+    hostel: 'https://chat.whatsapp.com/H9b789HostelGroupLink',
+    social: 'https://chat.whatsapp.com/S1c012SocialGroupLink'
 };
 
 // --- 3. COMPONENT ---
 function ServiceCheckoutPage({ serviceId, userInfo, setPage, params }) {
-  // Determine selected plan from params or default to first
   const service = SERVICE_CONFIG[serviceId] || SERVICE_CONFIG.talim;
-  const planIndex = params?.selectedPlanIndex || 0;
-  const selectedPlan = service.plans[planIndex] || service.plans[0];
+  const bookingSlot = params?.bookingSlot; 
 
+  const [selectedPlanIdx, setSelectedPlanIdx] = useState(params?.selectedPlanIndex || 0);
+  const [hostelMonths, setHostelMonths] = useState(1);
   const [formData, setFormData] = useState({
-    name: '',
-    email: userInfo?.email || '',
-    phone: '',
-    address: ''
+    name: '', email: userInfo?.email || '', phone: '', address: ''
   });
   
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false); // Success State
 
-  // Scroll to top on load
   useEffect(() => { window.scrollTo(0, 0); }, []);
+
+  // Price Logic
+  const isHostel = serviceId === 'hostel';
+  const currentPlanLabel = isHostel 
+    ? `${hostelMonths} Month${hostelMonths > 1 ? 's' : ''} Rent`
+    : service.plans[selectedPlanIdx].label;
+
+  const finalPrice = isHostel
+    ? service.plans[0].price * hostelMonths
+    : service.plans[selectedPlanIdx].price;
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // --- MOCK BACKEND MESSAGE TRIGGER ---
+  const sendConfirmationMessages = async (paymentId) => {
+      const groupLink = GROUP_LINKS[serviceId];
+      
+      console.log(`Processing backend trigger for: ${formData.phone} & ${formData.email}`);
+      console.log(`Sending WhatsApp with Link: ${groupLink}`);
+
+      // In a real app, you would fetch your backend here:
+      /*
+      await fetch('https://your-api.com/send-confirmation', {
+          method: 'POST',
+          body: JSON.stringify({
+              phone: formData.phone,
+              email: formData.email,
+              service: service.title,
+              groupLink: groupLink,
+              paymentId: paymentId
+          })
+      });
+      */
   };
 
   const handlePayment = async (e) => {
@@ -49,35 +112,37 @@ function ServiceCheckoutPage({ serviceId, userInfo, setPage, params }) {
 
     const res = await loadRazorpay();
     if (!res) {
-      alert('Razorpay failed to load. Please check your connection.');
+      alert('Razorpay failed to load.');
       setIsProcessing(false);
       return;
     }
 
-    // MOCK RAZORPAY OPTIONS
     const options = {
-      key: "YOUR_RAZORPAY_TEST_KEY_ID", // 🔴 Replace with actual Test Key
-      amount: selectedPlan.price * 100, // paise
+      key: "YOUR_RAZORPAY_TEST_KEY_ID", 
+      amount: finalPrice * 100, 
       currency: "INR",
       name: "Shivba Organization",
-      description: `${service.title} - ${selectedPlan.label}`,
+      description: `${service.title} - ${currentPlanLabel}`,
       image: "https://via.placeholder.com/150/FFA500/000000?text=Shivba",
-      handler: function (response) {
-        // Success
-        alert(`Payment Successful!\nPayment ID: ${response.razorpay_payment_id}`);
-        setPage({ name: 'account' }); // Redirect to dashboard
+      
+      handler: async function (response) {
+        // 1. Payment Success
+        const pId = response.razorpay_payment_id;
+        
+        // 2. Trigger Backend Messaging (SMS + WhatsApp)
+        await sendConfirmationMessages(pId);
+
+        // 3. Show Success Modal UI
+        setIsProcessing(false);
+        setShowSuccessModal(true);
       },
-      prefill: {
-        name: formData.name,
-        email: formData.email,
-        contact: formData.phone
-      },
+      prefill: { name: formData.name, email: formData.email, contact: formData.phone },
       theme: { color: "#FFA500" }
     };
 
     const paymentObject = new window.Razorpay(options);
     paymentObject.open();
-    setIsProcessing(false);
+    // Note: isProcessing stays true until handler is called or modal closed
   };
 
   return (
@@ -95,7 +160,6 @@ function ServiceCheckoutPage({ serviceId, userInfo, setPage, params }) {
         }
         @media (max-width: 900px) { .checkout-grid { grid-template-columns: 1fr; } }
 
-        /* Left Column: Form */
         .checkout-form-section {
             background: white; padding: 2.5rem; border-radius: 12px;
             box-shadow: 0 5px 20px rgba(0,0,0,0.05); border: 1px solid #eee;
@@ -111,7 +175,23 @@ function ServiceCheckoutPage({ serviceId, userInfo, setPage, params }) {
         }
         body.dark-mode input, body.dark-mode textarea { background: #2a2a2a; border-color: #444; color: white; }
         
-        /* Right Column: Summary */
+        .plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+        .plan-card {
+            border: 1px solid #ddd; padding: 10px; border-radius: 8px; cursor: pointer;
+            text-align: center; transition: all 0.2s; background: #fafafa;
+        }
+        .plan-card:hover { background: #f0f0f0; }
+        .plan-card.active { border-color: #ea580c; background: #fff7ed; color: #ea580c; font-weight: bold; box-shadow: 0 0 0 1px #ea580c; }
+        
+        .plan-label { font-size: 0.85rem; display: block; margin-bottom: 4px; }
+        .plan-price { font-size: 1rem; font-weight: 700; }
+        .plan-save { font-size: 0.65rem; color: #16a34a; font-weight: 600; display: block; margin-top: 2px; }
+
+        .month-counter { display: flex; align-items: center; gap: 15px; margin-bottom: 1.5rem; background: #f9f9f9; padding: 15px; border-radius: 8px; width: fit-content; }
+        .counter-btn { width: 35px; height: 35px; border-radius: 50%; border: 1px solid #ccc; background: white; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .counter-btn:hover { background: #ea580c; color: white; border-color: #ea580c; }
+        .month-val { font-size: 1.1rem; font-weight: bold; min-width: 80px; text-align: center; }
+
         .order-summary {
             background: #f9fafb; padding: 2rem; border-radius: 12px;
             border: 1px solid #e5e7eb; position: sticky; top: 120px;
@@ -134,51 +214,127 @@ function ServiceCheckoutPage({ serviceId, userInfo, setPage, params }) {
         .checkout-btn:hover { background: #FFA500; color: black; }
         .checkout-btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
-        .secure-badge {
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-            margin-top: 1rem; font-size: 0.8rem; color: #10b981; font-weight: 600;
+        .back-link { display: inline-block; margin-bottom: 1rem; color: #888; cursor: pointer; text-decoration: underline; }
+
+        /* --- SUCCESS MODAL STYLES --- */
+        .success-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(5px);
         }
-        
-        .back-link {
-            display: inline-block; margin-bottom: 1rem; color: #888; cursor: pointer; text-decoration: underline;
+        .success-box {
+            background: white; width: 90%; max-width: 450px; padding: 40px;
+            border-radius: 20px; text-align: center; position: relative;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
         }
+        .success-icon { font-size: 4rem; margin-bottom: 20px; display: block; }
+        .wa-btn {
+            background: #25D366; color: white; padding: 15px 30px; border: none;
+            border-radius: 50px; font-weight: bold; font-size: 1rem; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 10px; margin-top: 20px;
+            box-shadow: 0 10px 20px rgba(37, 211, 102, 0.3); text-decoration: none;
+        }
+        .wa-btn:hover { background: #20bd5a; transform: translateY(-3px); }
+        .dashboard-link {
+            display: block; margin-top: 20px; color: #888; font-size: 0.9rem; text-decoration: underline; cursor: pointer;
+        }
+
       `}</style>
 
+      {/* --- SUCCESS MODAL --- */}
+      <AnimatePresence>
+        {showSuccessModal && (
+            <motion.div 
+                className="success-overlay"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            >
+                <motion.div 
+                    className="success-box"
+                    initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                >
+                    <span className="success-icon">🎉</span>
+                    <h2 style={{color: '#1a1a1a', marginBottom:'10px'}}>Payment Successful!</h2>
+                    <p style={{color:'#666', lineHeight:1.6}}>
+                        You have successfully joined <strong>{service.title}</strong>. <br/>
+                        We have sent a confirmation details to your <strong>WhatsApp</strong> and <strong>SMS</strong>.
+                    </p>
+                    
+                    <a 
+                        href={GROUP_LINKS[serviceId]} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="wa-btn"
+                    >
+                        <span>Join {service.title.split(' ')[1]} Group</span>
+                    </a>
+
+                    <span className="dashboard-link" onClick={() => setPage({ name: 'account' })}>
+                        Go to My Dashboard
+                    </span>
+                </motion.div>
+            </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="checkout-grid">
-        {/* --- LEFT: USER DETAILS --- */}
+        {/* --- LEFT: DETAILS --- */}
         <div className="checkout-form-section">
           <span className="back-link" onClick={() => setPage({ name: 'service-detail', params: { id: serviceId } })}>
              &larr; Back to Details
           </span>
-          <h2>Billing Details</h2>
+          
+          <h2>{service.title} Checkout</h2>
+
+          {/* DURATION / PLAN SELECTOR */}
+          {isHostel ? (
+             <div style={{marginBottom:'2rem'}}>
+                <h3 style={{fontSize:'1rem', marginBottom:'10px', color:'#555'}}>Select Duration</h3>
+                <div className="month-counter">
+                    <button className="counter-btn" type="button" onClick={() => setHostelMonths(Math.max(1, hostelMonths - 1))}>−</button>
+                    <div className="month-val">{hostelMonths} Month{hostelMonths > 1 ? 's' : ''}</div>
+                    <button className="counter-btn" type="button" onClick={() => setHostelMonths(Math.min(12, hostelMonths + 1))}>+</button>
+                </div>
+                <p style={{fontSize:'0.85rem', color:'#ea580c'}}>₹{service.plans[0].price} per month</p>
+             </div>
+          ) : (
+             serviceId !== 'social' && (
+                 <div style={{marginBottom:'2rem'}}>
+                    <h3 style={{fontSize:'1rem', marginBottom:'10px', color:'#555'}}>Choose Plan Duration</h3>
+                    <div className="plan-grid">
+                        {service.plans.map((plan, idx) => (
+                            <div 
+                                key={idx} 
+                                className={`plan-card ${selectedPlanIdx === idx ? 'active' : ''}`}
+                                onClick={() => setSelectedPlanIdx(idx)}
+                            >
+                                <span className="plan-label">{plan.label}</span>
+                                <span className="plan-price">₹{plan.price}</span>
+                                {plan.save && <span className="plan-save">{plan.save}</span>}
+                            </div>
+                        ))}
+                    </div>
+                 </div>
+             )
+          )}
+
           <form id="checkoutForm" onSubmit={handlePayment}>
+            <h3 style={{fontSize:'1.1rem', marginBottom:'1rem', fontFamily:'Cinzel, serif'}}>Billing Information</h3>
             <div className="form-group">
               <label>Full Name</label>
-              <input 
-                type="text" name="name" required placeholder="Enter your full name"
-                value={formData.name} onChange={handleInputChange}
-              />
+              <input type="text" name="name" required placeholder="Enter your full name" value={formData.name} onChange={handleInputChange} />
             </div>
             <div className="form-group">
               <label>Email Address</label>
-              <input 
-                type="email" name="email" required placeholder="Enter your email"
-                value={formData.email} onChange={handleInputChange}
-              />
+              <input type="email" name="email" required placeholder="Enter your email" value={formData.email} onChange={handleInputChange} />
             </div>
             <div className="form-group">
               <label>Phone Number</label>
-              <input 
-                type="tel" name="phone" required placeholder="10-digit mobile number"
-                value={formData.phone} onChange={handleInputChange}
-              />
+              <input type="tel" name="phone" required placeholder="10-digit mobile number" value={formData.phone} onChange={handleInputChange} />
             </div>
             <div className="form-group">
               <label>Address (Optional)</label>
-              <textarea 
-                name="address" rows="2" placeholder="Street area, City..."
-                value={formData.address} onChange={handleInputChange}
-              ></textarea>
+              <textarea name="address" rows="2" placeholder="Street area, City..." value={formData.address} onChange={handleInputChange}></textarea>
             </div>
           </form>
         </div>
@@ -189,12 +345,17 @@ function ServiceCheckoutPage({ serviceId, userInfo, setPage, params }) {
           
           <div style={{ margin: '1.5rem 0', padding: '1rem', background: 'rgba(255, 165, 0, 0.1)', borderRadius: '8px', borderLeft: '4px solid #FFA500' }}>
             <strong style={{ display:'block', color: '#d97706' }}>{service.title}</strong>
-            <span style={{ fontSize: '0.9rem' }}>Plan: {selectedPlan.label}</span>
+            <span style={{ fontSize: '0.9rem' }}>{currentPlanLabel}</span>
+            {bookingSlot && (
+                <div style={{ marginTop:'8px', paddingTop:'8px', borderTop:'1px dashed #d97706', fontSize:'0.85rem', color:'#ea580c', fontWeight:'bold' }}>
+                    Reserved: {bookingSlot.id}
+                </div>
+            )}
           </div>
 
           <div className="summary-row">
-            <span>Subtotal</span>
-            <span>₹{selectedPlan.price}</span>
+            <span>Duration Cost</span>
+            <span>₹{finalPrice}</span>
           </div>
           <div className="summary-row">
             <span>Tax (GST 18% included)</span>
@@ -207,24 +368,16 @@ function ServiceCheckoutPage({ serviceId, userInfo, setPage, params }) {
 
           <div className="total-row">
             <span>Total Payable</span>
-            <span style={{ color: '#ea580c' }}>₹{selectedPlan.price}</span>
+            <span style={{ color: '#ea580c' }}>₹{finalPrice}</span>
           </div>
 
-          <button 
-            type="submit" 
-            form="checkoutForm" 
-            className="checkout-btn"
-            disabled={isProcessing}
-          >
-            {isProcessing ? 'Processing...' : `Pay ₹${selectedPlan.price}`}
+          <button type="submit" form="checkoutForm" className="checkout-btn" disabled={isProcessing}>
+            {isProcessing ? 'Processing...' : `Pay ₹${finalPrice}`}
           </button>
 
-          <div className="secure-badge">
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'8px', marginTop:'1rem', fontSize:'0.8rem', color:'#10b981', fontWeight:600 }}>
             <span>🔒</span> SSL Secure Payment
           </div>
-          <p style={{ textAlign: 'center', fontSize: '0.75rem', color: '#999', marginTop: '10px' }}>
-            Your personal data will be used to process your order and support your experience.
-          </p>
         </div>
       </div>
     </motion.div>

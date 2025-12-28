@@ -113,3 +113,6 @@ server/
         - simpleRegisterRoutes.js
     - utils/
         - mailer.js
+
+
+in this code add popup first for password then open page password fillup is mandotory until the password fill the page can't load it

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion'; // Added AnimatePresence
 import { API_BASE_URL } from '../config';
 
 // --- 1. ANIMATION VARIANTS ---
@@ -20,9 +20,16 @@ const itemVariants = {
   }
 };
 
+const popupVariants = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: { opacity: 1, scale: 1, transition: { type: "spring", stiffness: 300, damping: 20 } },
+  exit: { opacity: 0, scale: 0.8, transition: { duration: 0.2 } }
+};
+
 function ContactPage({ setModalState }) {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false); // Local state for popup
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -43,10 +50,20 @@ function ContactPage({ setModalState }) {
         throw new Error(errorData.message || 'Failed to send message.');
       }
 
+      // Success Logic
       setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
-      setModalState({ show: true, title: 'Message Sent!', message: 'Thank you for contacting us. We will get back to you soon.', type: 'success' });
+      setShowSuccessPopup(true); // Trigger local popup
+      
+      // Optional: Auto-close popup after 5 seconds
+      setTimeout(() => setShowSuccessPopup(false), 5000);
+
     } catch (error) {
-      setModalState({ show: true, title: 'Submission Error', message: error.message, type: 'error' });
+      // Fallback to prop-based modal for errors, or you can add a local error state too
+      if(setModalState) {
+        setModalState({ show: true, title: 'Submission Error', message: error.message, type: 'error' });
+      } else {
+        alert(error.message);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -158,6 +175,36 @@ function ContactPage({ setModalState }) {
             font-size: 0.8rem; text-align: center;
         }
 
+        /* --- SUCCESS POPUP STYLES --- */
+        .popup-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center;
+            z-index: 9999; backdrop-filter: blur(4px);
+        }
+        .popup-content {
+            background: white; padding: 2.5rem; border-radius: 16px; text-align: center;
+            max-width: 400px; width: 90%; box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        body.dark-mode .popup-content { background: #1e1e1e; border-color: #333; }
+        
+        .popup-icon-box {
+            width: 80px; height: 80px; background: #28a745; color: white;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem; font-size: 2.5rem; box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
+        }
+        .popup-content h3 { font-size: 1.8rem; margin-bottom: 0.5rem; color: #1a1a1a; }
+        body.dark-mode .popup-content h3 { color: white; }
+        .popup-content p { color: #666; margin-bottom: 2rem; line-height: 1.5; }
+        body.dark-mode .popup-content p { color: #aaa; }
+        
+        .popup-close-btn {
+            background: #1a1a1a; color: white; border: none; padding: 12px 30px;
+            border-radius: 30px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .popup-close-btn:hover { background: #FFA500; color: black; transform: translateY(-2px); }
+
       `}</style>
 
       {/* --- HERO SECTION --- */}
@@ -233,6 +280,29 @@ function ContactPage({ setModalState }) {
           </div>
         </div>
       </motion.section>
+
+      {/* --- SUCCESS POPUP MODAL --- */}
+      <AnimatePresence>
+        {showSuccessPopup && (
+          <div className="popup-overlay" onClick={() => setShowSuccessPopup(false)}>
+            <motion.div 
+              className="popup-content"
+              variants={popupVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              onClick={(e) => e.stopPropagation()} // Prevent close when clicking content
+            >
+              <div className="popup-icon-box">✓</div>
+              <h3>Message Sent!</h3>
+              <p>Thank you for contacting us. We will get back to you shortly.</p>
+              <button className="popup-close-btn" onClick={() => setShowSuccessPopup(false)}>
+                Great, Thanks!
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
     </motion.div>
   );

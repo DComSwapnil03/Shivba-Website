@@ -21,6 +21,9 @@ import StarterAnimaPage from './pages/StarterAnimaPage';
 import HelpPage from './pages/HelpPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import Dashboard from './pages/Dashboard'; 
+// --- NEW IMPORT ---
+import BookingSelectionPage from './pages/BookingSelectionPage'; 
+
 import LanguageSwitcher from './components/LanguageSwitcher';
 
 /* ------------ Global Styles ------------- */
@@ -621,7 +624,6 @@ function App() {
         if(e.key.toLowerCase() === 'g') handleSetPage({ name: 'gallery' });
         if(e.key.toLowerCase() === 'r') handleSetPage({ name: 'register'});
         if(e.key.toLowerCase() === 'c') handleSetPage({ name: 'contact' });
-        // if(e.key.toLowerCase() === 'l') handleSetPage({ name: 'myaccount'});
       }
 
       // 2. New Dashboard Shortcut (Ctrl + Shift + A)
@@ -660,12 +662,23 @@ function App() {
     
     // --- [NEW] Dashboard Route ---
     case 'dashboard': content = <Dashboard setPage={handleSetPage} />; break;
+
+    // --- [NEW] Booking Selection Route ---
+    case 'booking-selection': 
+      content = (
+        <BookingSelectionPage 
+           serviceId={page.params?.serviceId} 
+           setPage={handleSetPage} 
+           previousPageParams={page.params} 
+        />
+      ); 
+      break;
     
     default: content = <HomePage setPage={handleSetPage} />;
   }
 
-  // --- LAYOUT LOGIC (Hide Header/Footer for Dashboard/Owner pages) ---
-  const isFullScreenPage = ['owner', 'dashboard'].includes(page.name);
+  // --- LAYOUT LOGIC (Hide Header/Footer for Dashboard/Owner/Booking pages) ---
+  const isFullScreenPage = ['owner', 'dashboard', 'booking-selection'].includes(page.name);
   const containerClass = isFullScreenPage ? 'animate-dashboard' : 'animate-fadeUp';
 
   return (
@@ -673,7 +686,7 @@ function App() {
       <GlobalStyles />
       <Modal show={modalState.show} title={modalState.title} message={modalState.message} content={modalState.content} type={modalState.type} onClose={closeModal} />
       
-      {/* Hide Marquee & Header on Dashboard */}
+      {/* Hide Marquee & Header on Full Screen Pages */}
       {!isFullScreenPage && <MarqueeBar />}
       {!isFullScreenPage && <Header setPage={handleSetPage} activePage={page.name} />}
       
@@ -681,7 +694,7 @@ function App() {
         {content}
       </main>
       
-      {/* Hide Footer on Dashboard */}
+      {/* Hide Footer on Full Screen Pages */}
       {!isFullScreenPage && <Footer setPage={handleSetPage} />}
 
       <div className={`fab-container ${settingsOpen ? 'open' : ''}`}>

@@ -1,0 +1,11 @@
+Member_ID,First_Name,Last_Name,Contact,Service_Type,Plan_Duration,Join_Date,Expiry_Date,Status,Fees_Pending (₹)
+SHIV-001,Rohan,Patil,9876543210,Gym (Talim),1 Year,2025-01-10,2026-01-10,Active,0
+SHIV-002,Sneha,Deshmukh,9876543211,Library,3 Months,2025-11-05,2026-02-05,Active,500
+SHIV-003,Amit,Jadhav,9876543212,Hostel,6 Months,2025-08-01,2026-02-01,Active,0
+SHIV-004,Priya,Kulkarni,9876543213,Gym (Talim),1 Month,2025-11-20,2025-12-20,Expired,0
+SHIV-005,Rahul,Shinde,9876543214,Gym (Talim),6 Months,2025-09-15,2026-03-15,Active,2000
+SHIV-006,Vikram,More,9876543215,Library,1 Year,2025-06-01,2026-06-01,Active,0
+SHIV-007,Anjali,Pawar,9876543216,Gym (Talim),3 Months,2025-12-01,2026-03-01,Active,0
+SHIV-008,Sanket,Gaikwad,9876543217,Hostel,1 Year,2025-01-01,2026-01-01,Active,15000
+SHIV-009,Pooja,Chavan,9876543218,Event,N/A,2025-12-25,2025-12-25,Completed,0
+SHIV-010,Omkar,Joshi,9876543219,Gym (Talim),1 Year,2025-02-14,2026-02-14,Active,0

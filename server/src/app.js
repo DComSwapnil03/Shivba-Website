@@ -26,6 +26,9 @@ const accountRoutes = require('./routes/accountRoutes');
 // [NEW] Import Data Routes (Excel Import/Export)
 const dataRoutes = require('./routes/dataRoutes');
 
+// [NEW] Import Notification Routes (WhatsApp Welcome Message)
+const notificationRoutes = require('./routes/notificationRoutes');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -99,9 +102,11 @@ app.use('/api', registrationRoutes);         // Existing registrations
 app.use('/api', paymentRoutes);              // Razorpay payments
 app.use('/api', eventRegistrationRoutes);    // Event registrations
 
-// [NEW] Data Routes (Excel Import/Export)
-// This mounts the routes at /api/data
+// [NEW] Data Routes (Excel Import/Export) - Mounts at /api/data
 app.use('/api/data', dataRoutes);
+
+// [NEW] Notification Routes - Mounts at /api/send-welcome-message
+app.use('/api', notificationRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
