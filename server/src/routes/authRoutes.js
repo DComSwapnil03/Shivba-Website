@@ -6,41 +6,28 @@ const InterestRegistration = require('../models/InterestRegistration');
 
 // --- TWILIO SETUP ---
 require('dotenv').config();
-// Initialize Twilio client only if credentials exist to prevent crash
 const client = (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) 
     ? require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
     : null;
 
 const router = express.Router();
-
-console.log("✅ Auth Routes Loaded");
+console.log("✅ Auth Routes Loaded (Optimized)");
 
 // ==========================================
-// 1. EMAIL CONFIGURATION (SSL BYPASS FIX)
+// 1. EMAIL CONFIGURATION
 // ==========================================
 const mailer = nodemailer.createTransport({
-  pool: true,        // Keeps connection open for speed
+  pool: true,        // Critical for speed: keeps connection open
+  maxConnections: 5, // Process multiple emails at once
   host: 'smtp.gmail.com',
-  port: 465,         // Secure Gmail Port
-  secure: true,      // Use SSL
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.MAIL_USER,
-    pass: process.env.MAIL_PASS // Must be App Password
+    pass: process.env.MAIL_PASS 
   },
-  // 👇 CRITICAL FIX FOR "Self-Signed Certificate" ERROR 👇
-  tls: {
-    rejectUnauthorized: false
-  },
-  debug: false        // Set to true only if debugging email issues
-});
-
-// Verify connection on startup
-mailer.verify(function (error, success) {
-  if (error) {
-    console.error("❌ SMTP ERROR:", error);
-  } else {
-    console.log("✅ SMTP Server is connected and ready.");
-  }
+  tls: { rejectUnauthorized: false },
+  debug: false
 });
 
 // Helper: Send Email
@@ -48,37 +35,29 @@ const sendVerificationEmail = async ({ to, name, token, otp }) => {
   const baseUrl = process.env.CLIENT_BASE_URL || 'http://localhost:3000';
   const verifyUrl = `${baseUrl}/verify?token=${token}&email=${encodeURIComponent(to)}`;
 
-  console.log(`[Email Service] Sending OTP to ${to}...`);
-
-  try {
-    await mailer.sendMail({
-      from: `"Shivba Admin" <${process.env.MAIL_USER}>`,
-      to,
-      subject: 'Your Verification Code - Shivba',
-      html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; border: 1px solid #eee; max-width: 500px;">
-          <h2 style="color: #4f46e5;">Hello, ${name}</h2>
-          <p>Your verification code is:</p>
-          <div style="background: #f3f4f6; padding: 15px; text-align: center; border-radius: 8px; margin: 20px 0;">
-            <span style="font-size: 28px; font-weight: bold; letter-spacing: 5px; color: #333;">${otp}</span>
-          </div>
-          <p align="center">
-             <a href="${verifyUrl}" style="background: #4f46e5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Verify Account</a>
-          </p>
-          <p style="color: #666; font-size: 12px; margin-top: 20px;">Code expires in 10 minutes.</p>
+  // We await this because if email fails, user needs to know immediately
+  await mailer.sendMail({
+    from: `"Shivba Admin" <${process.env.MAIL_USER}>`,
+    to,
+    subject: 'Your Verification Code - Shivba',
+    html: `
+      <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; border: 1px solid #eee; max-width: 500px;">
+        <h2 style="color: #4f46e5;">Hello, ${name}</h2>
+        <p>Your verification code is:</p>
+        <div style="background: #f3f4f6; padding: 15px; text-align: center; border-radius: 8px; margin: 20px 0;">
+          <span style="font-size: 28px; font-weight: bold; letter-spacing: 5px; color: #333;">${otp}</span>
         </div>
-      `
-    });
-    console.log(`[Email Service] ✅ Email Sent to ${to}`);
-    return true;
-  } catch (error) {
-    console.error('❌ Email Failed:', error);
-    throw error; // Throw to notify the route
-  }
+        <p align="center">
+            <a href="${verifyUrl}" style="background: #4f46e5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Verify Account</a>
+        </p>
+        <p style="color: #666; font-size: 12px; margin-top: 20px;">Code expires in 10 minutes.</p>
+      </div>
+    `
+  });
 };
 
 // ==========================================
-// 2. ROUTE: REGISTER / SEND OTP
+// 2. ROUTE: REGISTER (Optimized)
 // ==========================================
 router.post('/register-interest-simple', async (req, res) => {
   try {
@@ -90,40 +69,41 @@ router.post('/register-interest-simple', async (req, res) => {
 
     const lowerEmail = email.toLowerCase().trim();
 
+    // PERFORMANCE: Run Password Hashing and DB Check in Parallel
+    // This saves time by overlapping CPU work (bcrypt) with I/O work (Mongo)
+    const [existingUser, hashedPassword] = await Promise.all([
+        InterestRegistration.findOne({ email: lowerEmail }).lean(), // .lean() for speed
+        bcrypt.hash(password, 10)
+    ]);
+
     // Check if user exists & verified
-    const existingUser = await InterestRegistration.findOne({ email: lowerEmail });
     if (existingUser && existingUser.isVerified) {
         return res.status(409).json({ message: 'User already exists. Please login instead.' });
     }
 
-    // Rate Limiting (1 Minute)
+    // Rate Limiting Logic
     if (existingUser && existingUser.lastOtpSentAt) {
         const timeSinceLastOtp = Date.now() - new Date(existingUser.lastOtpSentAt).getTime();
         const cooldownMs = 60 * 1000; 
-
         if (timeSinceLastOtp < cooldownMs) {
             const secondsLeft = Math.ceil((cooldownMs - timeSinceLastOtp) / 1000);
-            return res.status(429).json({ 
-                message: `Please wait ${secondsLeft} seconds before requesting a new code.` 
-            });
+            return res.status(429).json({ message: `Please wait ${secondsLeft}s before retrying.` });
         }
     }
 
-    // Generate Data
+    // Generate Tokens
     const otp = crypto.randomInt(100000, 999999).toString();
     const token = crypto.randomBytes(32).toString('hex');
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + 10 * 60 * 1000); // 10 Minutes strict
+    const expiresAt = new Date(now.getTime() + 10 * 60 * 1000);
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Save to DB
+    // DB Write
     await InterestRegistration.findOneAndUpdate(
       { email: lowerEmail },
       {
         name: name.trim(),
         email: lowerEmail,
-        phone: phone.trim(), // We save raw phone here
+        phone: phone.trim(),
         password: hashedPassword,
         isVerified: false,
         otp: otp,
@@ -135,13 +115,12 @@ router.post('/register-interest-simple', async (req, res) => {
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
-    // Send Email
+    // Email Send
     try {
         await sendVerificationEmail({ to: lowerEmail, name: name.trim(), token, otp });
     } catch (emailError) {
-        return res.status(500).json({ 
-            message: 'Failed to send email. Check if your email is correct.' 
-        });
+        console.error("Email send failed:", emailError);
+        return res.status(500).json({ message: 'Failed to send email. Check address.' });
     }
 
     return res.status(201).json({
@@ -170,12 +149,12 @@ router.post('/verify-otp', async (req, res) => {
 
     const lowerEmail = email.toLowerCase().trim();
 
-    // Check code AND Expiry
+    // Verify and Update
     const user = await InterestRegistration.findOneAndUpdate(
       {
         email: lowerEmail,
         $or: [{ otp: otp }, { verifyToken: token }],
-        verifyTokenExpiresAt: { $gt: new Date() } // 10 Min Check
+        verifyTokenExpiresAt: { $gt: new Date() }
       },
       {
         $set: { 
@@ -185,13 +164,14 @@ router.post('/verify-otp', async (req, res) => {
             verifyTokenExpiresAt: undefined,
         }
       },
-      { new: true }
-    );
+      { new: true } // Need the updated doc to return name/email
+    ).lean(); // .lean() makes the result a plain JS object (faster)
 
     if (!user) {
-      const expiredUser = await InterestRegistration.findOne({ email: lowerEmail });
+      // Check for expired code only if verification failed
+      const expiredUser = await InterestRegistration.findOne({ email: lowerEmail }).lean();
       if (expiredUser && (expiredUser.otp === otp || expiredUser.verifyToken === token)) {
-             return res.status(400).json({ message: 'Code has expired (10 min limit). Please request a new one.' });
+             return res.status(400).json({ message: 'Code expired. Request a new one.' });
       }
       return res.status(400).json({ message: 'Invalid verification code.' });
     }
@@ -204,85 +184,73 @@ router.post('/verify-otp', async (req, res) => {
 
   } catch (error) {
     console.error('❌ Verify Error:', error);
-    return res.status(500).json({ message: 'Server error during verification.' });
+    return res.status(500).json({ message: 'Server error.' });
   }
 });
 
 // ==========================================
-// 4. ROUTE: SEND WELCOME MESSAGE (TWILIO)
+// 4. ROUTE: WELCOME MESSAGE (Fire-and-Forget)
 // ==========================================
-router.post('/send-welcome-message', async (req, res) => {
+router.post('/send-welcome-message', (req, res) => {
+    // Note: removed 'async' because we don't want to await the promise
     const { phone, name } = req.body;
 
-    // --- DEBUG LOGGING ---
-    console.log("------------------------------------------");
-    console.log("⚠️ [Backend Debug] Welcome Message Triggered");
-    console.log(`📦 Payload: Phone=${phone}, Name=${name}`);
-    
-    // Safety check: if no phone provided, skip without crashing
-    if (!phone) {
-        console.error("❌ Error: Phone number is MISSING in request body.");
-        return res.status(400).json({ message: "Phone number missing" });
-    }
-    
-    // Check if Twilio is configured
-    if (!client) {
-        console.error("❌ Error: Twilio client not initialized. Check .env variables.");
-        return res.status(500).json({ message: "Twilio configuration error" });
-    }
+    if (!phone) return res.status(400).json({ message: "Phone number missing" });
+    if (!client) return res.status(500).json({ message: "Twilio not configured" });
 
-    // --- SANDBOX FORMATTING LOGIC ---
-    // If testing in Sandbox, we MUST prefix 'whatsapp:'. 
-    // Even if using SMS, Twilio prefers E.164 (e.g., +91...)
-    
-    let targetPhone = phone.trim();
-    
-    // If your .env TWILIO_PHONE_NUMBER has 'whatsapp:', we assume we are sending WhatsApp.
-    const isWhatsApp = process.env.TWILIO_PHONE_NUMBER && process.env.TWILIO_PHONE_NUMBER.includes('whatsapp');
+    // 🚀 PERFORMANCE: Send Response IMMEDIATELY
+    // We do not wait for Twilio. The user is verified, they don't need to wait for the SMS API.
+    res.status(200).json({ success: true, message: "Message queued" });
 
-    // Only add 'whatsapp:' prefix if it's missing AND we are in WhatsApp mode
-    if (isWhatsApp && !targetPhone.startsWith('whatsapp:')) {
-        targetPhone = 'whatsapp:' + targetPhone;
-    }
+    // --- Background Process ---
+    (async () => {
+        try {
+            let targetPhone = phone.trim();
+            const isWhatsApp = process.env.TWILIO_PHONE_NUMBER && process.env.TWILIO_PHONE_NUMBER.includes('whatsapp');
+            
+            if (isWhatsApp && !targetPhone.startsWith('whatsapp:')) {
+                targetPhone = 'whatsapp:' + targetPhone;
+            }
 
-    try {
-        console.log(`[Twilio] Sending Welcome Message to ${targetPhone}...`);
-        
-        const message = await client.messages.create({
-            body: `Hello ${name}! 🎉\n\nWelcome to Shivba-Website. Your verification is complete!`,
-            from: process.env.TWILIO_PHONE_NUMBER, // Checks .env
-            to: targetPhone
-        });
-
-        console.log(`[Twilio] Success! SID: ${message.sid}`);
-        console.log("------------------------------------------");
-        return res.status(200).json({ success: true, sid: message.sid });
-
-    } catch (error) {
-        console.error("❌ Twilio Error:", error.message);
-        console.log("------------------------------------------");
-        // We return 200 to Frontend so the UI doesn't show an error to the user
-        // (The user is already verified, so a failed SMS shouldn't scare them)
-        return res.status(200).json({ success: false, error: error.message });
-    }
+            console.log(`[Background] Sending Welcome to ${targetPhone}...`);
+            await client.messages.create({
+                body: `Hello ${name}! 🎉\n\nWelcome to Shivba-Website. Your verification is complete!`,
+                from: process.env.TWILIO_PHONE_NUMBER,
+                to: targetPhone
+            });
+            console.log(`[Background] Welcome message sent.`);
+        } catch (error) {
+            console.error("❌ [Background] Twilio Failed:", error.message);
+            // No res.status here because response is already sent
+        }
+    })();
 });
 
 // ==========================================
-// 5. LOGIN & PROFILE
+// 5. LOGIN & PROFILE (Lean Queries)
 // ==========================================
 router.post('/account/login', async (req, res) => {
     try {
         const { email, password } = req.body;
         const lowerEmail = (email || '').toLowerCase().trim();
-        if (!lowerEmail || !password) return res.status(400).json({ message: 'Email and password required.' });
+        if (!lowerEmail || !password) return res.status(400).json({ message: 'Required fields missing.' });
 
-        const user = await InterestRegistration.findOne({ email: lowerEmail, isVerified: true }).select('+password');
+        // .lean() makes this ~3x faster by skipping Mongoose hydration
+        const user = await InterestRegistration.findOne({ email: lowerEmail, isVerified: true })
+            .select('+password')
+            .lean();
 
         if (!user) return res.status(404).json({ message: 'Account not found or not verified.' });
-        if (!(await bcrypt.compare(password, user.password))) return res.status(401).json({ message: 'Invalid credentials.' });
 
-        const u = user.toObject(); delete u.password; delete u.otp; delete u.verifyToken;
-        return res.json(u);
+        // Bcrypt compare is strictly CPU bound
+        if (!(await bcrypt.compare(password, user.password))) {
+            return res.status(401).json({ message: 'Invalid credentials.' });
+        }
+
+        // Manual cleanup since .lean() returns plain object
+        delete user.password; delete user.otp; delete user.verifyToken;
+        return res.json(user);
+
     } catch (err) { return res.status(500).json({ message: 'Server error.' }); }
 });
 
@@ -290,8 +258,14 @@ router.get('/members/profile', async (req, res) => {
     try {
         const { email } = req.query;
         if (!email) return res.status(400).json({ message: 'Email required.' });
+        
+        // .lean() for read-only speed
         const user = await InterestRegistration.findOne({ email: email.toLowerCase().trim() }).lean();
-        if (user) { delete user.password; delete user.otp; return res.json(user); }
+        
+        if (user) { 
+            delete user.password; delete user.otp; delete user.verifyToken; 
+            return res.json(user); 
+        }
         return res.status(404).json({ message: 'User not found.' });
     } catch (err) { return res.status(500).json({ message: 'Server error' }); }
 });

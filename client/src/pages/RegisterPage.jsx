@@ -75,7 +75,7 @@ function RegisterPage({ setPage, setModalState }) {
 
       if (!res.ok) throw new Error(data.message || 'Registration failed.');
 
-      // Success
+      // Success Modal
       setModalState({
         show: true,
         title: '🚀 Code Sent!',
@@ -83,21 +83,17 @@ function RegisterPage({ setPage, setModalState }) {
         type: 'success'
       });
 
-      // Clear form securely
-      setFormData({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
-
       // Navigate after short delay
       setTimeout(() => {
           setModalState(prev => ({ ...prev, show: false }));
           
-          // --- CRITICAL UPDATE HERE ---
-          // We pass phone and name so the Verify Page can use them for WhatsApp
+          // --- PASS DATA TO VERIFY PAGE ---
           setPage({ 
               name: 'verify', 
               params: { 
                   email: data.email, 
-                  phone: payload.phone,  // PASSING PHONE
-                  name: payload.name     // PASSING NAME
+                  phone: payload.phone, 
+                  name: payload.name 
               } 
           });
       }, 1500);
@@ -156,6 +152,7 @@ function RegisterPage({ setPage, setModalState }) {
         .visual-content h2 {
             font-family: 'Cinzel', serif; font-size: 2.5rem; margin-bottom: 1rem;
             text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            color: #FFA500;
         }
         .visual-content p { font-size: 1.1rem; color: #ddd; line-height: 1.6; }
 
@@ -195,7 +192,8 @@ function RegisterPage({ setPage, setModalState }) {
         .check-item {
             padding: 2px 8px; border-radius: 4px; background: #eee; color: #888; transition: all 0.3s;
         }
-        .check-item.valid { background: #dcfce7; color: #166534; font-weight: bold; }
+        .check-item.valid { background: #fffdf5; color: #b45309; border: 1px solid #FFA500; font-weight: bold; }
+        body.dark-mode .check-item.valid { background: rgba(255, 165, 0, 0.1); color: #FFA500; border-color: #FFA500; }
 
         /* Button */
         .reg-btn {
@@ -206,6 +204,9 @@ function RegisterPage({ setPage, setModalState }) {
         }
         .reg-btn:hover:not(:disabled) { background: #FFA500; color: black; transform: translateY(-2px); }
         .reg-btn:disabled { background: #ccc; cursor: not-allowed; }
+        
+        body.dark-mode .reg-btn { background: #FFA500; color: black; }
+        body.dark-mode .reg-btn:hover:not(:disabled) { background: white; color: black; }
 
         .login-link {
             text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: #666;
@@ -264,7 +265,7 @@ function RegisterPage({ setPage, setModalState }) {
                 onChange={handleChange} 
                 required 
                 placeholder="••••••••"
-                style={{ borderColor: allCriteriaMet ? '#10b981' : '' }}
+                style={{ borderColor: allCriteriaMet ? '#FFA500' : '' }}
               />
               <div className="pwd-checklist">
                  <span className={`check-item ${passwordCriteria.length ? 'valid' : ''}`}>8+ Chars</span>
