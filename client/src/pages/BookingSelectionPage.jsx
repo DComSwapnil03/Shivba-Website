@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// --- DATA GENERATION ---
+// --- DATA GENERATION (Unchanged) ---
 const ROOM_DATA = {
   room1: {
     id: 'r1', name: 'Room 1 (Kitchen Side)', 
@@ -39,8 +39,6 @@ const ROOM_DATA = {
   }
 };
 
-// Generate 200 seats (20 tables of 10)
-// Tables 1-18: Lockers | Tables 19-20: Racks
 const LIBRARY_DATA = (() => {
   const tables = [];
   for (let i = 0; i < 20; i++) {
@@ -88,19 +86,24 @@ function BookingSelectionPage({ serviceId, setPage, previousPageParams }) {
     >
       {/* INJECTED CSS */}
       <style>{`
+        * { box-sizing: border-box; }
         .booking-page {
            min-height: 100vh; background: #f0f2f5; font-family: 'Montserrat', sans-serif;
            display: flex; flex-direction: column; overflow: hidden;
         }
+        
+        /* HEADER */
         .bp-header {
-           padding: 1.5rem 2rem; background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+           padding: 1rem 1.5rem; background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.05);
            display: flex; justify-content: space-between; align-items: center; z-index: 10;
+           flex-wrap: wrap; gap: 10px;
         }
-        .bp-title h2 { margin: 0; font-family: 'Cinzel', serif; color: #1a1a1a; font-size: 1.5rem; }
-        .bp-title p { margin: 0; color: #666; font-size: 0.9rem; }
+        .bp-title h2 { margin: 0; font-family: 'Cinzel', serif; color: #1a1a1a; font-size: 1.4rem; }
+        .bp-title p { margin: 0; color: #666; font-size: 0.85rem; }
         .bp-close-btn {
            background: #f3f4f6; border: none; width: 40px; height: 40px; border-radius: 50%;
            cursor: pointer; font-size: 1.2rem; color: #333; transition: all 0.2s;
+           flex-shrink: 0;
         }
         .bp-close-btn:hover { background: #e5e7eb; transform: rotate(90deg); }
 
@@ -110,99 +113,126 @@ function BookingSelectionPage({ serviceId, setPage, previousPageParams }) {
         
         /* TABS (Hostel) */
         .bp-tabs {
-           display: flex; justify-content: center; gap: 15px; padding: 1rem;
+           display: flex; justify-content: center; gap: 10px; padding: 1rem;
+           flex-wrap: wrap;
         }
         .bp-tab {
-           padding: 8px 20px; border-radius: 30px; border: none; cursor: pointer;
+           padding: 8px 16px; border-radius: 30px; border: none; cursor: pointer;
            background: white; color: #666; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-           transition: all 0.3s; position: relative;
+           transition: all 0.3s; font-size: 0.9rem;
         }
         .bp-tab.active { background: #1a1a1a; color: white; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
 
-        /* CANVAS AREA */
+        /* CANVAS AREA - SCROLLABLE CONTAINER */
+        /* This ensures the map stays same size but user can scroll on mobile */
         .bp-canvas {
-           flex: 1; padding: 20px; display: flex; justify-content: center; align-items: flex-start; overflow: auto; background: #eef2f6;
+           flex: 1; 
+           padding: 20px; 
+           display: flex; 
+           justify-content: center; /* Center if screen is big enough */
+           align-items: flex-start; 
+           overflow: auto; /* IMPORTANT: Enables scrolling */
+           background: #eef2f6;
+           -webkit-overflow-scrolling: touch;
         }
+
+        /* Enforce left alignment if content is wider than screen so start isn't cut off */
+        @media (max-width: 1050px) {
+            .bp-canvas { justify-content: flex-start; }
+        }
+
         .map-frame {
            background: white; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-           position: relative; border: 1px solid #ddd; overflow: hidden;
+           position: relative; border: 1px solid #ddd; 
            margin: auto;
+           transition: all 0.3s;
+           /* Ensures margins work during scroll */
+           flex-shrink: 0; 
         }
         
         /* FOOTER */
         .bp-footer {
-           background: white; padding: 1.5rem 2rem; box-shadow: 0 -10px 30px rgba(0,0,0,0.05);
+           background: white; padding: 1rem 1.5rem; box-shadow: 0 -10px 30px rgba(0,0,0,0.05);
            display: flex; justify-content: space-between; align-items: center; z-index: 10;
+           flex-wrap: wrap; gap: 15px;
         }
-        .legend { display: flex; gap: 15px; }
-        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: #555; }
+        .legend { display: flex; gap: 15px; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #555; }
         .dot { width: 10px; height: 10px; border-radius: 2px; }
         .dot.avail { background: white; border: 1px solid #22c55e; }
         .dot.booked { background: #e5e7eb; border: 1px solid #d1d5db; }
         .dot.selected { background: #ea580c; border: 1px solid #ea580c; }
 
+        .footer-actions { display: flex; align-items: center; gap: 20px; }
+
         .confirm-btn {
-           background: #ea580c; color: white; padding: 12px 30px; border-radius: 8px; border: none;
-           font-weight: bold; cursor: pointer; font-size: 1rem; box-shadow: 0 5px 15px rgba(234, 88, 12, 0.4);
-           transition: transform 0.2s;
+           background: #ea580c; color: white; padding: 12px 25px; border-radius: 8px; border: none;
+           font-weight: bold; cursor: pointer; font-size: 0.95rem; box-shadow: 0 5px 15px rgba(234, 88, 12, 0.4);
+           transition: transform 0.2s; white-space: nowrap;
         }
         .confirm-btn:hover { transform: scale(1.05); background: #c2410c; }
         .confirm-btn:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; transform: none; }
 
         /* --- HOSTEL MAP STYLES --- */
-        .hostel-map-base { width: 800px; height: 400px; position: relative; background: #fff; }
+        /* FIXED SIZE - will result in scroll on mobile */
+        .hostel-map-base { 
+            width: 800px; 
+            height: 400px; 
+            position: relative; 
+            background: #fff; 
+        }
+        
         .bed-box {
            display: flex; align-items: center; justify-content: center; cursor: pointer;
            transition: all 0.2s; font-size: 0.7rem; font-weight: 600; border: 1px solid #333; background: white;
         }
         
         /* --- LIBRARY MAP STYLES --- */
+        /* FIXED SIZE - will result in scroll on mobile */
         .library-grid-base { 
-           width: 1000px; height: auto; min-height: 100%; padding: 40px; 
-           display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+           width: 1000px; /* Force fixed width to maintain structure */
+           padding: 30px; 
+           display: grid; 
+           grid-template-columns: 1fr 1fr; /* ALWAYS 2 Columns */
+           gap: 40px;
         }
 
         .table-pair {
-            display: flex; flex-direction: column; margin-bottom: 30px;
+            display: flex; flex-direction: column; margin-bottom: 0;
             box-shadow: 0 10px 20px rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden;
+            width: 100%;
         }
         .table-divider { height: 4px; background: #d1d5db; width: 100%; }
 
         .lib-unit { display: flex; flex-direction: column; }
-        .lib-unit.inverted { flex-direction: column-reverse; } /* Swaps Seat/Desk order */
+        .lib-unit.inverted { flex-direction: column-reverse; }
 
         .lib-seat-row { display: flex; height: 35px; gap: 4px; padding: 0 4px; background: #fff; }
+        .lib-desk-row { display: flex; height: 45px; background: #e8dcc4; border: 1px solid #d4c5a9; }
         
-        /* Attractive Chair Styling */
         .lib-seat { 
             flex: 1; border: 1px solid #ccc; background: white; 
-            border-radius: 6px 6px 2px 2px; /* Chair shape top */
-            margin-top: 4px; cursor: pointer; transition: all 0.2s;
+            border-radius: 6px 6px 2px 2px; margin-top: 4px; cursor: pointer; transition: all 0.2s;
             display: flex; align-items: center; justify-content: center;
-            font-size: 0.7rem; font-weight: bold; color: #555;
-            box-shadow: 0 2px 0 #ddd;
+            font-size: 0.7rem; font-weight: bold; color: #555; box-shadow: 0 2px 0 #ddd;
         }
         .lib-unit.inverted .lib-seat {
-            border-radius: 2px 2px 6px 6px; /* Chair shape bottom */
-            margin-top: 0; margin-bottom: 4px; box-shadow: 0 -2px 0 #ddd;
+            border-radius: 2px 2px 6px 6px; margin-top: 0; margin-bottom: 4px; box-shadow: 0 -2px 0 #ddd;
         }
 
-        /* Attractive Desk Styling */
-        .lib-desk-row { display: flex; height: 45px; background: #e8dcc4; /* Wood color */ border: 1px solid #d4c5a9; }
         .lib-desk-box { 
             flex: 1; border-right: 1px solid #cfbfa2; 
             display: flex; align-items: center; justify-content: center; position: relative;
         }
         
-        /* Locker Visuals */
         .locker-visual {
-            width: 70%; height: 70%; background: linear-gradient(135deg, #a1a1aa, #d4d4d8);
-            border: 1px solid #71717a; border-radius: 3px; position: relative;
-            box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+           width: 70%; height: 70%; background: linear-gradient(135deg, #a1a1aa, #d4d4d8);
+           border: 1px solid #71717a; border-radius: 3px; position: relative;
+           box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
         }
-        .locker-visual::after { /* Keyhole */
-            content: ''; position: absolute; top: 50%; right: 4px; width: 3px; height: 3px;
-            background: #333; border-radius: 50%; transform: translateY(-50%);
+        .locker-visual::after { 
+           content: ''; position: absolute; top: 50%; right: 4px; width: 3px; height: 3px;
+           background: #333; border-radius: 50%; transform: translateY(-50%);
         }
         .rack-visual { font-size: 9px; color: #886a4a; font-weight: bold; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; }
 
@@ -211,16 +241,28 @@ function BookingSelectionPage({ serviceId, setPage, previousPageParams }) {
         .booked { background: #f3f4f6; color: #d1d5db; border-color: #eee; box-shadow: none; cursor: not-allowed; }
         .maintenance { background: #fee2e2; color: #ef4444; cursor: not-allowed; }
         .selected { 
-            background: #ea580c !important; color: white !important; 
-            border-color: #ea580c !important; transform: scale(1.1); 
-            box-shadow: 0 5px 15px rgba(234, 88, 12, 0.3) !important; z-index: 5;
+           background: #ea580c !important; color: white !important; 
+           border-color: #ea580c !important; transform: scale(1.1); 
+           box-shadow: 0 5px 15px rgba(234, 88, 12, 0.3) !important; z-index: 5;
         }
 
         .entrance-arrow { position: absolute; font-size: 2.5rem; color: #1a1a1a; opacity: 0.8; }
         .feature-zone {
-            position: absolute; border: 2px dashed #ccc; background: #fafafa;
-            display: flex; align-items: center; justify-content: center;
-            color: #999; font-weight: bold; font-size: 0.8rem; letter-spacing: 1px;
+           position: absolute; border: 2px dashed #ccc; background: #fafafa;
+           display: flex; align-items: center; justify-content: center;
+           color: #999; font-weight: bold; font-size: 0.8rem; letter-spacing: 1px;
+        }
+
+        /* --- MOBILE HEADER/FOOTER ADJUSTMENTS --- */
+        /* Only adjusts the wrapper UI, NOT the map structure */
+        @media (max-width: 768px) {
+           .bp-header { flex-direction: column; align-items: flex-start; }
+           .bp-close-btn { position: absolute; top: 15px; right: 15px; }
+           
+           .bp-footer { flex-direction: column; align-items: stretch; gap: 20px; }
+           .legend { justify-content: space-between; width: 100%; }
+           .footer-actions { flex-direction: column; width: 100%; }
+           .confirm-btn { width: 100%; }
         }
 
       `}</style>
@@ -259,11 +301,12 @@ function BookingSelectionPage({ serviceId, setPage, previousPageParams }) {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4 }}
             style={{ 
-                width: isHostel ? '800px' : 'auto', 
+                /* FIXED DIMENSIONS: Ensures layout never breaks/stacks on small screens */
+                width: isHostel ? '800px' : '1000px', 
                 height: isHostel ? '400px' : 'auto',
                 border: isHostel ? '4px solid #333' : 'none',
                 boxShadow: isHostel ? '' : 'none',
-                background: isHostel ? 'white' : 'transparent'
+                background: isHostel ? 'white' : 'transparent',
             }}
           >
             {isHostel ? (
@@ -284,12 +327,12 @@ function BookingSelectionPage({ serviceId, setPage, previousPageParams }) {
           {!isHostel && <div className="legend-item" style={{display:'flex', alignItems:'center', gap:'5px'}}><div style={{width:'10px', height:'10px', background:'#a1a1aa', border:'1px solid #71717a'}}></div> Locker</div>}
         </div>
         
-        <div style={{display:'flex', alignItems:'center', gap:'20px'}}>
+        <div className="footer-actions">
             <AnimatePresence>
                 {selectedSlot && (
                     <motion.div 
                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
-                        style={{ textAlign:'right' }}
+                        style={{ textAlign:'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}
                     >
                         <div style={{ fontSize:'0.8rem', color:'#666' }}>Selected</div>
                         <div style={{ fontWeight:'bold', fontSize:'1.2rem', color:'#ea580c' }}>
@@ -370,7 +413,7 @@ const HostelMap = ({ activeRoom, selected, onSelect }) => {
     return null;
 };
 
-// --- LIBRARY MAP COMPONENT (ATTRACTIVE REFACTOR) ---
+// --- LIBRARY MAP COMPONENT ---
 const LibraryMap = ({ data, selected, onSelect }) => {
     // Helper to render a pair of connected tables (Back to Back)
     const TablePair = ({ tableA, tableB }) => (

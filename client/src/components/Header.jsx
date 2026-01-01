@@ -74,17 +74,21 @@ function Header({ setPage, activePage }) {
         </div>
       </div>
 
-      {/* 4. NEW MOBILE SIDE DRAWER */}
+      {/* 4. MOBILE SIDE DRAWER */}
       {/* Overlay Backdrop */}
       <div 
         className={`shivba-mobile-overlay ${open ? 'visible' : ''}`} 
         onClick={() => setOpen(false)}
+        style={{ zIndex: 999 }} // Ensures overlay is below drawer but above content
       />
 
       {/* Sliding Drawer */}
-      <div className={`shivba-mobile-drawer ${open ? 'open' : ''}`}>
+      <div 
+        className={`shivba-mobile-drawer ${open ? 'open' : ''}`}
+        style={{ zIndex: 1000 }} // Ensures drawer is on top of everything
+      >
         
-        {/* DRAWER HEADER: Now contains the Logo/Brand Navigation */}
+        {/* DRAWER HEADER */}
         <div className="drawer-header">
            <div 
              className="shivba-logo" 
@@ -93,25 +97,40 @@ function Header({ setPage, activePage }) {
            >
              SHIVBA
            </div>
-           <button className="drawer-close-btn" onClick={() => setOpen(false)}>✕</button>
+           <button 
+             className="drawer-close-btn" 
+             onClick={() => setOpen(false)}
+             style={{ color: 'inherit' }} // Inherits theme color
+           >
+             ✕
+           </button>
         </div>
 
-        {/* DRAWER CONTENT: Navigation Links */}
+        {/* DRAWER CONTENT */}
         <div className="drawer-content">
-          <button className={mobileNavClass('home')} onClick={() => goto('home')}>{t('nav.home')}</button>
-          <button className={mobileNavClass('about')} onClick={() => goto('about')}>{t('nav.about')}</button>
-          <button className={mobileNavClass('services')} onClick={() => goto('services')}>{t('nav.services')}</button>
-          <button className={mobileNavClass('events')} onClick={() => goto('events')}>{t('nav.events')}</button>
-          <button className={mobileNavClass('gallery')} onClick={() => goto('gallery')}>{t('nav.gallery')}</button>
-          <button className={mobileNavClass('faq')} onClick={() => goto('faq')}>{t('nav.faq')}</button>
-          <button className={mobileNavClass('help')} onClick={() => goto('help')}>{t('nav.help') || 'Help'}</button>
-          <button className={mobileNavClass('contact')} onClick={() => goto('contact')}>{t('nav.contact')}</button>
+          {/* Added style={{ color: 'inherit' }} to all buttons to force visibility */}
+          <button className={mobileNavClass('home')} onClick={() => goto('home')} style={{ color: 'inherit' }}>{t('nav.home')}</button>
+          <button className={mobileNavClass('about')} onClick={() => goto('about')} style={{ color: 'inherit' }}>{t('nav.about')}</button>
+          <button className={mobileNavClass('services')} onClick={() => goto('services')} style={{ color: 'inherit' }}>{t('nav.services')}</button>
+          <button className={mobileNavClass('events')} onClick={() => goto('events')} style={{ color: 'inherit' }}>{t('nav.events')}</button>
+          <button className={mobileNavClass('gallery')} onClick={() => goto('gallery')} style={{ color: 'inherit' }}>{t('nav.gallery')}</button>
+          <button className={mobileNavClass('faq')} onClick={() => goto('faq')} style={{ color: 'inherit' }}>{t('nav.faq')}</button>
+          <button className={mobileNavClass('help')} onClick={() => goto('help')} style={{ color: 'inherit' }}>{t('nav.help') || 'Help'}</button>
+          <button className={mobileNavClass('contact')} onClick={() => goto('contact')} style={{ color: 'inherit' }}>{t('nav.contact')}</button>
         </div>
 
-        {/* DRAWER FOOTER: Actions */}
+        {/* DRAWER FOOTER */}
         <div className="drawer-footer">
-           <LanguageSwitcher />
-           <button className="drawer-cta-btn" onClick={() => goto('register')}>{t('nav.register')}</button>
+           <div className="drawer-footer-top">
+             <LanguageSwitcher />
+             <button className="drawer-link account-link" onClick={() => goto('account')} style={{ color: 'inherit' }}>
+               <span>👤</span> {t('nav.myAccount')}
+             </button>
+           </div>
+           
+           <button className="drawer-cta-btn" onClick={() => goto('register')}>
+             {t('nav.register')}
+           </button>
         </div>
       </div>
     </header>
