@@ -1,5 +1,14 @@
 import React, { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion'; 
+import { motion, AnimatePresence } from 'framer-motion';
+
+// --- 0. MOCK DATA FOR LIBRARY SYSTEM ---
+const BOOKS_DATA = [
+  { id: 101, title: "Shriman Yogi", author: "Ranjit Desai", category: "History", status: "Available", cover: "https://m.media-amazon.com/images/I/814L+vq01mL.jpg" },
+  { id: 102, title: "Chhava", author: "Shivaji Sawant", category: "History", status: "Issued", cover: "https://m.media-amazon.com/images/I/51tH-C2y+AL.jpg" },
+  { id: 103, title: "Cracking the Coding Interview", author: "Gayle Laakmann", category: "Tech", status: "Available", cover: "https://m.media-amazon.com/images/I/61mIq2iJUXL._AC_UF1000,1000_QL80_.jpg" },
+  { id: 104, title: "MPSC/UPSC General Studies", author: "Unique Academy", category: "Exam Prep", status: "Available", cover: "https://m.media-amazon.com/images/I/71s8d8yH+XL.jpg" },
+  { id: 105, title: "Clean Code", author: "Robert C. Martin", category: "Tech", status: "Maintenance", cover: "https://m.media-amazon.com/images/I/41xShlnTZTL._SX218_BO1,204,203,200_QL40_FMwebp_.jpg" },
+];
 
 // --- 1. ANIMATION VARIANTS ---
 const containerVariants = {
@@ -12,7 +21,7 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 30 },
-  visible: { 
+  visible: {
     opacity: 1, y: 0,
     transition: { type: "spring", stiffness: 60, damping: 15 }
   }
@@ -31,7 +40,7 @@ const SERVICE_CONFIG = {
     subtitle: 'Forging strength through tradition and modern science.',
     image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop',
     priceLabel: 'Membership Plans',
-    startingPrice: 1200, 
+    startingPrice: 1200,
     plans: [
       { label: '1 Month', price: 1200 },
       { label: '3 Months', price: 3000, recommended: true },
@@ -51,11 +60,11 @@ const SERVICE_CONFIG = {
     title: 'Shivba Library',
     subtitle: 'A sanctuary for focus, knowledge, and growth.',
     image: 'https://images.unsplash.com/photo-1507842217121-9e96e44303f0?q=80&w=2070&auto=format&fit=crop',
-    priceLabel: 'Library Access',
+    priceLabel: 'Seat Subscription',
     startingPrice: 900,
     plans: [
-      { label: '1 Month', price: 900 },
-      { label: '3 Months', price: 2500, recommended: true },
+      { label: '1 Month Seat', price: 900 },
+      { label: '3 Months Seat', price: 2500, recommended: true },
     ],
     description: ['Extensive physical book collection', 'High-speed WiFi & digital resources', 'Dedicated silent reading zones'],
     benefits: ['Uninterrupted focus', 'Competitive exam preparation support', 'Ergonomic seating & lighting'],
@@ -72,7 +81,7 @@ const SERVICE_CONFIG = {
     image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?q=80&w=1469&auto=format&fit=crop',
     priceLabel: 'Monthly Rent',
     startingPrice: 2499,
-    plans: null, // Single price logic
+    plans: null,
     description: ['Comfortable shared & single options', '24/7 Security & CCTV', 'High-speed internet included'],
     benefits: ['Peaceful study environment', 'Network with peers', 'Proximity to Library & Talim'],
     detailedFeatures: [
@@ -88,7 +97,7 @@ const SERVICE_CONFIG = {
     image: 'https://images.unsplash.com/photo-1544027993-37dbfe43562a?q=80&w=1470&auto=format&fit=crop',
     priceLabel: 'Contribution',
     startingPrice: 299,
-    plans: null, 
+    plans: null,
     description: ['Weekly workshops', 'Community clean-up', 'Youth leadership'],
     benefits: ['Real-world impact', 'Soft skills', 'Certificate'],
     detailedFeatures: [
@@ -100,13 +109,76 @@ const SERVICE_CONFIG = {
   }
 };
 
+// --- 3. SUB-COMPONENT: LIBRARY BOOK SYSTEM ---
+const BookLibrarySection = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filter, setFilter] = useState('All');
+
+  const filteredBooks = BOOKS_DATA.filter(book => {
+    const matchesSearch = book.title.toLowerCase().includes(searchTerm.toLowerCase()) || book.author.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = filter === 'All' || book.category === filter;
+    return matchesSearch && matchesFilter;
+  });
+
+  return (
+    <motion.div variants={itemVariants} className="library-book-system">
+      <div className="lbs-header">
+        <h3>Shivba Digital Catalog</h3>
+        <p>Browse our collection or check availability before visiting.</p>
+      </div>
+
+      {/* Controls */}
+      <div className="lbs-controls">
+        <input 
+          type="text" 
+          placeholder="Search by Title or Author..." 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="lbs-search"
+        />
+        <select value={filter} onChange={(e) => setFilter(e.target.value)} className="lbs-select">
+          <option value="All">All Categories</option>
+          <option value="History">History</option>
+          <option value="Tech">Technology</option>
+          <option value="Exam Prep">Exam Prep</option>
+        </select>
+      </div>
+
+      {/* Book Grid */}
+      <div className="lbs-grid">
+        {filteredBooks.map(book => (
+          <motion.div layout key={book.id} className="book-card">
+            <div className="book-status-dot" data-status={book.status}></div>
+            <div className="book-info">
+               <h4>{book.title}</h4>
+               <span className="book-author">{book.author}</span>
+               <span className="book-category">{book.category}</span>
+            </div>
+            <div className="book-footer">
+               <span className={`status-badge ${book.status.toLowerCase()}`}>{book.status}</span>
+               <button className="borrow-btn" disabled={book.status !== 'Available'}>
+                 {book.status === 'Available' ? 'Reserve' : 'Notify'}
+               </button>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  );
+};
+
+
+// --- 4. MAIN PAGE COMPONENT ---
 function ServiceDetailPage({ serviceId = 'hostel', setPage }) {
   const cfg = SERVICE_CONFIG[serviceId] || SERVICE_CONFIG.talim;
   const detailsRef = useRef(null);
 
   // --- STATE ---
-  const [activeIndex, setActiveIndex] = useState(0); 
+  const [activeIndex, setActiveIndex] = useState(0);
   const [direction, setDirection] = useState(0);
+  
+  // Library Specific State: 'study' or 'books'
+  const [libraryTab, setLibraryTab] = useState('study');
 
   // Pricing Logic
   const plans = cfg.plans && cfg.plans.length > 0 ? cfg.plans : [{ label: 'Standard Booking', price: cfg.startingPrice }];
@@ -117,14 +189,12 @@ function ServiceDetailPage({ serviceId = 'hostel', setPage }) {
 
   // --- NAVIGATION HANDLER ---
   const handleBookingAction = () => {
-    // If it's Hostel or Library, go to the Interactive Map first
     if (serviceId === 'hostel' || serviceId === 'library') {
         setPage({
             name: 'booking-selection',
             params: { serviceId, selectedPlanIndex: activeIndex }
         });
     } else {
-        // For Talim/Social, go straight to checkout
         setPage({
             name: 'service-checkout',
             params: { id: serviceId, selectedPlanIndex: activeIndex }
@@ -135,7 +205,7 @@ function ServiceDetailPage({ serviceId = 'hostel', setPage }) {
   const scrollToDetails = () => { detailsRef.current?.scrollIntoView({ behavior: 'smooth' }); };
 
   return (
-    <motion.div 
+    <motion.div
       className="service-detail-container"
       initial="hidden"
       animate="visible"
@@ -144,38 +214,59 @@ function ServiceDetailPage({ serviceId = 'hostel', setPage }) {
       {/* --- INJECTED CSS --- */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;500;600&display=swap');
-        .service-detail-container { font-family: 'Montserrat', sans-serif; }
+        .service-detail-container { font-family: 'Montserrat', sans-serif; background: #f4f4f4; min-height: 100vh; }
         .service-detail-container h1, .service-detail-container h2, .service-detail-container h3 { font-family: 'Cinzel', serif; letter-spacing: 0.05em; }
         
+        /* HERO */
         .service-detail-hero { padding: 4rem 2rem; text-align: center; background: #1a1a1a; color: white; margin-bottom: 2rem; }
         .service-detail-hero h1 { font-size: 3rem; margin: 0; }
+
+        /* GRID */
         .service-detail-grid { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1.5fr 1fr; gap: 2rem; padding: 0 20px; }
         @media (max-width: 900px) { .service-detail-grid { grid-template-columns: 1fr; } }
         
-        .service-detail-card { background: white; border-radius: 15px; padding: 2rem; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .service-detail-card { background: white; border-radius: 15px; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .service-detail-image { width: 100%; height: 300px; object-fit: cover; border-radius: 10px; margin-bottom: 1.5rem; }
-        .service-list li { margin-bottom: 0.5rem; display: flex; gap: 10px; }
+        .service-list li { margin-bottom: 0.5rem; display: flex; gap: 10px; color: #555; }
 
+        /* BUTTONS */
         .pay-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 1rem; }
         .pay-btn:disabled { background: #ccc; cursor: not-allowed; }
         .secondary-btn { width: 100%; padding: 12px; background: transparent; border: 1px solid #ddd; margin-top: 10px; border-radius: 8px; cursor: pointer; color: #666; }
         .know-more-btn { display: block; width: fit-content; margin: 1rem auto 0; padding: 8px 20px; border: 1px dashed #FFA500; color: #ea580c; background: transparent; border-radius: 30px; cursor: pointer; font-size: 0.85rem; transition: all 0.3s; }
         .know-more-btn:hover { background: #fff7ed; transform: translateY(-2px); }
 
-        /* --- VISUAL CTA --- */
-        .selection-cta {
-            margin-top: 2rem; text-align: center; padding: 2rem;
-            background: #f9fafb; border-radius: 12px; border: 1px dashed #ccc;
-        }
-        .selection-cta h3 { font-family: 'Cinzel', serif; margin-bottom: 10px; color: #333; }
-        .selection-cta p { color: #666; margin-bottom: 20px; font-size: 0.9rem; }
-        .cta-button {
-            padding: 12px 30px; background: #1a1a1a; color: white; border: none;
-            border-radius: 30px; font-weight: bold; cursor: pointer;
-            display: inline-flex; alignItems: center; gap: 10px; transition: all 0.3s;
-        }
+        /* VISUAL CTA */
+        .selection-cta { margin-top: 2rem; text-align: center; padding: 2rem; background: #f9fafb; border-radius: 12px; border: 1px dashed #ccc; }
+        .cta-button { padding: 12px 30px; background: #1a1a1a; color: white; border: none; border-radius: 30px; font-weight: bold; cursor: pointer; display: inline-flex; alignItems: center; gap: 10px; transition: all 0.3s; }
         .cta-button:hover { background: #ea580c; transform: translateY(-2px); }
+
+        /* --- NEW: LIBRARY TAB SYSTEM --- */
+        .lib-tabs { display: flex; gap: 1rem; justify-content: center; margin-bottom: 2rem; }
+        .lib-tab-btn { padding: 10px 24px; border-radius: 30px; border: none; cursor: pointer; font-weight: 600; font-family: 'Cinzel', serif; transition: all 0.3s; }
+        .lib-tab-btn.active { background: #ea580c; color: white; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); }
+        .lib-tab-btn.inactive { background: white; color: #666; border: 1px solid #ddd; }
+
+        /* --- NEW: BOOK LIBRARY STYLES --- */
+        .library-book-system { background: white; border-radius: 15px; padding: 2rem; margin: 0 auto; max-width: 1100px; }
+        .lbs-controls { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .lbs-search { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Montserrat'; }
+        .lbs-select { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Montserrat'; }
         
+        .lbs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; }
+        .book-card { border: 1px solid #eee; border-radius: 10px; padding: 1rem; position: relative; background: #fff; transition: transform 0.2s; }
+        .book-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .book-info h4 { margin: 0 0 5px 0; font-size: 1rem; color: #333; }
+        .book-author { display: block; font-size: 0.85rem; color: #666; margin-bottom: 5px; }
+        .book-category { font-size: 0.75rem; background: #f3f4f6; padding: 2px 8px; border-radius: 4px; color: #555; }
+        .book-footer { margin-top: 1rem; display: flex; justify-content: space-between; alignItems: center; }
+        .status-badge { font-size: 0.75rem; font-weight: bold; padding: 4px 8px; border-radius: 4px; }
+        .status-badge.available { color: #166534; background: #dcfce7; }
+        .status-badge.issued { color: #991b1b; background: #fee2e2; }
+        .status-badge.maintenance { color: #854d0e; background: #fef9c3; }
+        .borrow-btn { border: none; background: #1a1a1a; color: white; padding: 6px 12px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; }
+        .borrow-btn:disabled { background: #eee; color: #aaa; cursor: not-allowed; }
+
       `}</style>
 
       {/* --- HERO --- */}
@@ -185,93 +276,123 @@ function ServiceDetailPage({ serviceId = 'hostel', setPage }) {
         <p>{cfg.subtitle}</p>
       </section>
 
-      {/* --- MAIN GRID --- */}
-      <div className="service-detail-grid">
-        
-        {/* LEFT COLUMN: Content */}
-        <motion.div className="service-detail-card" variants={itemVariants}>
-          <img src={cfg.image} alt={cfg.title} className="service-detail-image" />
-          
-          <h2>Overview</h2>
-          <ul className="service-list">
-            {cfg.description.map((item, i) => <li key={i}>➜ {item}</li>)}
-          </ul>
+      {/* --- LIBRARY SPECIFIC TABS --- */}
+      {serviceId === 'library' && (
+          <div className="lib-tabs">
+              <button 
+                className={`lib-tab-btn ${libraryTab === 'study' ? 'active' : 'inactive'}`}
+                onClick={() => setLibraryTab('study')}
+              >
+                Study Space
+              </button>
+              <button 
+                className={`lib-tab-btn ${libraryTab === 'books' ? 'active' : 'inactive'}`}
+                onClick={() => setLibraryTab('books')}
+              >
+                Book Repository
+              </button>
+          </div>
+      )}
 
-          <button className="know-more-btn" onClick={scrollToDetails}>
-             ▼ View Details & Process
-          </button>
+      {/* --- CONDITIONAL RENDERING --- */}
+      
+      {/* VIEW 1: STANDARD SERVICE VIEW (Study Space, Gym, Hostel, etc) */}
+      {(serviceId !== 'library' || libraryTab === 'study') && (
+        <>
+            <div className="service-detail-grid">
+                {/* LEFT: Content */}
+                <motion.div className="service-detail-card" variants={itemVariants}>
+                <img src={cfg.image} alt={cfg.title} className="service-detail-image" />
+                
+                <h2>Overview</h2>
+                <ul className="service-list">
+                    {cfg.description.map((item, i) => <li key={i}>➜ {item}</li>)}
+                </ul>
 
-          {/* --- NEW VISUAL SELECTION CTA --- */}
-          {(serviceId === 'hostel' || serviceId === 'library') && (
-            <div className="selection-cta">
-                <h3>Select Your Space</h3>
-                <p>View the interactive layout to choose your preferred {serviceId === 'hostel' ? 'room & bed' : 'study seat'}.</p>
-                <button className="cta-button" onClick={handleBookingAction}>
-                    Open Interactive Map ➜
+                <button className="know-more-btn" onClick={scrollToDetails}>
+                    ▼ View Details & Process
                 </button>
-            </div>
-          )}
-        </motion.div>
 
-        {/* RIGHT COLUMN: Pricing & Action */}
-        <motion.div className="service-detail-card" style={{ height: 'fit-content', position: 'sticky', top: '20px' }} variants={itemVariants}>
-          <h2 style={{ textAlign: 'center', fontSize: '1.4rem' }}>{cfg.priceLabel}</h2>
-          
-          <div style={{ position: 'relative', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff7ed', borderRadius: '12px', marginBottom: '1rem', border: '1px solid #ffedd5', overflow: 'hidden' }}>
-            {plans.length > 1 && <button onClick={prevPlan} style={{zIndex: 10, border:'none', background:'none', cursor:'pointer', padding:'10px', position:'absolute', left: 0}}>❮</button>}
-            <AnimatePresence initial={false} custom={direction} mode="wait">
-                <motion.div
-                    key={activeIndex}
-                    custom={direction}
-                    variants={sliderVariants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    style={{position:'absolute', width:'100%', textAlign:'center'}}
-                >
-                    <div style={{fontSize:'0.9rem', color:'#666'}}>{currentPlan.label}</div>
-                    <div style={{fontSize:'1.8rem', fontWeight:'bold', color:'#ea580c'}}>₹{currentPlan.price}</div>
+                {/* VISUAL SELECTION CTA (For Hostel/Library Seat) */}
+                {(serviceId === 'hostel' || serviceId === 'library') && (
+                    <div className="selection-cta">
+                        <h3>Select Your Space</h3>
+                        <p>View the interactive layout to choose your preferred {serviceId === 'hostel' ? 'room & bed' : 'study seat'}.</p>
+                        <button className="cta-button" onClick={handleBookingAction}>
+                            Open Interactive Map ➜
+                        </button>
+                    </div>
+                )}
                 </motion.div>
-            </AnimatePresence>
-            {plans.length > 1 && <button onClick={nextPlan} style={{zIndex: 10, border:'none', background:'none', cursor:'pointer', padding:'10px', position:'absolute', right: 0}}>❯</button>}
+
+                {/* RIGHT: Pricing */}
+                <motion.div className="service-detail-card" style={{ height: 'fit-content', position: 'sticky', top: '20px' }} variants={itemVariants}>
+                <h2 style={{ textAlign: 'center', fontSize: '1.4rem' }}>{cfg.priceLabel}</h2>
+                
+                <div style={{ position: 'relative', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff7ed', borderRadius: '12px', marginBottom: '1rem', border: '1px solid #ffedd5', overflow: 'hidden' }}>
+                    {plans.length > 1 && <button onClick={prevPlan} style={{zIndex: 10, border:'none', background:'none', cursor:'pointer', padding:'10px', position:'absolute', left: 0}}>❮</button>}
+                    <AnimatePresence initial={false} custom={direction} mode="wait">
+                        <motion.div
+                            key={activeIndex}
+                            custom={direction}
+                            variants={sliderVariants}
+                            initial="enter"
+                            animate="center"
+                            exit="exit"
+                            style={{position:'absolute', width:'100%', textAlign:'center'}}
+                        >
+                            <div style={{fontSize:'0.9rem', color:'#666'}}>{currentPlan.label}</div>
+                            <div style={{fontSize:'1.8rem', fontWeight:'bold', color:'#ea580c'}}>₹{currentPlan.price}</div>
+                        </motion.div>
+                    </AnimatePresence>
+                    {plans.length > 1 && <button onClick={nextPlan} style={{zIndex: 10, border:'none', background:'none', cursor:'pointer', padding:'10px', position:'absolute', right: 0}}>❯</button>}
+                </div>
+
+                <motion.button
+                    className="pay-btn"
+                    onClick={handleBookingAction}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                >
+                    {(serviceId === 'hostel' || serviceId === 'library')
+                        ? `Select ${serviceId === 'hostel' ? 'Bed' : 'Seat'} to Continue`
+                        : `Proceed to Pay ₹${currentPlan.price}`}
+                </motion.button>
+                
+                <button className="secondary-btn">Register Interest Only</button>
+                </motion.div>
+            </div>
+
+            {/* DETAILS (Bottom) */}
+            <div ref={detailsRef} style={{margin:'3rem auto', maxWidth:'1100px', padding:'0 2rem'}}>
+                <h3>Process Steps</h3>
+                {cfg.processSteps.map((step, idx) => (
+                    <div key={idx} style={{display:'flex', gap:'1rem', marginBottom:'1rem', background:'#fff', padding:'1rem', borderRadius:'8px'}}>
+                        <div style={{background:'#ea580c', color:'white', width:'30px', height:'30px', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', flexShrink:0}}>{idx + 1}</div>
+                        <div>{step}</div>
+                    </div>
+                ))}
+                
+                <h3 style={{marginTop:'2rem'}}>Detailed Features</h3>
+                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'2rem'}}>
+                    {cfg.detailedFeatures.map((f, i) => (
+                    <div key={i}>
+                        <h4 style={{color:'#ea580c', marginBottom:'0.5rem'}}>{f.title}</h4>
+                        <p style={{fontSize:'0.9rem', color:'#555'}}>{f.desc}</p>
+                    </div>
+                    ))}
+                </div>
+            </div>
+        </>
+      )}
+
+      {/* VIEW 2: LIBRARY BOOK SYSTEM (Only shows if Library + Book Tab is active) */}
+      {serviceId === 'library' && libraryTab === 'books' && (
+          <div style={{padding: '0 20px'}}>
+              <BookLibrarySection />
           </div>
+      )}
 
-          <motion.button 
-            className="pay-btn" 
-            onClick={handleBookingAction}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            {(serviceId === 'hostel' || serviceId === 'library') 
-                ? `Select ${serviceId === 'hostel' ? 'Bed' : 'Seat'} to Continue` 
-                : `Proceed to Pay ₹${currentPlan.price}`}
-          </motion.button>
-          
-          <button className="secondary-btn">Register Interest Only</button>
-        </motion.div>
-
-      </div>
-
-      {/* --- DETAILS (Bottom) --- */}
-      <div ref={detailsRef} style={{margin:'3rem auto', maxWidth:'1100px', padding:'0 2rem'}}>
-          <h3>Process Steps</h3>
-          {cfg.processSteps.map((step, idx) => (
-             <div key={idx} style={{display:'flex', gap:'1rem', marginBottom:'1rem', background:'#fff', padding:'1rem', borderRadius:'8px'}}>
-                <div style={{background:'#ea580c', color:'white', width:'30px', height:'30px', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', flexShrink:0}}>{idx + 1}</div>
-                <div>{step}</div>
-             </div>
-          ))}
-          
-          <h3 style={{marginTop:'2rem'}}>Detailed Features</h3>
-          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'2rem'}}>
-            {cfg.detailedFeatures.map((f, i) => (
-              <div key={i}>
-                <h4 style={{color:'#ea580c', marginBottom:'0.5rem'}}>{f.title}</h4>
-                <p style={{fontSize:'0.9rem', color:'#555'}}>{f.desc}</p>
-              </div>
-            ))}
-          </div>
-      </div>
     </motion.div>
   );
 }

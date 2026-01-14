@@ -21,8 +21,8 @@ import StarterAnimaPage from './pages/StarterAnimaPage';
 import HelpPage from './pages/HelpPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import Dashboard from './pages/Dashboard'; 
-// --- NEW IMPORT ---
 import BookingSelectionPage from './pages/BookingSelectionPage'; 
+import OffersPage from './pages/OffersPage';
 
 import LanguageSwitcher from './components/LanguageSwitcher';
 
@@ -85,16 +85,22 @@ const GlobalStyles = () => (
     .shivba-logo { font-family: var(--font-logo); font-size: 2rem; font-weight: 900; color: black; cursor: pointer; text-transform: uppercase; letter-spacing: 0.15em; text-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.3s ease; }
     .shivba-logo:hover { transform: scale(1.02); }
     
-    .shivba-nav { display: flex; gap: 25px; align-items: center; }
-    .nav-btn { background: none; border: none; font-family: var(--font-body); font-size: 0.85rem; font-weight: 700; color: black; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.05em; position: relative; }
+    .shivba-nav { display: flex; gap: 20px; align-items: center; }
+    .nav-btn { background: none; border: none; font-family: var(--font-body); font-size: 0.85rem; font-weight: 700; color: black; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.05em; position: relative; white-space: nowrap; }
     .nav-btn::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: var(--c-gold); transition: width 0.3s ease; }
     .nav-btn:hover::after, .nav-btn.active::after { width: 100%; }
     .nav-btn:hover, .nav-btn.active { color: black; } 
     
+    /* New Offers Badge in Nav - Styled to POP */
+    .nav-btn.offers-btn { color: #ea580c; display: flex; align-items: center; gap: 5px; }
+    .nav-btn.offers-btn::before { content: '🎁'; font-size: 1rem; }
+    .nav-btn.offers-btn:hover { color: #c2410c; }
+    .nav-btn.offers-btn::after { background: #ea580c; }
+
     .shivba-header-actions { display: flex; align-items: center; gap: 15px; }
-    .shivba-primary-btn { background: black; color: white; border: none; padding: 12px 24px; border-radius: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.8rem; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+    .shivba-primary-btn { background: black; color: white; border: none; padding: 12px 24px; border-radius: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.8rem; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.2); white-space: nowrap; }
     .shivba-primary-btn:hover { background: var(--c-gold); color: black; transform: translateY(-2px); }
-    .shivba-ghost-btn { background: transparent; border: 1px solid black; padding: 10px 20px; border-radius: 4px; color: black; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; font-weight: 600; text-transform: uppercase; transition: all 0.3s; }
+    .shivba-ghost-btn { background: transparent; border: 1px solid black; padding: 10px 20px; border-radius: 4px; color: black; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; font-weight: 600; text-transform: uppercase; transition: all 0.3s; white-space: nowrap; }
     .shivba-ghost-btn:hover { background: black; color: white; }
 
     /* --- SIDE DRAWER MOBILE MENU --- */
@@ -130,149 +136,31 @@ const GlobalStyles = () => (
     .drawer-footer { padding: 25px; border-top: 1px solid #eee; background: #fafafa; display: flex; flex-direction: column; gap: 15px; }
     .drawer-cta-btn { width: 100%; background: var(--c-gold); color: black; border: none; padding: 14px; font-weight: 700; text-transform: uppercase; cursor: pointer; }
 
-    /* --- PROFESSIONAL FOOTER (PREMIUM DARK) --- */
-    .shivba-footer { 
-        background: #111111; 
-        color: #999; 
-        padding: 5rem 2rem 2rem; 
-        font-size: 0.9rem; 
-        border-top: 3px solid var(--c-gold); 
-        position: relative; 
-        z-index: 2; 
-    }
+    /* --- PROFESSIONAL FOOTER --- */
+    .shivba-footer { background: #111111; color: #999; padding: 5rem 2rem 2rem; font-size: 0.9rem; border-top: 3px solid var(--c-gold); position: relative; z-index: 2; }
     .shivba-footer-inner { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 4rem; }
     
-    .shivba-footer-logo { 
-        font-family: var(--font-logo); 
-        font-size: 2.8rem; 
-        color: white;
-        margin-bottom: 1rem; 
-        opacity: 1; 
-        letter-spacing: 0.1em;
-    }
+    .shivba-footer-logo { font-family: var(--font-logo); font-size: 2.8rem; color: white; margin-bottom: 1rem; opacity: 1; letter-spacing: 0.1em; }
     .shivba-footer-text { margin-bottom: 1.5rem; line-height: 1.7; max-width: 320px; color: #aaa; font-size: 0.95rem; }
     
-    /* --- UPDATED SOCIAL ICONS --- */
     .shivba-footer-social { display: flex; gap: 15px; margin-top: 1.5rem; }
-    
-    .shivba-social-link { 
-        display: flex; align-items: center; justify-content: center; 
-        width: 45px; height: 45px; 
-        border-radius: 50%; /* CIRCLE */
-        background: rgba(255,255,255,0.08); color: white; 
-        transition: all 0.3s ease; text-decoration: none; 
-        border: 1px solid rgba(255,255,255,0.05);
-        position: relative; /* For tooltip positioning */
-    }
-
+    .shivba-social-link { display: flex; align-items: center; justify-content: center; width: 45px; height: 45px; border-radius: 50%; background: rgba(255,255,255,0.08); color: white; transition: all 0.3s ease; text-decoration: none; border: 1px solid rgba(255,255,255,0.05); }
     .shivba-social-link svg { width: 20px; height: 20px; fill: currentColor; }
-    
-    /* Tooltip (User Name) Logic */
-    .shivba-social-link::after {
-        content: attr(data-username); /* Pulls username from HTML */
-        position: absolute;
-        bottom: -35px; /* Shows under the icon */
-        left: 50%;
-        transform: translateX(-50%) translateY(10px);
-        background: rgba(255, 255, 255, 0.9);
-        color: black;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        white-space: nowrap;
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        pointer-events: none;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    }
+    .shivba-social-link:hover { background: var(--c-gold); color: black; transform: translateY(-3px); }
 
-    .shivba-social-link:hover::after {
-        opacity: 1;
-        visibility: visible;
-        transform: translateX(-50%) translateY(0);
-    }
+    .shivba-footer-col h4 { color: white; margin-bottom: 1.8rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.25em; font-weight: 700; position: relative; display: inline-block; }
+    .shivba-footer-col h4::after { content: ''; position: absolute; bottom: -8px; left: 0; width: 30px; height: 2px; background: var(--c-gold); }
 
-    /* Brand Colors on Hover */
-    .shivba-social-link.insta:hover { 
-        background: #E1306C; /* Instagram Color */
-        color: white; 
-        border-color: #E1306C;
-        box-shadow: 0 0 15px rgba(225, 48, 108, 0.5);
-        transform: translateY(-3px);
-    }
-
-    .shivba-social-link.fb:hover { 
-        background: #1877F2; /* Facebook Blue */
-        color: white; 
-        border-color: #1877F2;
-        box-shadow: 0 0 15px rgba(24, 119, 242, 0.5);
-        transform: translateY(-3px);
-    }
-
-    .shivba-footer-col h4 { 
-        color: white; 
-        margin-bottom: 1.8rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.25em; font-weight: 700;
-        position: relative; display: inline-block;
-    }
-    .shivba-footer-col h4::after {
-        content: ''; position: absolute; bottom: -8px; left: 0; width: 30px; height: 2px; background: var(--c-gold);
-    }
-
-    /* --- SQUARE & MOTION BUTTONS --- */
-    .shivba-footer-col button, .shivba-footer-col a { 
-        display: block;
-        width: 100%;
-        padding: 12px 16px; 
-        margin-bottom: 8px;
-        background: rgba(255, 255, 255, 0.03); 
-        border: 1px solid rgba(255, 255, 255, 0.05); 
-        color: #bbb;
-        text-align: left;
-        cursor: pointer;
-        transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); 
-        position: relative;
-        overflow: hidden;
-        font-size: 0.85rem;
-        font-family: var(--font-body);
-        text-decoration: none;
-        border-radius: 0px; 
-    }
-
-    /* Hover State for Buttons */
-    .shivba-footer-col button:hover, .shivba-footer-col a:hover { 
-        background: var(--c-gold);
-        border-color: var(--c-gold);
-        color: black;
-        transform: translateX(8px); 
-        padding-left: 24px; 
-        box-shadow: -4px 4px 0 rgba(255, 255, 255, 0.1); 
-    }
+    .shivba-footer-col button, .shivba-footer-col a { display: block; width: 100%; padding: 12px 16px; margin-bottom: 8px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); color: #bbb; text-align: left; cursor: pointer; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); position: relative; overflow: hidden; font-size: 0.85rem; font-family: var(--font-body); text-decoration: none; border-radius: 0px; }
+    .shivba-footer-col button:hover, .shivba-footer-col a:hover { background: var(--c-gold); border-color: var(--c-gold); color: black; transform: translateX(8px); padding-left: 24px; box-shadow: -4px 4px 0 rgba(255, 255, 255, 0.1); }
     
     .shivba-footer-col p { margin-bottom: 1rem; color: #bbb; }
-
-    /* Newsletter Input Area */
-    .shivba-footer-input-wrap { 
-        display: flex; gap: 0; margin-top: 1.5rem; 
-        background: rgba(255,255,255,0.05); 
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 4px; overflow: hidden; transition: border-color 0.3s; 
-    }
+    .shivba-footer-input-wrap { display: flex; gap: 0; margin-top: 1.5rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; transition: border-color 0.3s; }
     .shivba-footer-input-wrap:focus-within { border-color: var(--c-gold); background: black; }
-    .shivba-footer-input-wrap input { 
-        padding: 16px 20px; border: none; background: transparent; 
-        color: white; 
-        flex: 1; outline: none; font-family: var(--font-body); font-size: 0.9rem; 
-    }
+    .shivba-footer-input-wrap input { padding: 16px 20px; border: none; background: transparent; color: white; flex: 1; outline: none; font-family: var(--font-body); font-size: 0.9rem; }
     .shivba-footer-subscribe { background: var(--c-gold); color: black; border: none; padding: 0 30px; cursor: pointer; font-weight: 700; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.1em; transition: all 0.3s ease; }
     .shivba-footer-subscribe:hover { background: white; color: black; }
-
-    .shivba-footer-bottom { 
-        max-width: 1400px; margin: 5rem auto 0; padding-top: 2rem; 
-        border-top: 1px solid rgba(255,255,255,0.08); 
-        display: flex; justify-content: space-between; color: #666; font-size: 0.8rem; letter-spacing: 0.05em;
-    }
+    .shivba-footer-bottom { max-width: 1400px; margin: 5rem auto 0; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; color: #666; font-size: 0.8rem; letter-spacing: 0.05em; }
 
     /* FAB */
     .fab-container { position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column; align-items: center; gap: 15px; }
@@ -284,7 +172,6 @@ const GlobalStyles = () => (
     .fab-item::after { content: attr(data-tooltip); position: absolute; right: 60px; background: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 4px; font-size: 11px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; top: 12px; font-family: var(--font-body); font-weight: 600; }
     .fab-item:hover::after { opacity: 1; }
 
-    /* Dark Mode Body Overrides (Footer stays dark) */
     body.dark-mode { background-color: #050505 !important; color: #e0e0e0 !important; }
     body.dark-mode .shivba-header { background-color: rgba(20, 20, 20, 0.95); border-bottom: 1px solid #333; }
     body.dark-mode .shivba-logo { color: white; text-shadow: 0 2px 10px rgba(255, 165, 0, 0.3); }
@@ -294,8 +181,7 @@ const GlobalStyles = () => (
     body.dark-mode .shivba-ghost-btn:hover { border-color: white; background: white; color: black; }
     body.dark-mode .shivba-primary-btn { background: var(--c-gold); color: black; }
     body.dark-mode .shivba-primary-btn:hover { background: white; }
-
-    /* Dark Mode Drawer Overrides */
+    
     body.dark-mode .shivba-menu-toggle span { background-color: white; }
     body.dark-mode .shivba-mobile-drawer { background: #1a1a1a; border-left: 1px solid #333; }
     body.dark-mode .drawer-header { background: #111; border-color: #333; }
@@ -309,7 +195,7 @@ const GlobalStyles = () => (
     @media (max-width: 1024px) {
       .shivba-nav { display: none; } 
       .shivba-header-inner { justify-content: space-between; }
-      .shivba-menu-toggle { display: flex; } /* Show hamburger on mobile */
+      .shivba-menu-toggle { display: flex; } 
       .shivba-footer-inner { grid-template-columns: 1fr; gap: 3rem; text-align: center; }
       .shivba-footer-social { justify-content: center; }
       .shivba-footer-logo { margin: 0 auto 1.5rem; display: block; }
@@ -322,117 +208,87 @@ const GlobalStyles = () => (
 
 /* ------------ Components ------------- */
 
-/* UPDATED HEADER with SIDE DRAWER NAVIGATION */
 function Header({ setPage, activePage }) {
   const [open, setOpen] = useState(false);
   const { t } = useTranslation();
 
-  // Lock body scroll when menu is open
   useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
+    if (open) { document.body.style.overflow = 'hidden'; } 
+    else { document.body.style.overflow = 'unset'; }
   }, [open]);
 
-  // Helper to change page and close mobile menu
   const goto = (name) => {
     setPage({ name });
     setOpen(false); 
   };
 
-  const navClass = (name) =>
-    activePage === name ? 'nav-btn active' : 'nav-btn';
-
-  const mobileNavClass = (name) => 
-    activePage === name ? 'drawer-link active' : 'drawer-link';
+  const navClass = (name) => activePage === name ? 'nav-btn active' : 'nav-btn';
+  const mobileNavClass = (name) => activePage === name ? 'drawer-link active' : 'drawer-link';
 
   return (
     <header className="shivba-header">
       <div className="shivba-header-inner">
-        {/* 1. Logo (Desktop/Main) */}
-        <div className="shivba-logo" onClick={() => goto('home')}>
-          SHIVBA
-        </div>
+        <div className="shivba-logo" onClick={() => goto('home')}>SHIVBA</div>
 
-        {/* 2. Desktop Navigation */}
+        {/* DESKTOP NAVIGATION */}
         <nav className="shivba-nav">
-          <button className={navClass('home')} onClick={() => goto('home')}>{t('nav.home')}</button>
-          <button className={navClass('about')} onClick={() => goto('about')}>{t('nav.about')}</button>
-          <button className={navClass('services')} onClick={() => goto('services')}>{t('nav.services')}</button>
-          <button className={navClass('events')} onClick={() => goto('events')}>{t('nav.events')}</button>
-          <button className={navClass('gallery')} onClick={() => goto('gallery')}>{t('nav.gallery')}</button>
-          <button className={navClass('faq')} onClick={() => goto('faq')}>{t('nav.faq')}</button>
-          <button className={navClass('help')} onClick={() => goto('help')}>{t('nav.help') || 'Help'}</button>
-          <button className={navClass('contact')} onClick={() => goto('contact')}>{t('nav.contact')}</button>
+          <button className={navClass('home')} onClick={() => goto('home')}>{t('nav.home') || 'Home'}</button>
+          
+          {/* MOVED OFFERS HERE to ensure visibility */}
+          <button className={`${navClass('offers')} offers-btn`} onClick={() => goto('offers')}>
+              Offers
+          </button>
+
+          <button className={navClass('about')} onClick={() => goto('about')}>{t('nav.about') || 'About'}</button>
+          <button className={navClass('services')} onClick={() => goto('services')}>{t('nav.services') || 'Services'}</button>
+          <button className={navClass('events')} onClick={() => goto('events')}>{t('nav.events') || 'Events'}</button>
+          <button className={navClass('gallery')} onClick={() => goto('gallery')}>{t('nav.gallery') || 'Gallery'}</button>
+          <button className={navClass('faq')} onClick={() => goto('faq')}>{t('nav.faq') || 'FAQ'}</button>
+          <button className={navClass('contact')} onClick={() => goto('contact')}>{t('nav.contact') || 'Contact'}</button>
         </nav>
 
-        {/* 3. Header Actions */}
         <div className="shivba-header-actions">
-          <div className="desktop-only">
-             <LanguageSwitcher />
-          </div>
+          <div className="desktop-only"><LanguageSwitcher /></div>
           
           <button className="shivba-ghost-btn" onClick={() => goto('account')}>
-            <span>👤</span> <span className="desktop-only">{t('nav.myAccount')}</span>
+            <span>👤</span> <span className="desktop-only">{t('nav.myAccount') || 'My Account'}</span>
           </button>
 
           <button className="shivba-primary-btn desktop-only" onClick={() => goto('register')}>
-            {t('nav.register')}
+            {t('nav.register') || 'Register'}
           </button>
           
-          {/* Mobile Hamburger Toggle */}
-          <button
-            className={`shivba-menu-toggle ${open ? 'open' : ''}`}
-            onClick={() => setOpen(true)}
-            aria-label="Open navigation"
-          >
-            <span />
-            <span />
-            <span />
+          <button className={`shivba-menu-toggle ${open ? 'open' : ''}`} onClick={() => setOpen(true)} aria-label="Open navigation">
+            <span /> <span /> <span />
           </button>
         </div>
       </div>
 
-      {/* 4. NEW MOBILE SIDE DRAWER */}
-      {/* Overlay Backdrop */}
-      <div 
-        className={`shivba-mobile-overlay ${open ? 'visible' : ''}`} 
-        onClick={() => setOpen(false)}
-      />
-
-      {/* Sliding Drawer */}
+      {/* MOBILE DRAWER */}
+      <div className={`shivba-mobile-overlay ${open ? 'visible' : ''}`} onClick={() => setOpen(false)} />
       <div className={`shivba-mobile-drawer ${open ? 'open' : ''}`}>
-        
-        {/* DRAWER HEADER: Now contains the Logo/Brand Navigation */}
         <div className="drawer-header">
-           <div 
-             className="shivba-logo" 
-             onClick={() => goto('home')} 
-             style={{ fontSize: '1.5rem', cursor: 'pointer' }}
-           >
-             SHIVBA
-           </div>
+           <div className="shivba-logo" onClick={() => goto('home')} style={{ fontSize: '1.5rem', cursor: 'pointer' }}>SHIVBA</div>
            <button className="drawer-close-btn" onClick={() => setOpen(false)}>✕</button>
         </div>
 
-        {/* DRAWER CONTENT: Navigation Links */}
         <div className="drawer-content">
-          <button className={mobileNavClass('home')} onClick={() => goto('home')}>{t('nav.home')}</button>
-          <button className={mobileNavClass('about')} onClick={() => goto('about')}>{t('nav.about')}</button>
-          <button className={mobileNavClass('services')} onClick={() => goto('services')}>{t('nav.services')}</button>
-          <button className={mobileNavClass('events')} onClick={() => goto('events')}>{t('nav.events')}</button>
-          <button className={mobileNavClass('gallery')} onClick={() => goto('gallery')}>{t('nav.gallery')}</button>
-          <button className={mobileNavClass('faq')} onClick={() => goto('faq')}>{t('nav.faq')}</button>
+          <button className={mobileNavClass('home')} onClick={() => goto('home')}>{t('nav.home') || 'Home'}</button>
+          {/* OFFERS IN MOBILE MENU */}
+          <button className={mobileNavClass('offers')} onClick={() => goto('offers')} style={{color: '#ea580c', fontWeight: 'bold'}}>Offers</button>
+          
+          <button className={mobileNavClass('about')} onClick={() => goto('about')}>{t('nav.about') || 'About'}</button>
+          <button className={mobileNavClass('services')} onClick={() => goto('services')}>{t('nav.services') || 'Services'}</button>
+          <button className={mobileNavClass('events')} onClick={() => goto('events')}>{t('nav.events') || 'Events'}</button>
+          <button className={mobileNavClass('gallery')} onClick={() => goto('gallery')}>{t('nav.gallery') || 'Gallery'}</button>
+          <button className={mobileNavClass('faq')} onClick={() => goto('faq')}>{t('nav.faq') || 'FAQ'}</button>
           <button className={mobileNavClass('help')} onClick={() => goto('help')}>{t('nav.help') || 'Help'}</button>
-          <button className={mobileNavClass('contact')} onClick={() => goto('contact')}>{t('nav.contact')}</button>
+          <button className={mobileNavClass('contact')} onClick={() => goto('contact')}>{t('nav.contact') || 'Contact'}</button>
         </div>
 
-        {/* DRAWER FOOTER: Actions */}
         <div className="drawer-footer">
            <LanguageSwitcher />
-           <button className="drawer-cta-btn" onClick={() => goto('register')}>{t('nav.register')}</button>
+           <button className="drawer-cta-btn" onClick={() => goto('register')}>{t('nav.register') || 'Register'}</button>
         </div>
       </div>
     </header>
@@ -443,16 +299,16 @@ function MarqueeBar() {
   const { t } = useTranslation();
   return (
     <div className="shivba-marquee">
-      <div className="shivba-marquee-label">{t('hero.latestUpdates')}</div>
+      <div className="shivba-marquee-label">{t('hero.latestUpdates') || 'LATEST'}</div>
       <div className="shivba-marquee-window">
         <div className="shivba-marquee-track">
-          <span>{t('hero.tickerText')}</span>
+          <span>{t('hero.tickerText') || 'Welcome to Shivba Group'}</span>
           <span>•</span>
           <span>Admissions Open for 2025 Batch</span>
           <span>•</span>
           <span>New Hostel Wing Opening Soon</span>
           <span>•</span>
-          <span>{t('hero.tickerText')}</span>
+          <span>{t('hero.tickerText') || 'Welcome to Shivba Group'}</span>
         </div>
       </div>
     </div>
@@ -493,41 +349,17 @@ function Footer({ setPage }) {
         <div className="shivba-footer-col brand">
           <div className="shivba-footer-logo">SHIVBA</div>
           <p className="shivba-footer-text">Forging legacy through strength, culture, and community excellence. Join the revolution today.</p>
-          
           <div className="shivba-footer-social">
             {/* Instagram 1 */}
-            <a 
-                href="https://www.instagram.com/shivbastalim/" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="shivba-social-link insta" 
-                title="Instagram Main"
-                data-username="@shivbastalim"
-            >
+            <a href="https://www.instagram.com/shivbastalim/" target="_blank" rel="noopener noreferrer" className="shivba-social-link insta" title="Instagram Main">
                 <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.069-4.85.069-3.204 0-3.584-.012-4.849-.069-3.204 0-3.584-.012-4.849-.069-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948-0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
             </a>
-
             {/* Instagram 2 */}
-            <a 
-                href="https://www.instagram.com/socialawarenessfoundation/" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="shivba-social-link insta" 
-                title="Instagram Secondary"
-                data-username="@socialawarenessfoundation"
-            >
+            <a href="https://www.instagram.com/socialawarenessfoundation/" target="_blank" rel="noopener noreferrer" className="shivba-social-link insta" title="Instagram Secondary">
                 <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.069-4.85.069-3.204 0-3.584-.012-4.849-.069-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948-0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
             </a>
-
             {/* Facebook */}
-            <a 
-                href="https://www.facebook.com/profile.php?id=100017188563264" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="shivba-social-link fb" 
-                title="Facebook"
-                data-username="@ShivbaTalim"
-            >
+            <a href="https://www.facebook.com/profile.php?id=100017188563264" target="_blank" rel="noopener noreferrer" className="shivba-social-link fb" title="Facebook">
                 <svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.791-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
             </a>
           </div>
@@ -656,14 +488,11 @@ function App() {
   useEffect(() => {
     const handleGlobalKeys = (e) => {
       if (e.key === 'Escape') closeModal();
-      
-      // Ignore input fields (except for shortcuts that use Alt/Ctrl)
       if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) && !e.altKey && !e.ctrlKey) return;
 
       if (e.altKey && (e.key === 'ArrowLeft' || e.key === 'Backspace')) { e.preventDefault(); goBack(); }
       if (e.altKey && (e.key === 'ArrowRight')) { e.preventDefault(); goForward(); }
       
-      // 1. Existing Alt shortcuts
       if (e.altKey) {
         if(e.key.toLowerCase() === 'h') handleSetPage({ name: 'home' });
         if(e.key.toLowerCase() === 'a') handleSetPage({ name: 'about' });
@@ -674,7 +503,6 @@ function App() {
         if(e.key.toLowerCase() === 'c') handleSetPage({ name: 'contact' });
       }
 
-      // 2. New Dashboard Shortcut (Ctrl + Shift + A)
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
         e.preventDefault();
         handleSetPage({ name: 'dashboard' });
@@ -704,30 +532,20 @@ function App() {
     case 'register': content = <RegisterPage setPage={handleSetPage} setModalState={setModalState} params={page.params} />; break;
     case 'faq': content = <FAQPage setPage={handleSetPage} />; break;
     case 'help': content = <HelpPage setPage={handleSetPage} />; break;
-    
-    // --- UPDATED VERIFY ROUTE: Passing phone and name ---
     case 'verify': 
       content = (
         <VerifyCodePage 
           defaultEmail={page.params?.email || ''} 
           phone={page.params?.phone || ''}
           name={page.params?.name || ''}
-          onVerified={(email) => { 
-            setVerifiedEmail(email); 
-            handleSetPage({ name: 'account' }); 
-          }} 
+          onVerified={(email) => { setVerifiedEmail(email); handleSetPage({ name: 'account' }); }} 
           setPage={handleSetPage} 
         />
       ); 
       break;
-
     case 'account': content = <MyAccountPage defaultEmail={verifiedEmail} setPage={handleSetPage} onLoaded={setAccountMember} />; break;
     case 'reset-password': content = <ResetPasswordPage setPage={handleSetPage} />; break;
-    
-    // --- [NEW] Dashboard Route ---
     case 'dashboard': content = <Dashboard setPage={handleSetPage} />; break;
-
-    // --- [NEW] Booking Selection Route ---
     case 'booking-selection': 
       content = (
         <BookingSelectionPage 
@@ -737,11 +555,10 @@ function App() {
         />
       ); 
       break;
-    
+    case 'offers': content = <OffersPage setPage={handleSetPage} />; break;
     default: content = <HomePage setPage={handleSetPage} />;
   }
 
-  // --- LAYOUT LOGIC (Hide Header/Footer for Dashboard/Owner/Booking pages) ---
   const isFullScreenPage = ['owner', 'dashboard', 'booking-selection'].includes(page.name);
   const containerClass = isFullScreenPage ? 'animate-dashboard' : 'animate-fadeUp';
 
@@ -750,7 +567,6 @@ function App() {
       <GlobalStyles />
       <Modal show={modalState.show} title={modalState.title} message={modalState.message} content={modalState.content} type={modalState.type} onClose={closeModal} />
       
-      {/* Hide Marquee & Header on Full Screen Pages */}
       {!isFullScreenPage && <MarqueeBar />}
       {!isFullScreenPage && <Header setPage={handleSetPage} activePage={page.name} />}
       
@@ -758,7 +574,6 @@ function App() {
         {content}
       </main>
       
-      {/* Hide Footer on Full Screen Pages */}
       {!isFullScreenPage && <Footer setPage={handleSetPage} />}
 
       <div className={`fab-container ${settingsOpen ? 'open' : ''}`}>

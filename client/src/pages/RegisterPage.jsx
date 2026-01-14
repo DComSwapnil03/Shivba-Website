@@ -4,21 +4,17 @@ import { API_BASE_URL } from '../config';
 
 // --- 1. ANIMATION VARIANTS ---
 const containerVariants = {
-  hidden: { opacity: 0, x: -20 },
+  hidden: { opacity: 0, scale: 0.95 },
   visible: { 
     opacity: 1, 
-    x: 0,
-    transition: { duration: 0.6, staggerChildren: 0.1 }
+    scale: 1,
+    transition: { duration: 0.5, ease: "easeOut", staggerChildren: 0.08 }
   }
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, x: -20 },
-  visible: { 
-    opacity: 1, 
-    x: 0,
-    transition: { type: "spring", stiffness: 50 } 
-  }
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0 }
 };
 
 function RegisterPage({ setPage, setModalState }) {
@@ -26,9 +22,10 @@ function RegisterPage({ setPage, setModalState }) {
     name: '', email: '', phone: '', password: '', confirmPassword: ''
   });
   
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Instant Validation Logic
+  // --- 2. VALIDATION LOGIC ---
   const p = formData.password;
   const passwordCriteria = {
       length: p.length >= 8,
@@ -37,9 +34,12 @@ function RegisterPage({ setPage, setModalState }) {
       special: /[!@#$%^&*(),.?":{}|<>]/.test(p)
   };
   const allCriteriaMet = Object.values(passwordCriteria).every(Boolean);
+  const passwordsMatch = formData.password && formData.password === formData.confirmPassword;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    // Auto-format phone to allow only numbers and +
+    if (name === 'phone' && !/^[0-9+]*$/.test(value)) return;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -50,8 +50,8 @@ function RegisterPage({ setPage, setModalState }) {
         setModalState({ show: true, title: 'Weak Password', message: 'Please meet all password requirements.', type: 'error' });
         return;
     }
-    if (formData.password !== formData.confirmPassword) {
-        setModalState({ show: true, title: 'Error', message: 'Passwords do not match.', type: 'error' });
+    if (!passwordsMatch) {
+        setModalState({ show: true, title: 'Mismatch', message: 'Passwords do not match.', type: 'error' });
         return;
     }
 
@@ -59,9 +59,9 @@ function RegisterPage({ setPage, setModalState }) {
 
     try {
       const payload = {
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
           password: formData.password
       };
 
@@ -83,11 +83,9 @@ function RegisterPage({ setPage, setModalState }) {
         type: 'success'
       });
 
-      // Navigate after short delay
+      // Navigate after delay
       setTimeout(() => {
           setModalState(prev => ({ ...prev, show: false }));
-          
-          // --- PASS DATA TO VERIFY PAGE ---
           setPage({ 
               name: 'verify', 
               params: { 
@@ -118,26 +116,24 @@ function RegisterPage({ setPage, setModalState }) {
             justify-content: center;
             background: #f3f4f6;
             font-family: 'Montserrat', sans-serif;
-            padding: 2rem;
+            padding: 1.5rem;
         }
-        body.dark-mode .register-container { background: #111; }
+        body.dark-mode .register-container { background: #0a0a0a; }
 
-        /* Split Layout */
         .register-card {
             display: grid; grid-template-columns: 1fr 1.2fr;
             width: 100%; max-width: 1000px;
-            background: white; border-radius: 20px; overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            background: white; border-radius: 24px; overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
             min-height: 600px;
         }
-        body.dark-mode .register-card { background: #1e1e1e; border: 1px solid #333; }
+        body.dark-mode .register-card { background: #171717; border: 1px solid #333; }
 
         @media (max-width: 900px) {
             .register-card { grid-template-columns: 1fr; }
             .register-visual { display: none; }
         }
 
-        /* Left Side: Visual */
         .register-visual {
             background: url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=2070&auto=format&fit=crop') no-repeat center center/cover;
             position: relative;
@@ -146,74 +142,91 @@ function RegisterPage({ setPage, setModalState }) {
         }
         .visual-overlay {
             position: absolute; inset: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.3));
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%);
         }
         .visual-content { position: relative; z-index: 2; }
         .visual-content h2 {
-            font-family: 'Cinzel', serif; font-size: 2.5rem; margin-bottom: 1rem;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-            color: #FFA500;
+            font-family: 'Cinzel', serif; font-size: 2.2rem; margin-bottom: 0.5rem;
+            color: #FFA500; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
-        .visual-content p { font-size: 1.1rem; color: #ddd; line-height: 1.6; }
+        .visual-content p { font-size: 1rem; color: #e5e5e5; line-height: 1.5; max-width: 90%; }
 
-        /* Right Side: Form */
         .register-form-wrapper { padding: 3rem; display: flex; flex-direction: column; justify-content: center; }
         
         .register-header h1 {
-            font-family: 'Cinzel', serif; font-size: 2.2rem; color: #1a1a1a; margin-bottom: 0.5rem;
+            font-family: 'Cinzel', serif; font-size: 2rem; color: #1a1a1a; margin-bottom: 0.5rem;
         }
-        body.dark-mode .register-header h1 { color: white; }
-        .register-header p { color: #666; margin-bottom: 2rem; }
-        body.dark-mode .register-header p { color: #aaa; }
+        body.dark-mode .register-header h1 { color: #ffffff; }
+        .register-header p { color: #666; margin-bottom: 2rem; font-size: 0.95rem; }
+        body.dark-mode .register-header p { color: #a3a3a3; }
 
         .reg-input-group { margin-bottom: 1.2rem; position: relative; }
         .reg-input-group label {
-            display: block; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;
-            letter-spacing: 0.05em; color: #666; margin-bottom: 0.5rem;
+            display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.05em; color: #666; margin-bottom: 0.4rem;
         }
-        body.dark-mode .reg-input-group label { color: #aaa; }
+        body.dark-mode .reg-input-group label { color: #a3a3a3; }
 
+        .input-wrapper { position: relative; }
+        
         .reg-input {
-            width: 100%; padding: 12px 16px; border: 1px solid #ddd;
-            border-radius: 8px; font-size: 1rem; background: #f9fafb;
-            transition: all 0.3s;
+            width: 100%; padding: 12px 16px; border: 1.5px solid #e5e7eb;
+            border-radius: 8px; font-size: 0.95rem; background: #f9fafb;
+            transition: all 0.2s; color: #1a1a1a;
         }
         .reg-input:focus {
             border-color: #FFA500; background: white; outline: none;
-            box-shadow: 0 0 0 3px rgba(255, 165, 0, 0.1);
+            box-shadow: 0 0 0 4px rgba(255, 165, 0, 0.1);
         }
-        body.dark-mode .reg-input { background: #2d2d2d; border-color: #444; color: white; }
-        body.dark-mode .reg-input:focus { border-color: #FFA500; background: #222; }
+        body.dark-mode .reg-input { background: #262626; border-color: #404040; color: white; }
+        body.dark-mode .reg-input:focus { border-color: #FFA500; background: #262626; }
 
-        /* Password Checklist */
+        /* REPLACED ICONS WITH TEXT/EMOJI BUTTONS */
+        .icon-btn {
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; cursor: pointer; color: #9ca3af;
+            font-size: 1.2rem;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .icon-btn:hover { color: #FFA500; }
+
         .pwd-checklist {
-            display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; font-size: 0.75rem;
+            display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; font-size: 0.7rem;
         }
         .check-item {
-            padding: 2px 8px; border-radius: 4px; background: #eee; color: #888; transition: all 0.3s;
+            padding: 3px 8px; border-radius: 4px; background: #f3f4f6; color: #9ca3af;
+            border: 1px solid transparent; transition: all 0.3s;
         }
-        .check-item.valid { background: #fffdf5; color: #b45309; border: 1px solid #FFA500; font-weight: bold; }
-        body.dark-mode .check-item.valid { background: rgba(255, 165, 0, 0.1); color: #FFA500; border-color: #FFA500; }
+        body.dark-mode .check-item { background: #262626; color: #737373; }
+        
+        .check-item.valid { 
+            background: #fffbeb; color: #d97706; border-color: #fbbf24; font-weight: 500; 
+        }
+        body.dark-mode .check-item.valid { 
+            background: rgba(217, 119, 6, 0.1); color: #fbbf24; border-color: rgba(251, 191, 36, 0.3); 
+        }
 
-        /* Button */
         .reg-btn {
             width: 100%; padding: 14px; background: #1a1a1a; color: white;
-            border: none; border-radius: 8px; font-weight: 600; font-size: 1rem;
-            text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer;
+            border: none; border-radius: 8px; font-weight: 600; font-size: 0.95rem;
+            text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer;
             transition: all 0.3s; margin-top: 1.5rem;
         }
-        .reg-btn:hover:not(:disabled) { background: #FFA500; color: black; transform: translateY(-2px); }
-        .reg-btn:disabled { background: #ccc; cursor: not-allowed; }
+        .reg-btn:hover:not(:disabled) { background: #FFA500; color: black; transform: translateY(-1px); }
+        .reg-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         
         body.dark-mode .reg-btn { background: #FFA500; color: black; }
-        body.dark-mode .reg-btn:hover:not(:disabled) { background: white; color: black; }
+        body.dark-mode .reg-btn:hover:not(:disabled) { background: white; }
 
         .login-link {
             text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: #666;
         }
+        body.dark-mode .login-link { color: #a3a3a3; }
         .login-link button {
-            background: none; border: none; color: #FFA500; font-weight: bold; cursor: pointer; text-decoration: underline;
+            background: none; border: none; color: #FFA500; font-weight: 600; 
+            cursor: pointer; text-decoration: none; margin-left: 5px;
         }
+        .login-link button:hover { text-decoration: underline; }
 
       `}</style>
 
@@ -236,7 +249,7 @@ function RegisterPage({ setPage, setModalState }) {
         <div className="register-form-wrapper">
           <div className="register-header">
             <h1>Create Account</h1>
-            <p>Enter your details to register.</p>
+            <p>Please fill in your details to continue.</p>
           </div>
 
           <form onSubmit={handleSubmit}>
@@ -252,39 +265,68 @@ function RegisterPage({ setPage, setModalState }) {
 
             <motion.div className="reg-input-group" variants={itemVariants}>
               <label>Phone Number</label>
-              <input type="tel" name="phone" className="reg-input" value={formData.phone} onChange={handleChange} required placeholder="+91 00000 00000" />
+              <input type="tel" name="phone" className="reg-input" value={formData.phone} onChange={handleChange} required placeholder="+91 98765 43210" />
             </motion.div>
 
             <motion.div className="reg-input-group" variants={itemVariants}>
               <label>Password</label>
-              <input 
-                type="password" 
-                name="password" 
-                className="reg-input" 
-                value={formData.password} 
-                onChange={handleChange} 
-                required 
-                placeholder="••••••••"
-                style={{ borderColor: allCriteriaMet ? '#FFA500' : '' }}
-              />
+              <div className="input-wrapper">
+                  <input 
+                    type={showPassword ? "text" : "password"} 
+                    name="password" 
+                    className="reg-input" 
+                    value={formData.password} 
+                    onChange={handleChange} 
+                    required 
+                    placeholder="Create a strong password"
+                  />
+                  {/* Replaced Icon Component with Emoji for Stability */}
+                  <button type="button" className="icon-btn" onClick={() => setShowPassword(!showPassword)}>
+                      {showPassword ? "👁️" : "🔒"}
+                  </button>
+              </div>
               <div className="pwd-checklist">
-                 <span className={`check-item ${passwordCriteria.length ? 'valid' : ''}`}>8+ Chars</span>
-                 <span className={`check-item ${passwordCriteria.number ? 'valid' : ''}`}>Number</span>
-                 <span className={`check-item ${passwordCriteria.upper ? 'valid' : ''}`}>Uppercase</span>
-                 <span className={`check-item ${passwordCriteria.special ? 'valid' : ''}`}>Symbol</span>
+                 <span className={`check-item ${passwordCriteria.length ? 'valid' : ''}`}>
+                    {passwordCriteria.length ? "✔" : "○"} 8+ Chars
+                 </span>
+                 <span className={`check-item ${passwordCriteria.number ? 'valid' : ''}`}>
+                    {passwordCriteria.number ? "✔" : "○"} Number
+                 </span>
+                 <span className={`check-item ${passwordCriteria.upper ? 'valid' : ''}`}>
+                    {passwordCriteria.upper ? "✔" : "○"} Uppercase
+                 </span>
+                 <span className={`check-item ${passwordCriteria.special ? 'valid' : ''}`}>
+                    {passwordCriteria.special ? "✔" : "○"} Symbol
+                 </span>
               </div>
             </motion.div>
 
             <motion.div className="reg-input-group" variants={itemVariants}>
               <label>Confirm Password</label>
-              <input type="password" name="confirmPassword" className="reg-input" value={formData.confirmPassword} onChange={handleChange} required placeholder="••••••••" />
+              <div className="input-wrapper">
+                  <input 
+                    type={showPassword ? "text" : "password"} 
+                    name="confirmPassword" 
+                    className="reg-input" 
+                    value={formData.confirmPassword} 
+                    onChange={handleChange} 
+                    required 
+                    placeholder="Confirm your password"
+                    style={{ borderColor: (formData.confirmPassword && !passwordsMatch) ? '#ef4444' : (passwordsMatch && formData.confirmPassword ? '#22c55e' : '') }}
+                  />
+                  {formData.confirmPassword && (
+                      <div className="icon-btn" style={{ pointerEvents: 'none', color: passwordsMatch ? '#22c55e' : '#ef4444' }}>
+                          {passwordsMatch ? "✅" : "❌"}
+                      </div>
+                  )}
+              </div>
             </motion.div>
 
             <motion.button 
               type="submit" 
               className="reg-btn"
-              disabled={isSubmitting || !allCriteriaMet}
-              whileHover={{ scale: 1.02 }}
+              disabled={isSubmitting || !allCriteriaMet || !passwordsMatch}
+              whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.98 }}
             >
               {isSubmitting ? 'Processing...' : 'Register & Verify'}
