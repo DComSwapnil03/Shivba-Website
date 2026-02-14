@@ -15,17 +15,23 @@ const StarterAnimaPage = ({ setPage }) => {
 
     useEffect(() => {
         // 1. Start Zoom
-        setTimeout(() => setPhase(1), 100);
+        const timer1 = setTimeout(() => setPhase(1), 100);
 
         // 2. Trigger Fireworks (just as zoom hits)
-        setTimeout(() => setPhase(2), 1200);
+        const timer2 = setTimeout(() => setPhase(2), 1200);
 
         // 3. Start Typing Subtitle (after fireworks expand)
-        setTimeout(() => setPhase(3), 2000);
+        const timer3 = setTimeout(() => setPhase(3), 2000);
 
         // 4. Show Button (after typing is mostly done)
-        setTimeout(() => setPhase(4), 3500);
+        const timer4 = setTimeout(() => setPhase(4), 3500);
 
+        return () => {
+            clearTimeout(timer1);
+            clearTimeout(timer2);
+            clearTimeout(timer3);
+            clearTimeout(timer4);
+        };
     }, []);
 
     // Typing Effect Logic
@@ -39,7 +45,7 @@ const StarterAnimaPage = ({ setPage }) => {
             }, 50); // Speed of typing
             return () => clearInterval(interval);
         }
-    }, [phase]);
+    }, [phase, fullText]);
 
     // Massive Fireworks Data
     const sparks = useMemo(() => {
@@ -179,7 +185,8 @@ const StarterAnimaPage = ({ setPage }) => {
                 {sparks.map(s => {
                     // Calculate end position using trigonometry relative to Viewport Min (vmin)
                     // This ensures particles fly off towards the edges of the screen
-                    const dist = s.velocity + 'vmin'; 
+                    
+                    // REMOVED UNUSED 'dist' VARIABLE HERE
                     const x = Math.cos(s.angle) * s.velocity + 'vmin';
                     const y = Math.sin(s.angle) * s.velocity + 'vmin';
 
