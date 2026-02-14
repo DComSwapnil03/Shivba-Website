@@ -57,7 +57,11 @@ const ThinkingBubble = () => (
 
 function FAQPage({ setPage }) {
   const { t } = useTranslation();
-  const STATIC_FAQS = t('faq.items', { returnObjects: true }) || [];
+
+  // --- FIX: Wrapped in useMemo to prevent re-render loop ---
+  const STATIC_FAQS = useMemo(() => {
+    return t('faq.items', { returnObjects: true }) || [];
+  }, [t]);
 
   const [openId, setOpenId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
