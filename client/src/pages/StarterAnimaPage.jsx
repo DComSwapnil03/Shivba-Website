@@ -7,7 +7,7 @@ const StarterAnimaPage = ({ setPage }) => {
     // 1: Zoom Out (Text lands)
     // 2: Fireworks (Explosion)
     // 3: Typing (Subtitle appears)
-    // 4: Button (Ready)
+    // 4: Button & Emoji Rain (Final State)
     // 5: Exit
 
     const [typedText, setTypedText] = useState('');
@@ -23,7 +23,7 @@ const StarterAnimaPage = ({ setPage }) => {
         // 3. Start Typing Subtitle (after fireworks expand)
         const timer3 = setTimeout(() => setPhase(3), 2000);
 
-        // 4. Show Button (after typing is mostly done)
+        // 4. Show Button & Start Emoji Rain (after typing is done)
         const timer4 = setTimeout(() => setPhase(4), 3500);
 
         return () => {
@@ -42,28 +42,41 @@ const StarterAnimaPage = ({ setPage }) => {
                 setTypedText(fullText.slice(0, index + 1));
                 index++;
                 if (index >= fullText.length) clearInterval(interval);
-            }, 50); // Speed of typing
+            }, 50);
             return () => clearInterval(interval);
+        } else if (phase >= 4) {
+            setTypedText(fullText); // Ensure full text is shown in final phase
         }
     }, [phase, fullText]);
 
     // Massive Fireworks Data
     const sparks = useMemo(() => {
         return Array.from({ length: 60 }).map((_, i) => {
-            // Random direction in 360 degrees
             const angle = Math.random() * 360;
-            // Random distance (Large to fill screen)
             const velocity = 40 + Math.random() * 60; // 40vmin to 100vmin
-            
             return {
                 id: i,
-                angle: angle * (Math.PI / 180), // rads
+                angle: angle * (Math.PI / 180),
                 velocity: velocity,
-                color: Math.random() > 0.3 ? '#ffc107' : '#ffffff', // Mostly Gold
+                color: Math.random() > 0.3 ? '#ffc107' : '#ffffff',
                 size: Math.random() * 6 + 2,
                 delay: Math.random() * 0.2
             };
         });
+    }, []);
+
+    // Falling Emojis Data (Gym, Library, Hostel)
+    const backgroundEmojis = useMemo(() => {
+        const icons = ['💪', '📚', '🛏️'];
+        return Array.from({ length: 50 }).map((_, i) => ({
+            id: i,
+            icon: icons[Math.floor(Math.random() * icons.length)],
+            left: Math.floor(Math.random() * 100) + '%', // Random horizontal pos
+            animationDuration: 5 + Math.random() * 10 + 's', // Random fall speed
+            animationDelay: Math.random() * 5 + 's', // Random start
+            fontSize: 1.5 + Math.random() * 2 + 'rem', // Random size
+            opacity: 0.1 + Math.random() * 0.3 // Random opacity (subtle)
+        }));
     }, []);
 
     const handleEnter = () => {
@@ -81,14 +94,14 @@ const StarterAnimaPage = ({ setPage }) => {
                 /* --- 1. ZOOM OUT TITLE --- */
                 .shivba-title {
                     font-family: 'Cinzel', serif;
-                    font-size: 9rem; /* Massive */
+                    font-size: 9rem;
                     color: white;
                     text-transform: uppercase;
                     opacity: 0;
-                    transform: scale(30); /* Starts Huge */
+                    transform: scale(30);
                     filter: blur(20px);
                     letter-spacing: 50px;
-                    transition: all 1.2s cubic-bezier(0.19, 1, 0.22, 1); /* Dramatic ease */
+                    transition: all 1.2s cubic-bezier(0.19, 1, 0.22, 1);
                     position: relative;
                     z-index: 10;
                     text-shadow: 0 0 20px rgba(0,0,0,0.8);
@@ -111,35 +124,41 @@ const StarterAnimaPage = ({ setPage }) => {
                     position: absolute;
                     top: 50%; left: 50%;
                     width: 0; height: 0;
-                    z-index: 1; /* Behind text */
+                    z-index: 1;
                 }
-
                 .spark {
                     position: absolute;
                     border-radius: 50%;
                     opacity: 0;
                 }
-
                 .explode .spark {
                     animation: bigBang 2s ease-out forwards;
                 }
-
                 @keyframes bigBang {
-                    0% {
-                        transform: translate(0, 0) scale(1);
-                        opacity: 1;
-                    }
-                    50% {
-                        opacity: 1;
-                    }
-                    100% {
-                        /* Move based on CSS variables */
-                        transform: translate(var(--tx), var(--ty)) scale(0);
-                        opacity: 0;
-                    }
+                    0% { transform: translate(0, 0) scale(1); opacity: 1; }
+                    50% { opacity: 1; }
+                    100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
                 }
 
-                /* --- 3. TYPING SUBTITLE --- */
+                /* --- 3. EMOJI RAIN (BACKGROUND) --- */
+                .emoji-container {
+                    position: absolute;
+                    top: 0; left: 0; width: 100%; height: 100%;
+                    z-index: 0; /* Behind everything */
+                    pointer-events: none;
+                    overflow: hidden;
+                }
+                .falling-emoji {
+                    position: absolute;
+                    top: -10vh;
+                    animation: dropDown linear infinite;
+                }
+                @keyframes dropDown {
+                    0% { transform: translateY(0) rotate(0deg); }
+                    100% { transform: translateY(110vh) rotate(360deg); }
+                }
+
+                /* --- 4. TYPING SUBTITLE --- */
                 .typing-cursor::after {
                     content: '|';
                     animation: blink 1s step-end infinite;
@@ -151,45 +170,62 @@ const StarterAnimaPage = ({ setPage }) => {
                     font-family: 'Montserrat', sans-serif;
                     letter-spacing: 0.3em;
                     font-size: 1.2rem;
-                    min-height: 1.5em; /* Reserve space */
+                    min-height: 1.5em;
                     margin-top: 2rem;
+                    position: relative; z-index: 10;
                 }
 
-                /* --- 4. BUTTON FADE IN --- */
+                /* --- 5. BUTTON --- */
                 .enter-btn-wrapper {
                     opacity: 0;
                     transform: translateY(20px);
                     transition: all 1s ease;
+                    position: relative; z-index: 20; /* On top of emojis */
                 }
                 .enter-btn-wrapper.visible {
                     opacity: 1;
                     transform: translateY(0);
                 }
-                
                 .btn-gold {
                     border: 1px solid #ffc107;
                     color: #ffc107;
-                    background: transparent;
+                    background: rgba(0,0,0,0.5); /* Slight dark bg to read over emojis */
                     transition: all 0.3s;
+                    backdrop-filter: blur(2px);
                 }
                 .btn-gold:hover {
                     background: #ffc107;
                     color: black;
                     box-shadow: 0 0 30px #ffc107;
                 }
-
             `}</style>
+
+            {/* --- EMOJI RAIN LAYER (Triggers at Phase 4) --- */}
+            {phase >= 4 && (
+                <div className="emoji-container">
+                    {backgroundEmojis.map((item) => (
+                        <div 
+                            key={item.id}
+                            className="falling-emoji"
+                            style={{
+                                left: item.left,
+                                fontSize: item.fontSize,
+                                opacity: item.opacity,
+                                animationDuration: item.animationDuration,
+                                animationDelay: item.animationDelay
+                            }}
+                        >
+                            {item.icon}
+                        </div>
+                    ))}
+                </div>
+            )}
 
             {/* --- FIREWORKS LAYER --- */}
             <div className={`firework-stage ${phase >= 2 ? 'explode' : ''}`}>
                 {sparks.map(s => {
-                    // Calculate end position using trigonometry relative to Viewport Min (vmin)
-                    // This ensures particles fly off towards the edges of the screen
-                    
-                    // REMOVED UNUSED 'dist' VARIABLE HERE
                     const x = Math.cos(s.angle) * s.velocity + 'vmin';
                     const y = Math.sin(s.angle) * s.velocity + 'vmin';
-
                     return (
                         <div 
                             key={s.id} 
@@ -208,30 +244,26 @@ const StarterAnimaPage = ({ setPage }) => {
                 })}
             </div>
 
-            {/* --- MAIN TITLE (Zooms Out) --- */}
+            {/* --- MAIN TITLE --- */}
             <h1 className={`shivba-title mb-0 ${phase >= 1 ? 'landed' : ''}`}>
                 Shivba
             </h1>
 
-            {/* --- TYPING SUBTITLE --- */}
+            {/* --- TYPING SUBTITLE & BUTTON --- */}
             <div className="z-1 text-center">
                 <p className="subtitle-text text-white text-uppercase fw-light">
                     {phase >= 3 ? (
                         <span className="typing-cursor">{typedText}</span>
                     ) : (
-                        <span style={{opacity:0}}>...</span> // Invisible placeholder
+                        <span style={{opacity:0}}>...</span>
                     )}
                 </p>
 
-                {/* --- BUTTON (Reveals Last) --- */}
                 <div className={`enter-btn-wrapper mt-5 ${phase >= 4 ? 'visible' : ''}`}>
                     <button 
                         onClick={handleEnter}
                         className="btn btn-lg rounded-0 px-5 py-3 text-uppercase btn-gold"
-                        style={{ 
-                            letterSpacing: '0.2em', 
-                            fontWeight: '600'
-                        }}
+                        style={{ letterSpacing: '0.2em', fontWeight: '600' }}
                     >
                         Enter
                     </button>
