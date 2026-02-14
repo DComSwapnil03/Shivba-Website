@@ -273,6 +273,31 @@ function ServicesPage({ setPage }) {
             background: #1a1a1a; color: white;
         }
 
+        /* --- FIX: READY TO GET STARTED VISIBILITY --- */
+        /* This forces the text to be Black, even if Dark Mode is on, 
+           because the background of this section is always white. */
+        
+        .home-cta h2 {
+            color: #1a1a1a !important; /* Force Title Black */
+            text-shadow: none !important;
+        }
+
+        .home-cta p {
+            color: #555555 !important; /* Force Subtitle Grey */
+        }
+
+        /* Fix the Outline Button (Talk to Team) so it's visible on white */
+        .home-cta .btn-cinematic-secondary {
+            border-color: #1a1a1a !important;
+            color: #1a1a1a !important;
+        }
+
+        /* Fix Hover effect for the Outline Button */
+        .home-cta .btn-cinematic-secondary:hover {
+            background: #1a1a1a !important;
+            color: #ffffff !important;
+        }
+
         /* 8. Dark Mode Overrides */
         body.dark-mode .service-text h2 { color: white; }
         body.dark-mode .service-bullets li { color: #ccc; }

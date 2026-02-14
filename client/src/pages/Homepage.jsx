@@ -44,12 +44,6 @@ const itemVariants = {
   }
 };
 
-const popupVariants = {
-  hidden: { opacity: 0, scale: 0.8, y: 50 },
-  visible: { opacity: 1, scale: 1, y: 0, transition: { type: "spring", duration: 0.6 } },
-  exit: { opacity: 0, scale: 0.8, transition: { duration: 0.3 } }
-};
-
 /* --- 3. SUB-COMPONENTS --- */
 
 const EmojiOrbitAnimation = () => {
@@ -85,36 +79,6 @@ const EmojiOrbitAnimation = () => {
     </div>
   );
 };
-
-// --- UPDATED: OFFERS POPUP WITH IMAGE ---
-const OffersPopup = ({ onClose, setPage }) => (
-  <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-    <motion.div className="modal-box" variants={popupVariants} initial="hidden" animate="visible" exit="exit">
-      <button className="modal-close" onClick={onClose}>&times;</button>
-      
-      {/* NEW IMAGE BANNER */}
-      <div className="modal-image-container">
-        <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1000&auto=format&fit=crop" alt="Offer" />
-        <div className="modal-badge">LIMITED TIME</div>
-      </div>
-      
-      <div className="modal-content">
-        <h3>Grand Opening Offer!</h3>
-        <p>Join <strong>Shivba Talim + Library</strong> combo pack and get flat <span style={{color: '#ea580c', fontWeight: 'bold'}}>20% OFF</span>.</p>
-        <div className="modal-timer">Offer ends in: 24:00:00</div>
-        
-        <div className="modal-actions">
-            <button className="btn-glow" onClick={() => { onClose(); setPage({ name: 'service-detail', params: { id: 'talim' }}); }} style={{flex: 1}}>
-                Claim Now
-            </button>
-            <button className="btn-outline-small" onClick={() => { onClose(); setPage({ name: 'offers' }); }} style={{flex: 1}}>
-                View All Offers
-            </button>
-        </div>
-      </div>
-    </motion.div>
-  </motion.div>
-);
 
 // --- SUCCESS STORIES CAROUSEL ---
 const SuccessStories = () => {
@@ -168,21 +132,12 @@ function HomePage({ setPage }) {
   ];
 
   const [current, setCurrent] = useState(0);
-  const [showOffer, setShowOffer] = useState(false);
 
   // Auto-rotate hero slides
   useEffect(() => {
     const id = setInterval(() => setCurrent((prev) => (prev + 1) % slides.length), 5000);
     return () => clearInterval(id);
   }, [slides.length]);
-
-  // Trigger Popup after 4 seconds
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowOffer(true);
-    }, 4000);
-    return () => clearTimeout(timer);
-  }, []);
 
   return (
     <motion.div 
@@ -191,22 +146,24 @@ function HomePage({ setPage }) {
       animate="visible"
       variants={containerVariants}
     >
-      {/* --- POPUP INTEGRATION --- */}
-      <AnimatePresence>
-        {showOffer && <OffersPopup onClose={() => setShowOffer(false)} setPage={setPage} />}
-      </AnimatePresence>
-
       {/* --- INJECTED CSS --- */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;500;600&display=swap');
 
         /* Global Font Assignments */
-        .home-container h1, .home-container h2, .home-container h3, .stat-number, .modal-box h3 {
-            font-family: 'Cinzel', serif !important;
-            letter-spacing: 0.05em;
+        .home-container {
+            background-color: #121212; /* DARK MODE BACKGROUND */
+            color: #e0e0e0;
+            min-height: 100vh;
         }
 
-        .home-container p, button, span, .link, .stat-label, .story-quote, .modal-box p {
+        .home-container h1, .home-container h2, .home-container h3, .stat-number {
+            font-family: 'Cinzel', serif !important;
+            letter-spacing: 0.05em;
+            color: #ffffff !important;
+        }
+
+        .home-container p, button, span, .link, .stat-label, .story-quote {
             font-family: 'Montserrat', sans-serif !important;
         }
 
@@ -225,37 +182,117 @@ function HomePage({ setPage }) {
 
         /* Hero Overrides */
         .hero-content h1 { text-shadow: 0 4px 10px rgba(0,0,0,0.5); font-size: 3.5rem; }
-        .hero-subtitle { font-weight: 300; letter-spacing: 0.1em; font-size: 1.1rem; }
+        .hero-subtitle { font-weight: 300; letter-spacing: 0.1em; font-size: 1.1rem; color: #f0f0f0 !important; }
 
-        /* --- SUCCESS STORIES STYLES --- */
-        .stories-section { padding: 4rem 2rem; background: #f9f9f9; text-align: center; }
-        .stories-wrapper { max-width: 800px; margin: 2rem auto; position: relative; min-height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .story-card { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: center; width: 100%; }
+        /* --- FIX START: SERVICE CARDS VISIBILITY (DARK MODE) --- */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            padding: 0 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .info-card {
+            background: #1e1e1e !important; /* Dark Card Background */
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5); /* Darker shadow */
+            cursor: pointer;
+            border: 1px solid #333; /* Subtle border */
+            transition: transform 0.3s ease;
+            text-align: left;
+            color: #ffffff !important; /* White text */
+        }
+
+        .info-card h3, .home-container .info-card h3 {
+            color: #ffffff !important;
+            font-size: 1.25rem !important;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .info-card p, .home-container .info-card p {
+            color: #bbbbbb !important; /* Light Grey text */
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-card .link {
+            color: #ea580c !important;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: inline-block;
+        }
+        /* --- FIX END --- */
+
+        /* --- FIX START: VOICES OF VICTORY (DARK MODE) --- */
+        .stories-section {
+            padding: 4rem 2rem;
+            background-color: #121212 !important; /* Force Dark Background */
+            text-align: center;
+        }
+
+        /* 1. Main Title "Voices of Victory" */
+        .stories-section h2 {
+            color: #ffffff !important; /* Force White */
+            font-family: 'Cinzel', serif !important;
+            font-size: 2rem !important;
+            margin-bottom: 10px !important;
+            text-shadow: none !important; 
+        }
+
+        /* 2. Subtitle "Real stories from..." */
+        .stories-section p {
+            color: #bbbbbb !important; /* Force Light Grey */
+            margin-bottom: 2rem !important;
+            font-weight: 500 !important;
+        }
+
+        /* 3. The Card Box */
+        .story-card {
+            background-color: #1e1e1e !important; /* Force Dark Grey Card */
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid #333;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+            width: 100%;
+            max-width: 600px; 
+            margin: 0 auto; 
+        }
+
+        /* 4. The Quote Text */
+        .story-quote {
+            color: #e0e0e0 !important; /* Off-white */
+            font-style: italic;
+            font-size: 1.1rem !important;
+            line-height: 1.6 !important;
+            margin-bottom: 1.5rem !important;
+        }
+
+        /* 5. Person Name */
+        .story-meta h4 {
+            color: #ea580c !important; /* Force Orange */
+            margin: 0 !important;
+            font-size: 1.2rem !important;
+            font-weight: 700 !important;
+        }
+
+        /* 6. Person Role */
+        .story-meta span {
+            color: #888888 !important; /* Force Grey */
+            font-size: 0.9rem !important;
+        }
+
+        /* Image & Dots */
         .story-img-wrapper img { width: 80px; height: 80px; border-radius: 50%; border: 3px solid #ea580c; object-fit: cover; margin-bottom: 1rem; }
-        .story-quote { font-style: italic; font-size: 1.1rem; color: #555; margin-bottom: 1.5rem; }
-        .story-meta h4 { color: #ea580c; margin: 0; font-size: 1.2rem; }
-        .story-meta span { font-size: 0.9rem; color: #888; }
-        .story-dots { display: flex; gap: 10px; margin-top: 1rem; }
-        .story-dots .dot { width: 10px; height: 10px; background: #ccc; border-radius: 50%; cursor: pointer; transition: all 0.3s; }
-        .story-dots .dot.active { background: #ea580c; transform: scale(1.2); }
-
-        /* --- UPDATED MODAL POPUP STYLES --- */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
-        .modal-box { background: white; padding: 0; border-radius: 15px; max-width: 400px; width: 90%; text-align: center; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.3); overflow: hidden; }
-        .modal-close { position: absolute; top: 10px; right: 15px; font-size: 2rem; border: none; background: rgba(0,0,0,0.5); width: 35px; height: 35px; border-radius: 50%; color: white; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; }
-        
-        .modal-image-container { position: relative; height: 200px; width: 100%; }
-        .modal-image-container img { width: 100%; height: 100%; object-fit: cover; }
-        .modal-badge { position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); background: #ea580c; color: white; padding: 5px 20px; font-size: 0.8rem; font-weight: bold; border-radius: 20px; letter-spacing: 0.1em; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-
-        .modal-content { padding: 2rem; padding-top: 1.5rem; }
-        .modal-box h3 { font-size: 1.6rem; margin-bottom: 0.5rem; color: #1a1a1a; margin-top: 10px; }
-        .modal-box p { color: #555; line-height: 1.5; margin-bottom: 1.5rem; font-size: 0.95rem; }
-        .modal-timer { font-family: 'monospace', sans-serif; background: #fff7ed; padding: 8px; border-radius: 5px; color: #c2410c; font-weight: bold; font-size: 0.9rem; margin-bottom: 1.5rem; border: 1px dashed #fdba74; }
-        
-        .modal-actions { display: flex; gap: 10px; }
-        .btn-outline-small { background: transparent; border: 1px solid #ddd; padding: 10px; font-weight: bold; border-radius: 5px; cursor: pointer; color: #555; }
-        .btn-outline-small:hover { background: #f9f9f9; color: black; }
+        .story-dots { display: flex; gap: 10px; margin-top: 1rem; justify-content: center; }
+        .story-dots .dot { width: 10px; height: 10px; background: #555 !important; border-radius: 50%; cursor: pointer; transition: all 0.3s; }
+        .story-dots .dot.active { background: #ea580c !important; transform: scale(1.2); }
+        /* --- FIX END --- */
       `}</style>
 
       {/* --- SECTION 1: HERO --- */}
@@ -289,7 +326,7 @@ function HomePage({ setPage }) {
       </section>
 
       {/* --- SECTION 2: SERVICES --- */}
-      <section className="home-section">
+      <section className="home-section" style={{ backgroundColor: '#121212' }}>
         <motion.div 
             className="section-header" 
             variants={containerVariants}
@@ -297,8 +334,8 @@ function HomePage({ setPage }) {
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
         >
-          <motion.h2 variants={itemVariants}>{t('home.servicesTitle')}</motion.h2>
-          <motion.p variants={itemVariants}>{t('home.servicesSubtitle')}</motion.p>
+          <motion.h2 variants={itemVariants} style={{ color: '#fff' }}>{t('home.servicesTitle')}</motion.h2>
+          <motion.p variants={itemVariants} style={{ color: '#ccc' }}>{t('home.servicesSubtitle')}</motion.p>
         </motion.div>
         
         <motion.div 
@@ -308,6 +345,8 @@ function HomePage({ setPage }) {
             whileInView="visible" 
             viewport={{ once: true, margin: "-100px" }}
         >
+          {/* Note: In your original code you used <HomeCard ... /> components, but defined them at the bottom. 
+              The CSS class .info-card handles their look. */}
           <HomeCard title={t('home.cards.talim.title')} text={t('home.cards.talim.text')} onClick={() => setPage({ name: 'service-detail', params: { id: 'talim' } })} />
           <HomeCard title={t('home.cards.hostel.title')} text={t('home.cards.hostel.text')} onClick={() => setPage({ name: 'service-detail', params: { id: 'hostel' } })} />
           <HomeCard title={t('home.cards.library.title')} text={t('home.cards.library.text')} onClick={() => setPage({ name: 'service-detail', params: { id: 'library' } })} />
@@ -315,7 +354,7 @@ function HomePage({ setPage }) {
         </motion.div>
       </section>
 
-      {/* --- NEW SECTION 3: SUCCESS STORIES --- */}
+      {/* --- SECTION 3: SUCCESS STORIES --- */}
       <section className="stories-section">
          <motion.div
            variants={containerVariants}
@@ -323,8 +362,30 @@ function HomePage({ setPage }) {
            whileInView="visible"
            viewport={{ once: true }}
          >
-            <motion.h2 style={{fontFamily: 'Cinzel', fontSize: '2rem', marginBottom: '10px'}} variants={itemVariants}>Voices of Victory</motion.h2>
-            <motion.p variants={itemVariants} style={{marginBottom: '2rem'}}>Real stories from real people who transformed their lives.</motion.p>
+            {/* UPDATED INLINE STYLES FOR DARK MODE */}
+            <motion.h2 
+                style={{
+                    fontFamily: 'Cinzel', 
+                    fontSize: '2rem', 
+                    marginBottom: '10px', 
+                    color: '#ffffff', /* CHANGED TO WHITE */
+                    textShadow: 'none' 
+                }} 
+                variants={itemVariants}
+            >
+                Voices of Victory
+            </motion.h2>
+
+            <motion.p 
+                variants={itemVariants} 
+                style={{
+                    marginBottom: '2rem', 
+                    color: '#bbbbbb', /* CHANGED TO LIGHT GREY */
+                    fontWeight: '500'
+                }}
+            >
+                Real stories from real people who transformed their lives.
+            </motion.p>
             <SuccessStories />
          </motion.div>
       </section>
@@ -336,15 +397,16 @@ function HomePage({ setPage }) {
         whileInView="visible"
         viewport={{ once: true }}
         variants={containerVariants}
+        style={{ color: '#fff' }} /* Ensure text is white */
       >
         <div className="particle-content">
-          <motion.h2 variants={itemVariants}>Join the <br /> Revolution</motion.h2>
-          <motion.p variants={itemVariants}>Experience the new era of management. <br /> Sign up now to access exclusive services.</motion.p>
+          <motion.h2 variants={itemVariants} style={{ color: '#fff' }}>Join the <br /> Revolution</motion.h2>
+          <motion.p variants={itemVariants} style={{ color: '#ddd' }}>Experience the new era of management. <br /> Sign up now to access exclusive services.</motion.p>
           <motion.div className="particle-buttons" variants={itemVariants}>
             <button className="btn-glow" onClick={() => setPage({ name: 'register' })}>
               Register Now
             </button>
-            <button className="btn-text" onClick={() => setPage({ name: 'contact' })}>
+            <button className="btn-text" onClick={() => setPage({ name: 'contact' })} style={{ color: '#fff' }}>
               Contact Support
             </button>
           </motion.div>
@@ -363,8 +425,8 @@ function HomePage({ setPage }) {
 function StatBox({ number, label }) {
   return (
     <motion.div className="stat-box" variants={itemVariants}>
-      <span className="stat-number">{number}</span>
-      <span className="stat-label">{label}</span>
+      <span className="stat-number" style={{color: '#fff'}}>{number}</span>
+      <span className="stat-label" style={{color: '#ddd'}}>{label}</span>
     </motion.div>
   );
 }
@@ -377,7 +439,7 @@ function HomeCard({ title, text, onClick }) {
         variants={itemVariants}
         whileHover={{ 
             y: -10, 
-            boxShadow: "0 15px 30px rgba(0,0,0,0.2)",
+            boxShadow: "0 15px 30px rgba(0,0,0,0.5)",
             borderColor: "#FFA500"
         }}
         whileTap={{ scale: 0.98 }}

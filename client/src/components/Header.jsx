@@ -29,6 +29,26 @@ function Header({ setPage, activePage }) {
 
   return (
     <header className="shivba-header">
+      {/* --- INJECTED STYLES FOR WHITE NAVIGATION TEXT --- */}
+      <style>{`
+        /* 1. Desktop Navigation Links -> White */
+        .shivba-nav .nav-btn {
+            color: #ffffff !important;
+        }
+
+        /* 2. Mobile Drawer Navigation Links -> White */
+        /* We target .drawer-content specifically so we don't accidentally turn the Footer/Account buttons white */
+        .drawer-content .drawer-link {
+            color: #ffffff !important;
+        }
+
+        /* Optional: Hover effect for white links */
+        .shivba-nav .nav-btn:hover,
+        .drawer-content .drawer-link:hover {
+            opacity: 0.8;
+        }
+      `}</style>
+
       <div className="shivba-header-inner">
         {/* 1. Logo (Desktop/Main) */}
         <div className="shivba-logo" onClick={() => goto('home')}>
@@ -47,7 +67,7 @@ function Header({ setPage, activePage }) {
           <button className={navClass('contact')} onClick={() => goto('contact')}>{t('nav.contact')}</button>
         </nav>
 
-        {/* 3. Header Actions */}
+        {/* 3. Header Actions (Excluded from White Text Rule) */}
         <div className="shivba-header-actions">
           <div className="desktop-only">
              <LanguageSwitcher />
@@ -66,6 +86,7 @@ function Header({ setPage, activePage }) {
             className={`shivba-menu-toggle ${open ? 'open' : ''}`}
             onClick={() => setOpen(true)}
             aria-label="Open navigation"
+            style={{ color: '#fff' }} /* Ensure toggle is visible */
           >
             <span />
             <span />
@@ -79,13 +100,13 @@ function Header({ setPage, activePage }) {
       <div 
         className={`shivba-mobile-overlay ${open ? 'visible' : ''}`} 
         onClick={() => setOpen(false)}
-        style={{ zIndex: 999 }} // Ensures overlay is below drawer but above content
+        style={{ zIndex: 999 }} 
       />
 
       {/* Sliding Drawer */}
       <div 
         className={`shivba-mobile-drawer ${open ? 'open' : ''}`}
-        style={{ zIndex: 1000 }} // Ensures drawer is on top of everything
+        style={{ zIndex: 1000 }} 
       >
         
         {/* DRAWER HEADER */}
@@ -100,26 +121,25 @@ function Header({ setPage, activePage }) {
            <button 
              className="drawer-close-btn" 
              onClick={() => setOpen(false)}
-             style={{ color: 'inherit' }} // Inherits theme color
+             style={{ color: '#fff' }} /* Force close button white */
            >
              ✕
            </button>
         </div>
 
-        {/* DRAWER CONTENT */}
+        {/* DRAWER CONTENT (Links here will be white) */}
         <div className="drawer-content">
-          {/* Added style={{ color: 'inherit' }} to all buttons to force visibility */}
-          <button className={mobileNavClass('home')} onClick={() => goto('home')} style={{ color: 'inherit' }}>{t('nav.home')}</button>
-          <button className={mobileNavClass('about')} onClick={() => goto('about')} style={{ color: 'inherit' }}>{t('nav.about')}</button>
-          <button className={mobileNavClass('services')} onClick={() => goto('services')} style={{ color: 'inherit' }}>{t('nav.services')}</button>
-          <button className={mobileNavClass('events')} onClick={() => goto('events')} style={{ color: 'inherit' }}>{t('nav.events')}</button>
-          <button className={mobileNavClass('gallery')} onClick={() => goto('gallery')} style={{ color: 'inherit' }}>{t('nav.gallery')}</button>
-          <button className={mobileNavClass('faq')} onClick={() => goto('faq')} style={{ color: 'inherit' }}>{t('nav.faq')}</button>
-          <button className={mobileNavClass('help')} onClick={() => goto('help')} style={{ color: 'inherit' }}>{t('nav.help') || 'Help'}</button>
-          <button className={mobileNavClass('contact')} onClick={() => goto('contact')} style={{ color: 'inherit' }}>{t('nav.contact')}</button>
+          <button className={mobileNavClass('home')} onClick={() => goto('home')}>{t('nav.home')}</button>
+          <button className={mobileNavClass('about')} onClick={() => goto('about')}>{t('nav.about')}</button>
+          <button className={mobileNavClass('services')} onClick={() => goto('services')}>{t('nav.services')}</button>
+          <button className={mobileNavClass('events')} onClick={() => goto('events')}>{t('nav.events')}</button>
+          <button className={mobileNavClass('gallery')} onClick={() => goto('gallery')}>{t('nav.gallery')}</button>
+          <button className={mobileNavClass('faq')} onClick={() => goto('faq')}>{t('nav.faq')}</button>
+          <button className={mobileNavClass('help')} onClick={() => goto('help')}>{t('nav.help') || 'Help'}</button>
+          <button className={mobileNavClass('contact')} onClick={() => goto('contact')}>{t('nav.contact')}</button>
         </div>
 
-        {/* DRAWER FOOTER */}
+        {/* DRAWER FOOTER (Excluded from White Text Rule) */}
         <div className="drawer-footer">
            <div className="drawer-footer-top">
              <LanguageSwitcher />

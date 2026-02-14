@@ -1,18 +1,15 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // --- 1. CONFIGURATION ---
-
-// UPDATED CATEGORIES
 const CATEGORIES = ['All', 'Gym', 'Event', 'Library', 'Community'];
 
 const INITIAL_PHOTOS = [
   // --- LIBRARY ---
   { id: 7, category: 'Library', title: 'Library Area', url: '/IMG-20251226-WA0005.jpg' },
-  { id: 26, category: 'Library', title: 'Select on MPSC', url: '/IMG-20251226-WA0018.jpg' }, // Assumed Library/Study related
-
-  // --- GYM (Formerly Facilities) ---
-  { id: 11, category: 'Gym', title: 'Equipment Tour (Video)', url: '/VID-20251226-WA0006.mp4' },
+  { id: 26, category: 'Library', title: 'Select on MPSC', url: '/IMG-20251226-WA0018.jpg' },
+  // --- GYM ---
+  { id: 11, category: 'Gym', title: 'Equipment Tour', url: '/VID-20251226-WA0006.mp4' },
   { id: 18, category: 'Gym', title: 'Entrance View', url: '/IMG-20251226-WA0026.jpg' },
   { id: 19, category: 'Gym', title: 'Reception Area', url: '/IMG-20251226-WA0025.jpg' },
   { id: 20, category: 'Gym', title: 'Gym Interior', url: '/IMG-20251226-WA0024.jpg' },
@@ -20,51 +17,42 @@ const INITIAL_PHOTOS = [
   { id: 27, category: 'Event', title: 'Award Distribution', url: '/IMG-20251226-WA0017.jpg' },
   { id: 33, category: 'Community', title: 'Office', url: '/IMG-20251226-WA0012.jpg' },
   { id: 39, category: 'Library', title: 'Overview', url: '/IMG-20251226-WA0006.jpg' },
-
-  // --- EVENT (Formerly Events) ---
-  { id: 8, category: 'Event', title: 'Event Highlight (Video)', url: '/VID-20251226-WA0009.mp4' },
-  { id: 9, category: 'Event', title: 'Training Session (Video)', url: '/VID-20251226-WA0008.mp4' },
-  { id: 12, category: 'Event', title: 'Opening Ceremony (Video)', url: '/VID-20251226-WA0005.mp4' },
+  // --- EVENT ---
+  { id: 8, category: 'Event', title: 'Event Highlight', url: '/VID-20251226-WA0009.mp4' },
+  { id: 9, category: 'Event', title: 'Training Session', url: '/VID-20251226-WA0008.mp4' },
+  { id: 12, category: 'Event', title: 'Opening Ceremony', url: '/VID-20251226-WA0005.mp4' },
   { id: 15, category: 'Event', title: 'Stage Performance', url: '/IMG-20251226-WA0028.jpg' },
   { id: 16, category: 'Event', title: 'Yoga', url: '/IMG-20251226-WA0027.jpg' },
-  { id: 17, category: 'Event', title: 'Crowd Cheering (Video)', url: '/VID-20251226-WA0004.mp4' },
+  { id: 17, category: 'Event', title: 'Crowd Cheering', url: '/VID-20251226-WA0004.mp4' },
   { id: 23, category: 'Event', title: 'Preparation', url: '/IMG-20251226-WA0021.jpg' },
   { id: 24, category: 'Event', title: 'Lighting Ceremony', url: '/IMG-20251226-WA0020.jpg' },
   { id: 25, category: 'Event', title: 'Audience', url: '/IMG-20251226-WA0019.jpg' },
   { id: 30, category: 'Event', title: 'Prize Giving', url: '/IMG-20251226-WA0014.jpg' },
-  { id: 31, category: 'Event', title: 'Highlights (Video)', url: '/VID-20251226-WA0003.mp4' },
-  { id: 34, category: 'Event', title: 'Flash Mob (Video)', url: '/VID-20251226-WA0002.mp4' },
+  { id: 31, category: 'Event', title: 'Highlights', url: '/VID-20251226-WA0003.mp4' },
+  { id: 34, category: 'Event', title: 'Flash Mob', url: '/VID-20251226-WA0002.mp4' },
   { id: 37, category: 'Event', title: 'Setup Day', url: '/IMG-20251226-WA0009.jpg' },
   { id: 38, category: 'Event', title: 'Evening View', url: '/IMG-20251226-WA0007.jpg' },
-
   // --- COMMUNITY ---
-  { id: 10, category: 'Community', title: 'Group Activity (Video)', url: '/VID-20251226-WA0007.mp4' },
+  { id: 10, category: 'Community', title: 'Group Activity', url: '/VID-20251226-WA0007.mp4' },
   { id: 13, category: 'Community', title: 'Member Gathering', url: '/IMG-20251226-WA0030.jpg' },
-  { id: 14, category: 'Community', title: 'shivba', url: '/IMG-20251226-WA0029.jpg' },
+  { id: 14, category: 'Community', title: 'Shivba', url: '/IMG-20251226-WA0029.jpg' },
   { id: 22, category: 'Community', title: 'Volunteers', url: '/IMG-20251226-WA0022.jpg' },
-  { id: 28, category: 'Community', title: 'Maharastra police', url: '/IMG-20251226-WA0016.jpg' },
+  { id: 28, category: 'Community', title: 'Maharashtra Police', url: '/IMG-20251226-WA0016.jpg' },
   { id: 29, category: 'Community', title: 'Celebration', url: '/IMG-20251226-WA0015.jpg' },
-  { id: 32, category: 'Community', title: 'Social Awareness Activity', url: '/IMG-20251226-WA0013.jpg' },
-  { id: 35, category: 'Community', title: 'Blood Donation (Ganpati)', url: '/IMG-20251226-WA0011.jpg' },
-  { id: 36, category: 'Community', title: 'Blood Donation Camp', url: '/IMG-20251226-WA0010.jpg' },
+  { id: 32, category: 'Community', title: 'Social Activity', url: '/IMG-20251226-WA0013.jpg' },
+  { id: 35, category: 'Community', title: 'Blood Donation', url: '/IMG-20251226-WA0011.jpg' },
+  { id: 36, category: 'Community', title: 'Health Camp', url: '/IMG-20251226-WA0010.jpg' },
 ];
 
 // --- 2. ANIMATION VARIANTS ---
 const containerVariants = {
   hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 }
-  }
+  visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, scale: 0.9 },
-  visible: { 
-    opacity: 1, 
-    scale: 1,
-    transition: { duration: 0.4 }
-  }
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
 };
 
 const modalVariants = {
@@ -73,15 +61,52 @@ const modalVariants = {
   exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } }
 };
 
+// "Copilot" Style Animation (Slide up from bottom)
+const floatingBarVariants = {
+  hidden: { y: 150, x: "-50%", opacity: 0 },
+  visible: { 
+    y: 0, 
+    x: "-50%", 
+    opacity: 1, 
+    transition: { type: "spring", stiffness: 250, damping: 25 } 
+  },
+  exit: { 
+    y: 150, 
+    x: "-50%", 
+    opacity: 0, 
+    transition: { duration: 0.3 } 
+  }
+};
+
 function GalleryPage({ setPage }) {
   const [activeCategory, setActiveCategory] = useState('All');
   const [photos, setPhotos] = useState(INITIAL_PHOTOS);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState(null);
   const [newPhoto, setNewPhoto] = useState({ title: '', category: 'Gym', url: '' });
   const [filePreview, setFilePreview] = useState(null);
+  
+  const [showFloatingBar, setShowFloatingBar] = useState(false);
+  const toolbarRef = useRef(null);
 
   const isLoggedIn = !!localStorage.getItem('shivba_user_email');
   const canDelete = isLoggedIn;
+
+  // --- INTERSECTION OBSERVER ---
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // Show floating bar only when main toolbar scrolls OUT of view
+        setShowFloatingBar(!entry.isIntersecting && entry.boundingClientRect.top < 0);
+      },
+      { threshold: 0, rootMargin: "-100px 0px 0px 0px" } 
+    );
+
+    if (toolbarRef.current) {
+      observer.observe(toolbarRef.current);
+    }
+    return () => observer.disconnect();
+  }, []);
 
   const filteredPhotos = useMemo(() => {
     if (activeCategory === 'All') return photos;
@@ -119,7 +144,7 @@ function GalleryPage({ setPage }) {
     e.preventDefault();
     if (!newPhoto.title || !newPhoto.url) return;
     const nextId = photos.length ? Math.max(...photos.map((p) => p.id)) + 1 : 1;
-    setPhotos((prev) => [...prev, { id: nextId, ...newPhoto }]);
+    setPhotos((prev) => [{ id: nextId, ...newPhoto }, ...prev]);
     setShowAddModal(false);
   };
 
@@ -127,221 +152,384 @@ function GalleryPage({ setPage }) {
     if (!canDelete) return;
     if (window.confirm("Are you sure you want to delete this photo?")) {
         setPhotos((prev) => prev.filter((p) => p.id !== id));
+        if(selectedMedia?.id === id) setSelectedMedia(null);
     }
   };
 
-  // Helper to check if url is a video
   const isVideo = (url) => {
     return url && (url.toLowerCase().endsWith('.mp4') || url.toLowerCase().endsWith('.webm'));
   };
 
   return (
-    <motion.div 
-      className="gallery-container"
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
-      {/* --- INJECTED CSS --- */}
+    <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;500;600&display=swap');
 
-        /* Typography */
-        .gallery-container h1, .gallery-container h2, .gallery-card h3 {
-            font-family: 'Cinzel', serif !important;
-            letter-spacing: 0.05em;
-        }
-        .gallery-container p, .gallery-container button, .gallery-container span, .gallery-container label {
-            font-family: 'Montserrat', sans-serif !important;
-        }
+        /* --- GLOBAL & HERO --- */
+        .gallery-container { min-height: 100vh; padding-bottom: 120px; /* Space for floating bar */ }
+        .gallery-container h1, .gallery-container h2, .gallery-card h3 { font-family: 'Cinzel', serif !important; letter-spacing: 0.05em; }
+        .gallery-container p, button, span, label, input, select { font-family: 'Montserrat', sans-serif !important; }
 
-        /* Hero */
         .gallery-hero {
-            padding: 4rem 2rem; text-align: center;
-            background: #1a1a1a; color: white;
-            margin-bottom: 2rem;
+            padding: 5rem 2rem 3rem; text-align: center;
+            background: #121212; color: white;
+            position: relative; overflow: hidden;
         }
-        .gallery-hero h1 { font-size: 3rem; margin-bottom: 0.5rem; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .gallery-hero p { font-size: 1.1rem; color: #ccc; }
+        .gallery-hero::before {
+            content: ''; position: absolute; top:0; left:0; width:100%; height:100%;
+            background: radial-gradient(circle at center, #222 0%, #121212 70%); opacity: 0.5;
+        }
+        .gallery-hero h1 { font-size: 3.5rem; margin-bottom: 0.5rem; position: relative; z-index: 2; color: #fff; }
+        .gallery-hero p { font-size: 1.2rem; color: #aaa; position: relative; z-index: 2; }
 
-        /* Toolbar */
+        /* --- MAIN TOOLBAR --- */
         .gallery-toolbar {
-            padding: 1rem 2rem; max-width: 1200px; margin: 0 auto 2rem;
-            display: flex; justify-content: space-between; align-items: center;
-            flex-wrap: wrap; gap: 1rem;
+            padding: 1.5rem 2rem; max-width: 1400px; margin: 0 auto 2rem;
+            display: flex; justify-content: center; align-items: center;
+            flex-wrap: wrap; gap: 1.5rem; 
+            position: relative; z-index: 10;
         }
-        .gallery-filters { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; }
+
+        .gallery-filters { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
         .gallery-filter-chip {
-            padding: 8px 16px; border-radius: 20px; border: 1px solid #ddd;
-            background: white; cursor: pointer; transition: all 0.3s; font-size: 0.9rem; white-space: nowrap;
+            padding: 8px 20px; border-radius: 50px; border: 1px solid #ddd;
+            background: white; cursor: pointer; transition: all 0.3s; font-size: 0.9rem; 
+            font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #333;
         }
-        .gallery-filter-chip.active, .gallery-filter-chip:hover {
-            background: #1a1a1a; color: white; border-color: #1a1a1a;
+        .gallery-filter-chip:hover { border-color: #aaa; color: #000; transform: translateY(-2px); }
+        .gallery-filter-chip.active { background: #1a1a1a; color: white; border-color: #1a1a1a; }
+        
+        body.dark-mode .gallery-filter-chip { background: #222; border-color: #444; color: #bbb; }
+        body.dark-mode .gallery-filter-chip:hover { color: #fff; }
+        body.dark-mode .gallery-filter-chip.active { background: #FFA500; color: #000; border-color: #FFA500; }
+
+        /* --- COPILOT STYLE FLOATING BAR --- */
+        .floating-pill-container {
+            position: fixed; 
+            bottom: 30px; 
+            left: 50%;
+            /* Transform is handled by framer motion variants */
+            
+            background: #ffffff;
+            padding: 6px 8px; /* Compact padding */
+            border-radius: 9999px; /* Fully rounded pill */
+            
+            display: flex; 
+            align-items: center; 
+            gap: 5px;
+            
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05); /* Soft shadow + thin border */
+            z-index: 2147483647;
+            
+            /* Blur backdrop optional if using transparency, but pure white matches Copilot better */
         }
-        body.dark-mode .gallery-filter-chip { background: #333; color: #ccc; border-color: #444; }
-        body.dark-mode .gallery-filter-chip.active { background: #FFA500; color: #000; }
+        
+        body.dark-mode .floating-pill-container {
+            background: #1e1e1e;
+            box-shadow: 0 4px 25px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1);
+        }
+
+        .pill-btn {
+            padding: 10px 18px; 
+            border-radius: 999px; 
+            border: none;
+            background: transparent; 
+            color: #5f6368; 
+            font-size: 0.85rem; 
+            font-weight: 600;
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            white-space: nowrap;
+        }
+        
+        .pill-btn:hover {
+            background: #f1f3f4;
+            color: #202124;
+        }
+        
+        .pill-btn.active {
+            background: #e8f0fe; /* Google/Copilot Blue-ish tint */
+            color: #1967d2;      /* Active Blue Text */
+            font-weight: 700;
+        }
+
+        /* Dark Mode Styles for Pill Buttons */
+        body.dark-mode .pill-btn { color: #aaa; }
+        body.dark-mode .pill-btn:hover { background: #333; color: #fff; }
+        body.dark-mode .pill-btn.active { background: #333; color: #FFA500; }
+
+        /* Add Button in Floating Bar */
+        .pill-add-btn {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: #ea580c; color: white; border: none;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; cursor: pointer; margin-left: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .pill-add-btn:hover { transform: scale(1.1); background: #c2410c; }
+
 
         .gallery-add-btn {
-            background: #FFA500; color: white; border: none; padding: 10px 20px;
-            border-radius: 8px; font-weight: 600; cursor: pointer; text-transform: uppercase;
-            font-size: 0.85rem; letter-spacing: 0.05em; transition: transform 0.2s;
+            background: #ea580c; color: white; border: none; padding: 10px 24px;
+            border-radius: 50px; font-weight: 700; cursor: pointer; text-transform: uppercase;
+            font-size: 0.8rem; letter-spacing: 0.1em; transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(234, 88, 12, 0.3);
         }
-        .gallery-add-btn:hover { transform: translateY(-2px); }
+        .gallery-add-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(234, 88, 12, 0.4); }
 
-        /* Masonry Grid */
+        /* --- MASONRY LAYOUT --- */
         .gallery-masonry {
-            column-count: 3; column-gap: 20px;
-            max-width: 1200px; margin: 0 auto; padding: 0 20px 40px;
+            column-count: 4; column-gap: 24px;
+            max-width: 1600px; margin: 0 auto; padding: 0 24px;
         }
-        @media (max-width: 900px) { .gallery-masonry { column-count: 2; } }
-        @media (max-width: 600px) { .gallery-masonry { column-count: 1; } }
+        @media (max-width: 1400px) { .gallery-masonry { column-count: 3; } }
+        @media (max-width: 900px) { .gallery-masonry { column-count: 2; column-gap: 16px; padding: 0 16px; } }
+        @media (max-width: 500px) { .gallery-masonry { column-count: 1; } }
 
-        /* Card */
+        /* --- GALLERY CARD --- */
         .gallery-card {
-            break-inside: avoid; margin-bottom: 20px;
+            break-inside: avoid; margin-bottom: 24px;
             position: relative; border-radius: 12px; overflow: hidden;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            cursor: pointer;
-            background: #000; /* For videos */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); cursor: pointer;
+            background: #f0f0f0; transform: translateZ(0);
         }
+        body.dark-mode .gallery-card { background: #2a2a2a; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+
         .gallery-img {
-            width: 100%; display: block; transition: transform 0.5s ease;
+            width: 100%; display: block; 
+            transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
-        /* Only zoom images, not videos on hover if handled differently, but here we zoom both */
-        .gallery-card:hover .gallery-img { transform: scale(1.05); }
+        .gallery-card:hover .gallery-img { transform: scale(1.08); }
         
+        .video-indicator {
+            position: absolute; top: 12px; right: 12px;
+            background: rgba(0,0,0,0.6); color: white;
+            width: 32px; height: 32px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(4px); z-index: 5;
+        }
+
         .gallery-overlay {
             position: absolute; inset: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
             opacity: 0; transition: opacity 0.3s ease;
-            display: flex; flex-direction: column; justify-content: flex-end; padding: 20px;
-            pointer-events: none; /* Allows clicking play on video if needed */
+            display: flex; flex-direction: column; justify-content: flex-end; padding: 24px;
         }
         .gallery-card:hover .gallery-overlay { opacity: 1; }
         
         .gallery-tag {
-            background: #FFA500; color: white; font-size: 0.7rem; padding: 4px 8px;
-            border-radius: 4px; align-self: flex-start; margin-bottom: 5px; text-transform: uppercase; fontWeight: bold;
+            background: #ea580c; color: white; font-size: 0.65rem; padding: 4px 10px;
+            border-radius: 20px; align-self: flex-start; margin-bottom: 8px; 
+            text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;
         }
-        .gallery-card h3 { color: white; font-size: 1.2rem; margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .gallery-card h3 { 
+            color: white; font-size: 1.1rem; margin: 0; line-height: 1.4;
+            transform: translateY(10px); transition: transform 0.3s ease;
+        }
+        .gallery-card:hover h3 { transform: translateY(0); }
 
         .delete-btn {
-            position: absolute; top: 10px; right: 10px;
-            background: rgba(255, 255, 255, 0.9); border: none; border-radius: 50%;
-            width: 30px; height: 30px; cursor: pointer; color: #ef4444; font-weight: bold;
+            position: absolute; top: 10px; left: 10px;
+            background: white; border: none; border-radius: 50%;
+            width: 30px; height: 30px; cursor: pointer; color: #dc2626;
             display: flex; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.3s;
-            pointer-events: auto;
+            opacity: 0; transition: all 0.2s; z-index: 10;
         }
         .gallery-card:hover .delete-btn { opacity: 1; }
+        .delete-btn:hover { transform: scale(1.1); background: #fee2e2; }
 
-        /* Modal */
+        /* --- LIGHTBOX --- */
+        .lightbox-backdrop {
+            position: fixed; inset: 0; z-index: 10000;
+            background: rgba(0,0,0,0.95); backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .lightbox-content { max-width: 90vw; max-height: 90vh; position: relative; }
+        .lightbox-media { max-width: 100%; max-height: 90vh; border-radius: 8px; box-shadow: 0 0 50px rgba(0,0,0,0.5); object-fit: contain; }
+        .lightbox-close {
+            position: absolute; top: 30px; right: 30px;
+            background: rgba(255,255,255,0.1); color: white; border: none;
+            width: 50px; height: 50px; border-radius: 50%; font-size: 24px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s;
+        }
+        .lightbox-close:hover { background: rgba(255,255,255,0.3); }
+        .lightbox-info { position: absolute; bottom: -50px; left: 0; width: 100%; text-align: center; color: white; }
+        .lightbox-info h3 { font-size: 1.5rem; margin: 0; }
+        .lightbox-info span { color: #aaa; font-size: 0.9rem; text-transform: uppercase; }
+
+        /* --- MODAL --- */
         .modal-backdrop {
             position: fixed; inset: 0; background: rgba(0,0,0,0.8);
-            display: flex; align-items: center; justify-content: center; z-index: 1000;
+            display: flex; align-items: center; justify-content: center; z-index: 10000;
             backdrop-filter: blur(5px);
         }
         .gallery-modal {
             background: white; width: 90%; max-width: 500px; padding: 2rem;
-            border-radius: 16px; position: relative;
+            border-radius: 16px; position: relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
         }
-        body.dark-mode .gallery-modal { background: #1e1e1e; color: white; }
+        body.dark-mode .gallery-modal { background: #1e1e1e; color: white; border: 1px solid #333; }
         
         .gallery-modal input, .gallery-modal select {
-            width: 100%; padding: 12px; margin-top: 5px; margin-bottom: 15px;
+            width: 100%; padding: 12px; margin-top: 5px; margin-bottom: 20px;
             border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;
+            background: #f9f9f9;
         }
-        .gallery-modal label { font-size: 0.9rem; font-weight: 600; display: block; }
+        body.dark-mode .gallery-modal input, body.dark-mode .gallery-modal select { background: #2a2a2a; border-color: #444; color: white; }
         
-        .modal-actions { display: flex; gap: 10px; margin-top: 10px; }
-        .btn-cancel { flex: 1; padding: 12px; border: 1px solid #ddd; background: transparent; border-radius: 8px; cursor: pointer; }
-        .btn-submit { flex: 1; padding: 12px; border: none; background: #1a1a1a; color: white; border-radius: 8px; cursor: pointer; }
+        .modal-actions { display: flex; gap: 15px; margin-top: 10px; }
+        .btn-cancel { flex: 1; padding: 14px; border: 1px solid #ddd; background: transparent; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .btn-submit { flex: 1; padding: 14px; border: none; background: #1a1a1a; color: white; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        
         body.dark-mode .btn-cancel { color: #fff; border-color: #444; }
-        body.dark-mode .btn-submit { background: #FFA500; color: #000; }
+        body.dark-mode .btn-submit { background: #ea580c; color: #fff; }
 
-        .gallery-empty { text-align: center; padding: 4rem; color: #888; font-style: italic; }
+        .gallery-empty { text-align: center; padding: 4rem; color: #888; font-style: italic; width: 100%; }
       `}</style>
 
-      {/* --- HERO --- */}
-      <section className="gallery-hero">
-        <motion.div variants={itemVariants}>
-          <h1>Gallery</h1>
-          <p>Explore our facilities, events, and vibrant community.</p>
-        </motion.div>
-      </section>
+      {/* --- PAGE CONTENT (Main Scrollable Area) --- */}
+      <motion.div 
+        className="gallery-container"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
+        {/* HERO */}
+        <section className="gallery-hero">
+          <motion.div variants={itemVariants}>
+            <h1>Our Gallery</h1>
+            <p>Witness the strength, spirit, and soul of Shivba.</p>
+          </motion.div>
+        </section>
 
-      {/* --- TOOLBAR --- */}
-      <div className="gallery-toolbar">
-        <div className="gallery-filters">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              className={`gallery-filter-chip ${activeCategory === cat ? 'active' : ''}`}
-              onClick={() => setActiveCategory(cat)}
-            >
-              {cat}
-            </button>
-          ))}
+        {/* MAIN TOOLBAR (Visible at top) */}
+        <div className="gallery-toolbar" ref={toolbarRef}>
+          <div className="gallery-filters">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                className={`gallery-filter-chip ${activeCategory === cat ? 'active' : ''}`}
+                onClick={() => setActiveCategory(cat)}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+          <button className="gallery-add-btn" onClick={handleAddClick}>
+            {isLoggedIn ? '+ Add Photo' : '🔒 Add Media'}
+          </button>
         </div>
-        <button className="gallery-add-btn" onClick={handleAddClick}>
-          {isLoggedIn ? '+ Add Photo' : '🔒 Add/Edit'}
-        </button>
-      </div>
 
-      {/* --- MASONRY GRID --- */}
-      <div className="gallery-masonry">
-        <AnimatePresence>
-          {filteredPhotos.length === 0 ? (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="gallery-empty">
-              No photos found in this category.
-            </motion.div>
-          ) : (
-            filteredPhotos.map((photo) => (
-              <motion.article 
-                key={photo.id} 
-                className="gallery-card"
-                variants={itemVariants}
-                layout
+        {/* MASONRY GRID */}
+        <div className="gallery-masonry">
+          <AnimatePresence mode="popLayout">
+            {filteredPhotos.length === 0 ? (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="gallery-empty">
+                No photos found in this category.
+              </motion.div>
+            ) : (
+              filteredPhotos.map((photo) => (
+                <motion.article 
+                  key={photo.id} 
+                  className="gallery-card"
+                  variants={itemVariants}
+                  layout
+                  initial="hidden"
+                  animate="visible"
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  onClick={() => setSelectedMedia(photo)}
+                >
+                  {isVideo(photo.url) && <div className="video-indicator">▶</div>}
+
+                  {isVideo(photo.url) ? (
+                      <video 
+                          src={photo.url} 
+                          className="gallery-img" 
+                          muted 
+                          playsInline
+                          onMouseOver={event => event.target.play()}
+                          onMouseOut={event => { event.target.pause(); event.target.currentTime = 0; }}
+                          style={{ objectFit: 'cover', minHeight: '200px' }}
+                      />
+                  ) : (
+                      <img src={photo.url} alt={photo.title} className="gallery-img" loading="lazy" />
+                  )}
+                  
+                  <div className="gallery-overlay">
+                    <span className="gallery-tag">{photo.category}</span>
+                    <h3>{photo.title}</h3>
+                    {canDelete && (
+                      <button 
+                          className="delete-btn" 
+                          onClick={(e) => { e.stopPropagation(); handleDeletePhoto(photo.id); }}
+                          title="Delete Photo"
+                      >🗑️</button>
+                    )}
+                  </div>
+                </motion.article>
+              ))
+            )}
+          </AnimatePresence>
+        </div>
+      </motion.div>
+
+      {/* --- COPILOT-STYLE FLOATING BAR (Fixed Position) --- */}
+      <AnimatePresence>
+        {showFloatingBar && (
+            <motion.div 
+                className="floating-pill-container"
+                variants={floatingBarVariants}
                 initial="hidden"
                 animate="visible"
-                exit={{ opacity: 0, scale: 0.9 }}
-              >
-                {/* --- CONDITIONAL RENDERING FOR VIDEO OR IMAGE --- */}
-                {isVideo(photo.url) ? (
-                    <video 
-                        src={photo.url} 
-                        className="gallery-img" 
-                        controls 
-                        preload="metadata"
-                        style={{ objectFit: 'cover' }}
-                    />
-                ) : (
-                    <img 
-                        src={photo.url} 
-                        alt={photo.title} 
-                        className="gallery-img" 
-                        loading="lazy" 
-                    />
-                )}
+                exit="exit"
+            >
+                {CATEGORIES.map((cat) => (
+                    <button
+                    key={cat}
+                    className={`pill-btn ${activeCategory === cat ? 'active' : ''}`}
+                    onClick={() => { setActiveCategory(cat); window.scrollTo({ top: 300, behavior: 'smooth' }); }}
+                    >
+                    {cat}
+                    </button>
+                ))}
                 
-                <div className="gallery-overlay">
-                  <span className="gallery-tag">{photo.category}</span>
-                  <h3>{photo.title}</h3>
-                  {canDelete && (
-                    <button 
-                        className="delete-btn" 
-                        onClick={(e) => { e.stopPropagation(); handleDeletePhoto(photo.id); }}
-                        title="Delete Photo"
-                    >✕</button>
-                  )}
-                </div>
-              </motion.article>
-            ))
-          )}
-        </AnimatePresence>
-      </div>
+                {/* Optional: Add button right in the pill */}
+                <button className="pill-add-btn" onClick={handleAddClick} title="Add Media">
+                    +
+                </button>
+            </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* --- ADD MODAL --- */}
+      {/* --- LIGHTBOX MODAL --- */}
+      <AnimatePresence>
+        {selectedMedia && (
+            <motion.div 
+                className="lightbox-backdrop"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                onClick={() => setSelectedMedia(null)}
+            >
+                <button className="lightbox-close">✕</button>
+                <motion.div 
+                    className="lightbox-content"
+                    initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {isVideo(selectedMedia.url) ? (
+                        <video src={selectedMedia.url} className="lightbox-media" controls autoPlay />
+                    ) : (
+                        <img src={selectedMedia.url} alt={selectedMedia.title} className="lightbox-media" />
+                    )}
+                    <div className="lightbox-info">
+                        <h3>{selectedMedia.title}</h3>
+                        <span>{selectedMedia.category}</span>
+                    </div>
+                </motion.div>
+            </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* --- ADD PHOTO MODAL --- */}
       <AnimatePresence>
         {showAddModal && (
           <motion.div 
@@ -354,23 +542,22 @@ function GalleryPage({ setPage }) {
                 onClick={(e) => e.stopPropagation()}
                 variants={modalVariants}
             >
-              <h2 style={{ marginBottom: '1.5rem', textAlign: 'center' }}>Add New Photo</h2>
+              <h2 style={{ marginBottom: '1.5rem', textAlign: 'center' }}>Add New Media</h2>
               <form onSubmit={handleAddPhoto}>
                 <label>Title</label>
-                <input type="text" name="title" value={newPhoto.title} onChange={handleAddPhotoChange} required placeholder="Enter photo title" />
+                <input type="text" name="title" value={newPhoto.title} onChange={handleAddPhotoChange} required placeholder="E.g. Summer Camp" />
                 
                 <label>Category</label>
                 <select name="category" value={newPhoto.category} onChange={handleAddPhotoChange}>
                   {CATEGORIES.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
 
-                <label>Upload Image</label>
-                <div style={{ border: '2px dashed #ccc', padding: '15px', borderRadius: '8px', marginBottom: '15px', textAlign: 'center', cursor: 'pointer', background: '#fafafa' }}>
+                <label>Upload Media (Image or Video)</label>
+                <div style={{ border: '2px dashed #ccc', padding: '20px', borderRadius: '8px', marginBottom: '20px', textAlign: 'center', cursor: 'pointer', background: 'rgba(0,0,0,0.02)' }}>
                     <input type="file" accept="image/*,video/*" onChange={handleFileChange} style={{ width: '100%', marginBottom: 0 }} />
-                    <span style={{ fontSize: '0.8rem', color: '#888' }}>or paste URL below</span>
+                    <span style={{ fontSize: '0.8rem', color: '#888', display: 'block', marginTop: '10px' }}>or paste URL below</span>
                 </div>
 
-                <label>Image/Video URL (Optional)</label>
                 <input type="url" name="url" value={newPhoto.url} onChange={handleAddPhotoChange} placeholder="https://..." />
 
                 {filePreview && (
@@ -381,15 +568,14 @@ function GalleryPage({ setPage }) {
 
                 <div className="modal-actions">
                   <button type="button" className="btn-cancel" onClick={() => setShowAddModal(false)}>Cancel</button>
-                  <button type="submit" className="btn-submit">Save Photo</button>
+                  <button type="submit" className="btn-submit">Save Media</button>
                 </div>
               </form>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-
-    </motion.div>
+    </>
   );
 }
 

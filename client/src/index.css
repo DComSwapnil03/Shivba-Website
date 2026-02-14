@@ -843,6 +843,126 @@ button {
   font-size: 1.2rem;
 }
 
+/* --- FIX: SERVICE CARDS VISIBILITY --- */
+
+/* 1. Grid Layout */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    padding: 0 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* 2. Card Container - Forces White Background */
+.info-card {
+    background: #ffffff !important; 
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    text-align: left;
+    border: 1px solid rgba(0,0,0,0.05); /* Subtle border for definition */
+}
+
+/* 3. CARD TITLES (The Part That Was Broken) */
+/* We use multiple selectors to ensure we beat the Dark Mode settings */
+.info-card h3,
+.home-container .info-card h3 {
+    color: #1a1a1a !important;  /* Force Black */
+    font-family: 'Cinzel', serif !important; /* Ensure Font is Correct */
+    font-size: 1.3rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 1rem !important;
+    opacity: 1 !important; /* Ensure it's not hidden */
+    text-shadow: none !important; /* Remove any glow effects */
+}
+
+/* 4. Card Body Text */
+.info-card p,
+.home-container .info-card p {
+    color: #555555 !important; /* Force Dark Grey */
+    font-family: 'Montserrat', sans-serif !important;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+/* 5. Learn More Link */
+.info-card .link {
+    color: #ea580c !important; /* Orange */
+    font-weight: bold;
+    font-size: 0.9rem;
+    display: inline-block;
+}
+
+/* --- FIX START: VOICES OF VICTORY --- */
+        .stories-section {
+            padding: 4rem 2rem;
+            background-color: #f9f9f9 !important; /* Force Light Background */
+            text-align: center;
+        }
+
+        /* 1. Main Title "Voices of Victory" */
+        /* We use 'div h2' to make sure we target the header inside the motion div */
+        .stories-section h2 {
+            color: #1a1a1a !important; /* Force Black */
+            font-family: 'Cinzel', serif !important;
+            font-size: 2rem !important;
+            margin-bottom: 10px !important;
+            text-shadow: none !important; /* Remove any white glow */
+        }
+
+        /* 2. Subtitle "Real stories from..." */
+        .stories-section p {
+            color: #555555 !important; /* Force Dark Grey */
+            margin-bottom: 2rem !important;
+            font-weight: 500 !important;
+        }
+
+        /* 3. The Card Box */
+        .story-card {
+            background-color: #ffffff !important; /* Force White Card */
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            text-align: center;
+            width: 100%;
+            max-width: 600px; /* Prevent it from getting too wide */
+            margin: 0 auto; /* Center the card */
+        }
+
+        /* 4. The Quote Text */
+        .story-quote {
+            color: #333333 !important; /* Dark Grey specifically for the quote */
+            font-style: italic;
+            font-size: 1.1rem !important;
+            line-height: 1.6 !important;
+            margin-bottom: 1.5rem !important;
+        }
+
+        /* 5. Person Name */
+        .story-meta h4 {
+            color: #ea580c !important; /* Force Orange */
+            margin: 0 !important;
+            font-size: 1.2rem !important;
+            font-weight: 700 !important;
+        }
+
+        /* 6. Person Role */
+        .story-meta span {
+            color: #777777 !important; /* Force Grey */
+            font-size: 0.9rem !important;
+        }
+
+        /* Image & Dots */
+        .story-img-wrapper img { width: 80px; height: 80px; border-radius: 50%; border: 3px solid #ea580c; object-fit: cover; margin-bottom: 1rem; }
+        .story-dots { display: flex; gap: 10px; margin-top: 1rem; justify-content: center; }
+        .story-dots .dot { width: 10px; height: 10px; background: #ccc !important; border-radius: 50%; cursor: pointer; transition: all 0.3s; }
+        .story-dots .dot.active { background: #ea580c !important; transform: scale(1.2); }
+        /* --- FIX END --- */
 /* ===== ABOUT PAGE ===== */
 .about-block {
   padding: 3.5rem 1.5rem;

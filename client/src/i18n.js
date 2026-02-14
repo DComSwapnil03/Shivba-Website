@@ -27,7 +27,7 @@ const resources = {
 
       /* ========= HOME ========= */
       home: {
-        heroTitle: 'Welcome to Shivba Community Center',
+        heroTitle: 'Welcome to Shivba',
         heroSubtitle:
           'Fitness, knowledge, and community – all in one place. Join Shivba Talim, Hostel, Library, and social initiatives to transform your daily life.',
         heroPrimary: 'Register Interest',
@@ -262,7 +262,7 @@ const resources = {
       },
 
       home: {
-        heroTitle: 'शिवबा कम्युनिटी सेंटरमध्ये आपले स्वागत आहे',
+        heroTitle: 'शिवबा मध्ये आपले स्वागत आहे',
         heroSubtitle:
           'फिटनेस, ज्ञान आणि समुदाय – हे सर्व एकाच ठिकाणी. शिवबा तालिम, हॉस्टेल, लायब्ररी आणि सामाजिक उपक्रमांमधून तुमचे दैनंदिन जीवन बदला.',
         heroPrimary: 'रजिस्ट्रेशनसाठी रस दाखवा',
@@ -498,7 +498,7 @@ const resources = {
       },
 
       home: {
-        heroTitle: 'शिवबा कम्युनिटी सेंटर में आपका स्वागत है',
+        heroTitle: 'शिवबा में आपका स्वागत है',
         heroSubtitle:
           'फिटनेस, ज्ञान और कम्युनिटी – सब एक ही जगह। शिवबा तालिम, हॉस्टल, लाइब्रेरी और सामाजिक पहल से अपना रोज़मर्रा का जीवन बदलें.',
         heroPrimary: 'रजिस्ट्रेशन में रुचि दिखाएँ',

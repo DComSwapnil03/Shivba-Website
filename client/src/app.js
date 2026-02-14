@@ -79,33 +79,56 @@ const GlobalStyles = () => (
     .shivba-marquee-track { display: flex; gap: 40px; white-space: nowrap; padding-left: 20px; font-family: var(--font-body); font-weight: 500; animation: marquee 20s linear infinite; }
     @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-    /* Header */
-    .shivba-header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid #eaeaea; position: fixed; top: var(--marquee-height); left: 0; width: 100%; height: var(--header-height); z-index: 1000; transition: all 0.3s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    /* --- UPDATED HEADER STYLES (BLACK BLUR) --- */
+    .shivba-header { 
+        background: rgba(0, 0, 0, 0.85); /* Black background with transparency */
+        backdrop-filter: blur(12px); 
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Subtle light border */
+        position: fixed; top: var(--marquee-height); left: 0; width: 100%; height: var(--header-height); z-index: 1000; transition: all 0.3s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.2); 
+    }
     .shivba-header-inner { max-width: 1400px; margin: 0 auto; padding: 0 30px; height: 100%; display: flex; align-items: center; justify-content: space-between; }
-    .shivba-logo { font-family: var(--font-logo); font-size: 2rem; font-weight: 900; color: black; cursor: pointer; text-transform: uppercase; letter-spacing: 0.15em; text-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.3s ease; }
+    
+    .shivba-logo { 
+        font-family: var(--font-logo); font-size: 2rem; font-weight: 900; 
+        color: white; /* Changed to White */
+        cursor: pointer; text-transform: uppercase; letter-spacing: 0.15em; text-shadow: 0 2px 4px rgba(0,0,0,0.3); transition: transform 0.3s ease; 
+    }
     .shivba-logo:hover { transform: scale(1.02); }
     
     .shivba-nav { display: flex; gap: 20px; align-items: center; }
-    .nav-btn { background: none; border: none; font-family: var(--font-body); font-size: 0.85rem; font-weight: 700; color: black; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.05em; position: relative; white-space: nowrap; }
+    
+    .nav-btn { 
+        background: none; border: none; font-family: var(--font-body); font-size: 0.85rem; font-weight: 700; 
+        color: white; /* Changed to White */
+        cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.05em; position: relative; white-space: nowrap; 
+    }
     .nav-btn::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: var(--c-gold); transition: width 0.3s ease; }
     .nav-btn:hover::after, .nav-btn.active::after { width: 100%; }
-    .nav-btn:hover, .nav-btn.active { color: black; } 
+    .nav-btn:hover, .nav-btn.active { color: var(--c-gold); } /* Hover turns Gold */
     
-    /* New Offers Badge in Nav - Styled to POP */
+    /* New Offers Badge in Nav */
     .nav-btn.offers-btn { color: #ea580c; display: flex; align-items: center; gap: 5px; }
     .nav-btn.offers-btn::before { content: '🎁'; font-size: 1rem; }
-    .nav-btn.offers-btn:hover { color: #c2410c; }
+    .nav-btn.offers-btn:hover { color: #ff7b2e; } /* Lighter orange on hover */
     .nav-btn.offers-btn::after { background: #ea580c; }
 
     .shivba-header-actions { display: flex; align-items: center; gap: 15px; }
-    .shivba-primary-btn { background: black; color: white; border: none; padding: 12px 24px; border-radius: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.8rem; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.2); white-space: nowrap; }
+    
+    .shivba-primary-btn { background: white; color: black; border: none; padding: 12px 24px; border-radius: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.8rem; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.2); white-space: nowrap; }
     .shivba-primary-btn:hover { background: var(--c-gold); color: black; transform: translateY(-2px); }
-    .shivba-ghost-btn { background: transparent; border: 1px solid black; padding: 10px 20px; border-radius: 4px; color: black; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; font-weight: 600; text-transform: uppercase; transition: all 0.3s; white-space: nowrap; }
-    .shivba-ghost-btn:hover { background: black; color: white; }
+    
+    .shivba-ghost-btn { 
+        background: transparent; 
+        border: 1px solid rgba(255, 255, 255, 0.5); /* Light border */
+        padding: 10px 20px; border-radius: 4px; 
+        color: white; /* Changed to White */
+        cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; font-weight: 600; text-transform: uppercase; transition: all 0.3s; white-space: nowrap; 
+    }
+    .shivba-ghost-btn:hover { background: white; color: black; border-color: white; }
 
     /* --- SIDE DRAWER MOBILE MENU --- */
     .shivba-menu-toggle { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 5px; z-index: 1002; }
-    .shivba-menu-toggle span { display: block; width: 25px; height: 2px; background-color: black; transition: all 0.3s; }
+    .shivba-menu-toggle span { display: block; width: 25px; height: 2px; background-color: white; /* Changed to White */ transition: all 0.3s; }
 
     .shivba-mobile-overlay {
         position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -143,10 +166,86 @@ const GlobalStyles = () => (
     .shivba-footer-logo { font-family: var(--font-logo); font-size: 2.8rem; color: white; margin-bottom: 1rem; opacity: 1; letter-spacing: 0.1em; }
     .shivba-footer-text { margin-bottom: 1.5rem; line-height: 1.7; max-width: 320px; color: #aaa; font-size: 0.95rem; }
     
-    .shivba-footer-social { display: flex; gap: 15px; margin-top: 1.5rem; }
-    .shivba-social-link { display: flex; align-items: center; justify-content: center; width: 45px; height: 45px; border-radius: 50%; background: rgba(255,255,255,0.08); color: white; transition: all 0.3s ease; text-decoration: none; border: 1px solid rgba(255,255,255,0.05); }
-    .shivba-social-link svg { width: 20px; height: 20px; fill: currentColor; }
-    .shivba-social-link:hover { background: var(--c-gold); color: black; transform: translateY(-3px); }
+    /* --- UPDATED SOCIAL LINKS (PILL SHAPE WITH TEXT) --- */
+    .shivba-footer-social { display: flex; gap: 15px; margin-top: 1.5rem; flex-wrap: wrap; }
+    
+    .shivba-social-link { 
+        display: flex; align-items: center; justify-content: center; 
+        width: auto; height: auto; padding: 10px 20px; /* Pill padding */
+        border-radius: 50px; /* Rounded pill shape */
+        background: rgba(255,255,255,0.08); 
+        color: white; 
+        text-decoration: none; 
+        border: 1px solid rgba(255,255,255,0.05); 
+        transition: all 0.3s ease; 
+        font-weight: 600;
+        font-size: 0.85rem;
+        letter-spacing: 0.05em;
+    }
+
+    /* --- ATTRACTIVE & LIMITED (MINIMALIST) FOOTER INPUT --- */
+
+.shivba-footer-input-wrap { 
+    display: flex !important;
+    flex-direction: column !important; /* Stacked layout */
+    gap: 12px !important; /* Clean space between input and button */
+    margin-top: 1.5rem !important;
+    max-width: 100% !important; /* Uses full column width but keeps it neat */
+}
+
+/* 1. The Input - Clean, Dark, Matte */
+.shivba-footer-input-wrap input { 
+    width: 100% !important;
+    padding: 16px 20px !important;
+    
+    background: #1a1a1a !important; /* Solid matte dark grey */
+    border: 1px solid #333 !important; /* Subtle border */
+    border-radius: 4px !important; /* Slightly rounded */
+    
+    color: #fff !important;
+    font-family: var(--font-body);
+    font-size: 0.9rem !important;
+    outline: none !important;
+    transition: border-color 0.3s ease !important;
+    box-shadow: none !important; /* No shadow/glow */
+}
+
+/* Input Focus - Only the border changes color */
+.shivba-footer-input-wrap input:focus {
+    border-color: var(--c-gold) !important; /* Minimal gold accent */
+    background: #222 !important;
+}
+
+/* 2. The Button - Solid Gold, Bold, No Fancy Effects */
+.shivba-footer-subscribe { 
+    width: 100% !important; /* Full width to match input */
+    padding: 16px !important;
+    
+    background: var(--c-gold) !important; /* Your Brand Gold */
+    color: #000 !important; /* Black Text */
+    
+    border: none !important;
+    border-radius: 4px !important;
+    
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
+    font-size: 0.85rem !important;
+    cursor: pointer !important;
+    transition: background 0.3s ease !important;
+    box-shadow: none !important; /* No shadow */
+}
+
+/* Button Hover - Just slightly lighter */
+.shivba-footer-subscribe:hover { 
+    background: #ffb732 !important; /* Lighter Gold */
+    transform: none !important; /* No movement, keeps it "limited" */
+}
+    
+    
+    .shivba-social-link svg { width: 18px; height: 18px; fill: currentColor; margin-right: 10px; }
+    
+    .shivba-social-link:hover { background: var(--c-gold); color: black; border-color: var(--c-gold); transform: translateY(-3px); }
 
     .shivba-footer-col h4 { color: white; margin-bottom: 1.8rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.25em; font-weight: 700; position: relative; display: inline-block; }
     .shivba-footer-col h4::after { content: ''; position: absolute; bottom: -8px; left: 0; width: 30px; height: 2px; background: var(--c-gold); }
@@ -173,7 +272,7 @@ const GlobalStyles = () => (
     .fab-item:hover::after { opacity: 1; }
 
     body.dark-mode { background-color: #050505 !important; color: #e0e0e0 !important; }
-    body.dark-mode .shivba-header { background-color: rgba(20, 20, 20, 0.95); border-bottom: 1px solid #333; }
+    body.dark-mode .shivba-header { background-color: rgba(0, 0, 0, 0.95); border-bottom: 1px solid #333; }
     body.dark-mode .shivba-logo { color: white; text-shadow: 0 2px 10px rgba(255, 165, 0, 0.3); }
     body.dark-mode .nav-btn { color: white; }
     body.dark-mode .nav-btn:hover, body.dark-mode .nav-btn.active { color: var(--c-gold); }
@@ -203,6 +302,86 @@ const GlobalStyles = () => (
       .shivba-footer-col button, .shivba-footer-col a { text-align: center; }
       .shivba-footer-col h4::after { left: 50%; transform: translateX(-50%); } 
     }
+
+    /* --- PREMIUM SOCIAL BUTTONS (GLASS + GLOW) --- */
+
+.shivba-footer-social { 
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important; /* Increased spacing for cleaner look */
+    width: 100% !important;
+    margin-top: 24px !important;
+}
+
+.shivba-social-link { 
+    position: relative; /* Needed for the glow effect */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    width: 100% !important;
+    padding: 18px 24px !important;
+    
+    /* Dark Glass Background */
+    background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%) !important;
+    backdrop-filter: blur(10px);
+    
+    /* Subtle Border */
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important; /* Softer, modern corners */
+    
+    color: #e0e0e0 !important;
+    font-family: var(--font-body);
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    letter-spacing: 0.05em;
+    text-decoration: none !important;
+    
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important; /* Bouncy transition */
+    overflow: hidden; /* Contains the glow */
+}
+
+/* Icon Styling */
+.shivba-social-link svg {
+    margin-right: 18px !important;
+    width: 22px !important;
+    height: 22px !important;
+    fill: #888 !important; /* Muted default color */
+    transition: all 0.3s ease !important;
+}
+
+/* --- HOVER EFFECTS --- */
+
+.shivba-social-link:hover {
+    transform: translateY(-4px) !important; /* Lifts up */
+    background: linear-gradient(145deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%) !important;
+    border-color: rgba(255, 165, 0, 0.5) !important; /* Gold border appears */
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3), 
+                0 0 15px -5px rgba(255, 165, 0, 0.3) !important; /* Shadow + Gold Glow */
+    color: white !important;
+}
+
+.shivba-social-link:hover svg {
+    fill: var(--c-gold) !important; /* Icon turns Gold */
+    transform: scale(1.15) rotate(5deg) !important; /* Slight rotation */
+}
+
+/* Optional: Add a subtle arrow indicator on hover */
+.shivba-social-link::after {
+    content: '→';
+    position: absolute;
+    right: 24px;
+    opacity: 0;
+    transform: translateX(-10px);
+    color: var(--c-gold);
+    transition: all 0.3s ease;
+}
+
+.shivba-social-link:hover::after {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+
   `}</style>
 );
 
@@ -268,7 +447,7 @@ function Header({ setPage, activePage }) {
       <div className={`shivba-mobile-overlay ${open ? 'visible' : ''}`} onClick={() => setOpen(false)} />
       <div className={`shivba-mobile-drawer ${open ? 'open' : ''}`}>
         <div className="drawer-header">
-           <div className="shivba-logo" onClick={() => goto('home')} style={{ fontSize: '1.5rem', cursor: 'pointer' }}>SHIVBA</div>
+           <div className="shivba-logo" onClick={() => goto('home')} style={{ fontSize: '1.5rem', cursor: 'pointer', color: '#1a1a1a' }}>SHIVBA</div>
            <button className="drawer-close-btn" onClick={() => setOpen(false)}>✕</button>
         </div>
 
@@ -353,14 +532,17 @@ function Footer({ setPage }) {
             {/* Instagram 1 */}
             <a href="https://www.instagram.com/shivbastalim/" target="_blank" rel="noopener noreferrer" className="shivba-social-link insta" title="Instagram Main">
                 <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.069-4.85.069-3.204 0-3.584-.012-4.849-.069-3.204 0-3.584-.012-4.849-.069-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948-0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                <span>Instagram</span>
             </a>
             {/* Instagram 2 */}
             <a href="https://www.instagram.com/socialawarenessfoundation/" target="_blank" rel="noopener noreferrer" className="shivba-social-link insta" title="Instagram Secondary">
                 <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.069-4.85.069-3.204 0-3.584-.012-4.849-.069-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948-0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                <span>Social Wing</span>
             </a>
             {/* Facebook */}
             <a href="https://www.facebook.com/profile.php?id=100017188563264" target="_blank" rel="noopener noreferrer" className="shivba-social-link fb" title="Facebook">
                 <svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.791-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                <span>Facebook</span>
             </a>
           </div>
         </div>

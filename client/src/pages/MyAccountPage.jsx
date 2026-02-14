@@ -396,6 +396,17 @@ function MyAccountPage({ defaultEmail = '', setPage, onLoaded }) {
 
                     <button type="submit" className="login-btn" disabled={isLoading}>{isLoading ? 'Loading...' : 'Sign In'}</button>
                     
+                    {/* --- ADDED SIGN UP BUTTON HERE --- */}
+                    <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '0.9rem', color: '#666' }}>
+                        Don't have an account?
+                        <span 
+                            onClick={() => setPage({ name: 'register' })} 
+                            style={{ color: '#FFA500', fontWeight: 'bold', cursor: 'pointer', marginLeft: '5px' }}
+                        >
+                            Sign Up
+                        </span>
+                    </div>
+
                     {error && <div style={{marginTop:'1rem', color:'#ef4444', background:'#fee2e2', padding:'10px', borderRadius:'6px', fontSize:'0.9rem', textAlign:'center'}}>{error}</div>}
                 </form>
             ) : (
