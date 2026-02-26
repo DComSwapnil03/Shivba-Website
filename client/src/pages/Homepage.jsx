@@ -59,8 +59,41 @@ const EmojiOrbitAnimation = () => {
 
   return (
     <div className="emoji-orbit-wrapper">
-      <motion.div className="orbit-ring-outer" animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} />
-      <motion.div className="orbit-ring-inner" animate={{ rotate: -360 }} transition={{ duration: 15, repeat: Infinity, ease: "linear" }} />
+      {/* SVG replaces the CSS borders to allow "line drawing" completion animations */}
+      <svg className="orbit-svg" viewBox="0 0 300 300">
+        
+        {/* Outer Ring - Dashed and spinning slowly */}
+        <motion.circle
+          cx="150" cy="150" r="145"
+          stroke="rgba(255, 165, 0, 0.3)"
+          strokeWidth="2"
+          fill="transparent"
+          strokeDasharray="8 8"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+          style={{ transformOrigin: "center" }}
+        />
+
+        {/* Inner Ring - Animates to complete itself, then shrinks, while spinning */}
+        <motion.circle
+          cx="150" cy="150" r="105"
+          stroke="rgba(255, 165, 0, 0.8)"
+          strokeWidth="3"
+          fill="transparent"
+          strokeLinecap="round"
+          initial={{ pathLength: 0.1, rotate: 0 }}
+          animate={{ 
+            pathLength: [0.1, 1, 0.1], // Grows from 10% to 100% (completed), then back
+            rotate: -360 // Spins counter-clockwise
+          }}
+          transition={{ 
+            pathLength: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+            rotate: { duration: 12, repeat: Infinity, ease: "linear" }
+          }}
+          style={{ transformOrigin: "center" }}
+        />
+      </svg>
+
       <div className="orbit-core-glow" />
       <div className="emoji-display">
         <AnimatePresence mode="wait">
@@ -172,11 +205,19 @@ function HomePage({ setPage }) {
             text-transform: uppercase; letter-spacing: 0.15em; font-weight: 600; border-radius: 0 !important; cursor: pointer;
         }
 
-        /* Emoji Orbit CSS */
-        .emoji-orbit-wrapper { position: relative; width: 300px; height: 300px; display: flex; justify-content: center; align-items: center; }
-        .orbit-ring-outer { position: absolute; width: 100%; height: 100%; border: 2px dashed rgba(255, 165, 0, 0.3); border-radius: 50%; }
-        .orbit-ring-inner { position: absolute; width: 70%; height: 70%; border: 2px solid rgba(255, 165, 0, 0.6); border-left-color: transparent; border-radius: 50%; }
-        .orbit-core-glow { position: absolute; width: 40%; height: 40%; background: radial-gradient(circle, rgba(255,165,0,0.2) 0%, transparent 70%); border-radius: 50%; filter: blur(10px); }
+        /* Emoji Orbit CSS - UPDATED FOR SVG ANIMATION */
+        .emoji-orbit-wrapper { 
+            position: relative; width: 300px; height: 300px; 
+            display: flex; justify-content: center; align-items: center; 
+        }
+        .orbit-svg { 
+            position: absolute; width: 100%; height: 100%; z-index: 1; pointer-events: none; 
+        }
+        .orbit-core-glow { 
+            position: absolute; width: 40%; height: 40%; 
+            background: radial-gradient(circle, rgba(255,165,0,0.25) 0%, transparent 70%); 
+            border-radius: 50%; filter: blur(10px); z-index: 0;
+        }
         .emoji-display { font-size: 5rem; z-index: 10; }
         .real-emoji { display: block; }
 
@@ -345,8 +386,6 @@ function HomePage({ setPage }) {
             whileInView="visible" 
             viewport={{ once: true, margin: "-100px" }}
         >
-          {/* Note: In your original code you used <HomeCard ... /> components, but defined them at the bottom. 
-              The CSS class .info-card handles their look. */}
           <HomeCard title={t('home.cards.talim.title')} text={t('home.cards.talim.text')} onClick={() => setPage({ name: 'service-detail', params: { id: 'talim' } })} />
           <HomeCard title={t('home.cards.hostel.title')} text={t('home.cards.hostel.text')} onClick={() => setPage({ name: 'service-detail', params: { id: 'hostel' } })} />
           <HomeCard title={t('home.cards.library.title')} text={t('home.cards.library.text')} onClick={() => setPage({ name: 'service-detail', params: { id: 'library' } })} />
@@ -362,13 +401,12 @@ function HomePage({ setPage }) {
            whileInView="visible"
            viewport={{ once: true }}
          >
-            {/* UPDATED INLINE STYLES FOR DARK MODE */}
             <motion.h2 
                 style={{
                     fontFamily: 'Cinzel', 
                     fontSize: '2rem', 
                     marginBottom: '10px', 
-                    color: '#ffffff', /* CHANGED TO WHITE */
+                    color: '#ffffff',
                     textShadow: 'none' 
                 }} 
                 variants={itemVariants}
@@ -380,7 +418,7 @@ function HomePage({ setPage }) {
                 variants={itemVariants} 
                 style={{
                     marginBottom: '2rem', 
-                    color: '#bbbbbb', /* CHANGED TO LIGHT GREY */
+                    color: '#bbbbbb',
                     fontWeight: '500'
                 }}
             >
@@ -397,7 +435,7 @@ function HomePage({ setPage }) {
         whileInView="visible"
         viewport={{ once: true }}
         variants={containerVariants}
-        style={{ color: '#fff' }} /* Ensure text is white */
+        style={{ color: '#fff' }} 
       >
         <div className="particle-content">
           <motion.h2 variants={itemVariants} style={{ color: '#fff' }}>Join the <br /> Revolution</motion.h2>
