@@ -96,7 +96,7 @@ const EventCard = ({ event, status, onAction, viewMode }) => {
 
 // --- MAIN PAGE COMPONENT ---
 const EventsPage = ({ setPage, setSelectedEvent }) => {
-    const [events, setEvents] = useState(INITIAL_EVENTS);
+    const [events] = useState(INITIAL_EVENTS);
     const [viewMode, setViewMode] = useState('upcoming'); // 'upcoming' or 'past'
     const [activeCategory, setActiveCategory] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');

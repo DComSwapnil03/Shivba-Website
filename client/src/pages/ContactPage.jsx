@@ -52,7 +52,6 @@ function ContactPage({ setModalState }) {
   // Shivba's approximate coordinates (Jadhav Commercial Centre area)
   const SHIVBA_LAT = 18.7540991;
   const SHIVBA_LNG = 73.8619822;
-  const SHIVBA_ADDRESS = "Jadhav Commercial Centre, Chakan, Maharashtra 410501";
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
