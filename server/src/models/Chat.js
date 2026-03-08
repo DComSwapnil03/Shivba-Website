@@ -1,9 +1,8 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const chatSchema = new mongoose.Schema({
   userId: { 
     type: String, 
-    required: false, // Optional: useful if you have logged-in users
     default: "guest" 
   }, 
   userMessage: { 
@@ -20,4 +19,4 @@ const chatSchema = new mongoose.Schema({
   }
 });
 
-export default mongoose.model("Chat", chatSchema);
+module.exports = mongoose.model("Chat", chatSchema);

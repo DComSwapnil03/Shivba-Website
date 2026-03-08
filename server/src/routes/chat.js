@@ -1,51 +1,47 @@
 const express = require('express');
 const OpenAI = require('openai');
-const Chat = require('../models/Chat'); // Ensure your Chat model is also using CommonJS
-
+const Chat = require('../models/Chat'); 
 const router = express.Router();
 
-// Initialize OpenAI Client
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY, 
 });
 
+const SHIVBA_IDENTITY = `
+You are Shivba, the AI for Shivba Gym & Library (https://shivaam.netlify.app).
+Location: [Insert City/Area].
+Gym: Premium equipment, ₹500/month starting.
+Library: Quiet, AC-equipped, high-speed Wi-Fi.
+Tone: Helpful, direct, and motivating.
+`;
+
 router.post("/", async (req, res) => {
-  // Extract message, history, and optional userId from the request
-  const { message, history, userId } = req.body; 
+  const { message, history } = req.body; 
 
   try {
-    // 1. Construct context for OpenAI
-    const conversation = [
-      { role: "system", content: "You are Shivba, a helpful and professional AI assistant for a gym and library. Keep answers concise, friendly, and helpful." },
-      ...(history || []), // Append previous chat context if available
-      { role: "user", content: message }
-    ];
-
-    // 2. Call OpenAI API
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o", // You can switch to "gpt-3.5-turbo" to save costs
-      messages: conversation,
-      max_tokens: 150, // Limit response length
+      model: "gpt-4o-mini", // Fastest model to avoid Vercel timeouts
+      messages: [
+        { role: "system", content: SHIVBA_IDENTITY },
+        ...(history || []).slice(-3), // Only last 3 messages to keep payload small
+        { role: "user", content: message }
+      ],
+      max_tokens: 150,
     });
 
     const botReply = completion.choices[0].message.content;
 
-    // 3. SAVE TO MONGODB
-    await Chat.create({
-      userId: userId || "guest",
+    // Save to DB (Fire and forget to speed up response)
+    Chat.create({
       userMessage: message,
-      botReply: botReply,
-      timestamp: new Date()
-    });
+      botReply: botReply
+    }).catch(err => console.error("DB Save Error:", err));
 
-    // 4. Send response back to frontend
     res.json({ reply: botReply });
-
   } catch (error) {
-    console.error("Chat API Error:", error);
-    res.status(500).json({ error: "Failed to generate response" });
+    console.error("OpenAI Error:", error);
+    res.status(500).json({ error: "Shivba AI is currently resting. Try again soon!" });
   }
 });
 
-// IMPORTANT: Export using module.exports for compatibility with app.js
 module.exports = router;

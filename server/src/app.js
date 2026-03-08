@@ -6,7 +6,6 @@ const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
 
-// Load environment variables
 dotenv.config();
 
 // --- IMPORT ROUTES ---
@@ -16,18 +15,13 @@ const contactRoutes = require('./routes/contactRoutes');
 const registrationRoutes = require('./routes/registrationRoutes');
 const paymentRoutesFactory = require('./routes/paymentRoutes');
 const eventRegistrationRoutes = require('./routes/eventRegistrationRoutes');
-
-// [UPDATED] Import the new Auth Routes (Password + OTP)
 const authRoutes = require('./routes/authRoutes'); 
-
-// [UPDATED] Import Account Routes
 const accountRoutes = require('./routes/accountRoutes'); 
-
-// [NEW] Import Data Routes (Excel Import/Export)
 const dataRoutes = require('./routes/dataRoutes');
-
-// [NEW] Import Notification Routes (WhatsApp Welcome Message)
 const notificationRoutes = require('./routes/notificationRoutes');
+
+// [NEW] Import Chat Route
+const chatRoutes = require('./routes/chat'); 
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -44,87 +38,47 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Rate limiting
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000, 
   max: 100,
-  message: 'Too many requests from this IP, please try again after 15 minutes',
+  message: 'Too many requests, please try again later',
   standardHeaders: true,
   legacyHeaders: false
 });
 app.use('/api/', apiLimiter);
 
 // MongoDB Connection
-const MONGOURI = process.env.MONGOURI || process.env.MONGO_URI;
-if (!MONGOURI) {
-  console.error('❌ MONGOURI not found in .env file!');
-  process.exit(1);
-}
-
-mongoose
-  .connect(MONGOURI)
-  .then(() => console.log('✅ MongoDB connected successfully!'))
-  .catch((err) => {
-    console.error('❌ MongoDB connection error:', err);
-    process.exit(1);
-  });
-
-// Health check
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'SHIVBA API Server is running!',
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
-  });
-});
-
-// Razorpay instance
-const createRazorpayInstance = require('./config/razorpay');
-// Wrap in try-catch in case Razorpay config is missing locally
-let paymentRoutes;
-try {
-    const razorpay = createRazorpayInstance();
-    paymentRoutes = paymentRoutesFactory(razorpay);
-} catch (error) {
-    console.warn("⚠️ Razorpay setup failed (check .env). Payment routes disabled.");
-    paymentRoutes = (req, res, next) => next(); // Dummy middleware
-}
+mongoose.connect(process.env.MONGOURI || process.env.MONGO_URI)
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch((err) => console.error('❌ MongoDB Error:', err));
 
 // --- MOUNT ROUTES ---
-app.use('/api', dynamicContentRoutes);       // Dynamic content (services, team, etc.)
-app.use('/api', publicContentRoutes);        // Public data (events, gallery, testimonials)
-app.use('/api', contactRoutes);              // Contact form
-
-// [UPDATED] New Auth Routes (Register Interest + Verify OTP)
-app.use('/api', authRoutes);                 
-
-app.use('/api', accountRoutes);              // Account lookup
-app.use('/api', registrationRoutes);         // Existing registrations
-app.use('/api', paymentRoutes);              // Razorpay payments
-app.use('/api', eventRegistrationRoutes);    // Event registrations
-
-// [NEW] Data Routes (Excel Import/Export) - Mounts at /api/data
+app.use('/api', dynamicContentRoutes);
+app.use('/api', publicContentRoutes);
+app.use('/api', contactRoutes);
+app.use('/api', authRoutes);
+app.use('/api', accountRoutes);
+app.use('/api', registrationRoutes);
 app.use('/api/data', dataRoutes);
-
-// [NEW] Notification Routes - Mounts at /api/send-welcome-message
 app.use('/api', notificationRoutes);
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({ message: 'Route not found' });
-});
+// [NEW] Chatbot Route - This fixes your 404!
+app.use('/api/chat', chatRoutes); 
 
-// Global error handler
+// Payment Logic
+try {
+  const createRazorpayInstance = require('./config/razorpay');
+  const razorpay = createRazorpayInstance();
+  app.use('/api', paymentRoutesFactory(razorpay));
+} catch (e) {
+  console.warn("⚠️ Razorpay disabled.");
+}
+
+app.use('/api', eventRegistrationRoutes);
+
+// 404 & Error Handlers
+app.use('*', (req, res) => res.status(404).json({ message: 'Route not found' }));
 app.use((err, req, res, next) => {
-  console.error('🚨 Global error:', err);
-  res.status(500).json({ 
-    message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined 
-  });
+  res.status(500).json({ message: 'Internal Server Error' });
 });
 
-// Start server
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Shivba API Server running on http://localhost:${PORT}`);
-});
-
-module.exports = server;
+app.listen(PORT, () => console.log(`🚀 Server on http://localhost:${PORT}`));
