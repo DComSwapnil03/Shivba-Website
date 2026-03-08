@@ -28,10 +28,10 @@ const AdminDataPanel = () => {
 
         try {
             // Adjust URL if your server runs on a different port (e.g., http://localhost:5000)
-            const response = await fetch('http://localhost:5000/api/data/import-members', {
-                method: 'POST',
-                body: formData,
-            });
+   const response = await fetch('https://shivba-website-git-main-shivba-team.vercel.app/api/data/import-members', {
+    method: 'POST',
+    body: formData,
+});
 
             const data = await response.json();
 
@@ -54,7 +54,7 @@ const AdminDataPanel = () => {
     const handleExport = () => {
         // Direct browser download
         // Ensure this URL matches your backend port
-        window.open('http://localhost:5000/api/data/export-members', '_blank');
+window.open('https://shivba-website-git-main-shivba-team.vercel.app/api/data/export-members', '_blank');
     };
 
     return (

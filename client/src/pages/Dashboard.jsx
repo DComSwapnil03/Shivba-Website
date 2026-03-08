@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useKeyboardShortcut } from '../hooks/useKeyboardShortcut'; 
 
 // --- CONFIGURATION ---
-const API_BASE_URL = 'http://localhost:5000'; 
+const API_BASE_URL = 'https://shivba-website-git-main-shivba-team.vercel.app'; // Update with your backend URL
 
 // --- ANIMATION VARIANTS ---
 const containerVariants = {
