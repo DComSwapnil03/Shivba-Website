@@ -71,15 +71,38 @@ function RegisterPage({ setPage, setModalState }) {
         body: JSON.stringify(payload)
       });
 
-      const data = await res.json();
+      // --- THE FIX: INTERCEPT STATUS CODES BEFORE PARSING JSON ---
+      if (res.status === 409) {
+          setModalState({ 
+              show: true, 
+              title: 'Account Exists', 
+              message: 'This email or phone number is already registered. Please log in instead.', 
+              type: 'error' 
+          });
+          setIsSubmitting(false);
+          return; // Stop execution here
+      }
 
-      if (!res.ok) throw new Error(data.message || 'Registration failed.');
+      if (!res.ok) {
+          // If it's a 400 or 500 level error, try to extract a message safely
+          let errorMessage = 'Registration failed due to a server error.';
+          try {
+              const errData = await res.json();
+              errorMessage = errData.message || errorMessage;
+          } catch (e) {
+              // Ignore JSON parse errors on server crashes
+          }
+          throw new Error(errorMessage);
+      }
+
+      // If we made it here, it's a 200/201 Success. Now it is safe to parse JSON.
+      const data = await res.json();
 
       // Success Modal
       setModalState({
         show: true,
         title: '🚀 Code Sent!',
-        message: `Verification code sent to ${data.email}. Check your inbox!`,
+        message: `Verification code sent to ${data.email || payload.email}. Check your inbox!`,
         type: 'success'
       });
 
@@ -89,7 +112,7 @@ function RegisterPage({ setPage, setModalState }) {
           setPage({ 
               name: 'verify', 
               params: { 
-                  email: data.email, 
+                  email: data.email || payload.email, 
                   phone: payload.phone, 
                   name: payload.name 
               } 
@@ -280,7 +303,6 @@ function RegisterPage({ setPage, setModalState }) {
                     required 
                     placeholder="Create a strong password"
                   />
-                  {/* Replaced Icon Component with Emoji for Stability */}
                   <button type="button" className="icon-btn" onClick={() => setShowPassword(!showPassword)}>
                       {showPassword ? "👁️" : "🔒"}
                   </button>
