@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useKeyboardShortcut } from '../hooks/useKeyboardShortcut'; 
 
 // --- CONFIGURATION ---
-const API_BASE_URL = 'https://shivba-website-git-main-shivba-team.vercel.app'; // Update with your backend URL
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000'; 
 
 // --- ANIMATION VARIANTS ---
 const containerVariants = {
@@ -20,12 +20,12 @@ const modalVariants = {
   exit: { opacity: 0, scale: 0.95 }
 };
 
-const Dashboard = () => {
+const Dashboard = ({ setPage }) => {
   // --- DASHBOARD STATE ---
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('users'); 
   const [tableData, setTableData] = useState([]); 
-  const [stats, setStats] = useState({ userCount: 0, eventCount: 0, msgCount: 0 });
+  const [stats, setStats] = useState({ userCount: 0, eventCount: 0, msgCount: 0, libUserCount: 0, issuedBooksCount: 0 });
   const [loadingData, setLoadingData] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -44,7 +44,11 @@ const Dashboard = () => {
     try {
         const res = await fetch(`${API_BASE_URL}/api/data/list`); 
         const data = await res.json();
-        if (data.userCount !== undefined) setStats(data);
+        setStats({
+            ...data,
+            libUserCount: data.libUserCount || 0,
+            issuedBooksCount: data.issuedBooksCount || 0
+        });
     } catch (err) { console.error("Stats error", err); }
   };
 
@@ -54,62 +58,64 @@ const Dashboard = () => {
     try {
         const res = await fetch(`${API_BASE_URL}/api/data/list?type=${type}`);
         const data = await res.json();
+        
         if (Array.isArray(data)) setTableData(data);
     } catch (error) {
-        console.error("Failed to load data", error);
+        console.error("Failed to load data. Is the backend running?", error);
     } finally {
         setLoadingData(false);
     }
   };
 
-  // --- EFFECTS ---
   useEffect(() => {
     fetchStats();
     fetchData(activeTab);
   }, [activeTab]);
 
-  // --- MOCK DATA GENERATOR ---
-  const generateMockUserDetails = (user) => {
-    const hasGym = Math.random() > 0.5;
-    const hasHostel = Math.random() > 0.5;
-    const hasLibrary = Math.random() > 0.5;
-    const equipped = [];
-    const notEquipped = [];
-    if (hasGym) equipped.push('Gym'); else notEquipped.push('Gym');
-    if (hasHostel) equipped.push('Hostel'); else notEquipped.push('Hostel');
-    if (hasLibrary) equipped.push('Library'); else notEquipped.push('Library');
-
-    const gymPending = hasGym && Math.random() > 0.7 ? 500 : 0;
-    const hostelPending = hasHostel && Math.random() > 0.8 ? 2000 : 0;
-    const libraryPending = hasLibrary && Math.random() > 0.6 ? 200 : 0;
-    const totalPending = gymPending + hostelPending + libraryPending;
-
-    const generateHistory = (service) => {
-        if (!equipped.includes(service)) return [];
-        return [
-            { date: '2023-12-01', amount: 500, status: 'Paid' },
-            { date: '2023-11-01', amount: 500, status: 'Paid' },
-        ];
-    };
-
-    return {
-        ...user,
-        details: {
-            equipped,
-            notEquipped,
-            pendingBreakdown: { gym: gymPending, hostel: hostelPending, library: libraryPending },
-            totalPending,
-            history: { gym: generateHistory('Gym'), hostel: generateHistory('Hostel'), library: generateHistory('Library') }
-        }
-    };
-  };
-
+  // --- REAL DATA MAPPING FOR USER MODAL ---
   const handleUserClick = (user) => {
-      const fullUserDetails = generateMockUserDetails(user);
-      setSelectedUser(fullUserDetails);
+      if (activeTab === 'users') {
+          const ALL_SERVICES = ['Gym', 'Hostel', 'Library'];
+
+          const programs = user.programs || [];
+          const payments = user.payments || [];
+
+          const equipped = programs
+              .filter(p => p.status === 'active')
+              .map(p => p.name);
+
+          const notEquipped = ALL_SERVICES.filter(service => !equipped.includes(service));
+
+          const getHistory = (serviceName) => {
+              return payments
+                  .filter(pay => pay.eventName && pay.eventName.toLowerCase().includes(serviceName.toLowerCase()))
+                  .map(pay => ({
+                      date: new Date(pay.date).toLocaleDateString(),
+                      amount: pay.amount,
+                      status: pay.status
+                  }));
+          };
+
+          const realUserDetails = {
+              ...user,
+              details: {
+                  equipped,
+                  notEquipped,
+                  pendingBreakdown: { gym: 0, hostel: 0, library: 0 }, 
+                  totalPending: 0,
+                  history: { 
+                      gym: getHistory('Gym'), 
+                      hostel: getHistory('Hostel'), 
+                      library: getHistory('Library') 
+                  }
+              }
+          };
+
+          setSelectedUser(realUserDetails);
+      }
   };
 
-  // --- DELETE HANDLER ---
+  // --- ACTION HANDLERS ---
   const handleDelete = async (e, id) => {
     e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this record?")) return;
@@ -127,7 +133,6 @@ const Dashboard = () => {
     } catch (error) { alert("Network Error"); }
   };
 
-  // --- IMPORT EXCEL HANDLER ---
   const handleImportClick = () => fileInputRef.current.click();
 
   const handleFileChange = async (e) => {
@@ -135,15 +140,17 @@ const Dashboard = () => {
     if (!file) return;
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('type', activeTab); 
+    
     setUploading(true);
-    setStatusMsg({ type: 'info', text: 'Uploading Excel file...', subText: 'Processing user data...' });
+    setStatusMsg({ type: 'info', text: 'Uploading Excel file...', subText: `Processing ${activeTab.replace('_', ' ')} data...` });
 
     try {
         const response = await fetch(`${API_BASE_URL}/api/data/import`, { method: 'POST', body: formData });
         const data = await response.json();
         if (response.ok) {
-            setStatusMsg({ type: 'success', text: `✅ Import Successful`, subText: `${data.count || 'Users'} records added.` });
-            if (activeTab === 'users') fetchData('users'); 
+            setStatusMsg({ type: 'success', text: `✅ Import Successful`, subText: `${data.count || 'Records'} added to ${activeTab}.` });
+            fetchData(activeTab); 
             fetchStats(); 
         } else {
             setStatusMsg({ type: 'error', text: `⚠️ Import Failed: ${data.message}` });
@@ -164,7 +171,10 @@ const Dashboard = () => {
   const renderTableHeaders = () => {
     const style = { padding: '12px', fontWeight: '600' };
     const common = <><th style={style}>Actions</th></>;
+    
     if (activeTab === 'users') return <><th style={style}>Name</th><th style={style}>Email</th><th style={style}>Phone</th><th style={style}>Status</th>{common}</>;
+    if (activeTab === 'library_users') return <><th style={style}>Seat No</th><th style={style}>Name</th><th style={style}>Enroll Date</th>{common}</>;
+    if (activeTab === 'library_books') return <><th style={style}>Borrower</th><th style={style}>Book Title</th><th style={style}>Book ID</th><th style={style}>Status</th>{common}</>;
     if (activeTab === 'events') return <><th style={style}>Participant</th><th style={style}>Event</th><th style={style}>Email</th><th style={style}>Date</th>{common}</>;
     if (activeTab === 'messages') return <><th style={style}>Sender</th><th style={style}>Subject</th><th style={style}>Message</th><th style={style}>Sent At</th>{common}</>;
   };
@@ -177,7 +187,7 @@ const Dashboard = () => {
         const rowStyle = { borderBottom: '1px solid #f3f4f6', fontSize: '0.9rem', cursor: activeTab === 'users' ? 'pointer' : 'default' };
         const deleteCell = (
             <td style={style}>
-                <button onClick={(e) => handleDelete(e, row._id)} style={btnStyle}>🗑️ Delete</button>
+                <button onClick={(e) => handleDelete(e, row._id || row.id)} style={btnStyle}>🗑️ Delete</button>
             </td>
         );
 
@@ -190,8 +200,32 @@ const Dashboard = () => {
                 {deleteCell}
             </tr>
         );
-        if (activeTab === 'events') return <tr key={row._id} style={rowStyle}><td style={style}><strong>{row.name}</strong></td><td style={style}>{row.eventTitle || row.eventId}</td><td style={style}>{row.email}</td><td style={style}>{new Date(row.registeredAt).toLocaleDateString()}</td>{deleteCell}</tr>;
-        if (activeTab === 'messages') return <tr key={row._id} style={rowStyle}><td style={style}><strong>{row.name}</strong></td><td style={style}>{row.subject}</td><td style={style}>{row.message?.substring(0, 20)}...</td><td style={style}>{new Date(row.createdAt).toLocaleDateString()}</td>{deleteCell}</tr>;
+        
+        if (activeTab === 'library_users') return (
+            <tr key={row._id || row.seatNo} style={rowStyle} className="hover-row">
+                <td style={{...style, fontWeight: 'bold', color: '#ea580c'}}>Seat {row.seatNo}</td>
+                <td style={style}><strong>{row.name}</strong></td>
+                <td style={style}>{row.enrollDate ? new Date(row.enrollDate).toLocaleDateString() : 'N/A'}</td>
+                {deleteCell}
+            </tr>
+        );
+
+        if (activeTab === 'library_books') return (
+            <tr key={row._id || row.issueId} style={rowStyle} className="hover-row">
+                <td style={style}><strong>{row.borrowerName}</strong></td>
+                <td style={style}>{row.bookTitle}</td>
+                <td style={{...style, color: '#666'}}>ID: {row.bookId}</td>
+                <td style={style}>
+                    <span style={{background: row.status === 'Returned' ? '#dcfce7' : '#fee2e2', color: row.status === 'Returned' ? '#166534' : '#991b1b', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem'}}>
+                        {row.status || 'Issued'}
+                    </span>
+                </td>
+                {deleteCell}
+            </tr>
+        );
+
+        if (activeTab === 'events') return <tr key={row._id} style={rowStyle}><td style={style}><strong>{row.name}</strong></td><td style={style}>{row.eventTitle || row.eventId}</td><td style={style}>{row.email}</td><td style={style}>{row.registeredAt ? new Date(row.registeredAt).toLocaleDateString() : 'N/A'}</td>{deleteCell}</tr>;
+        if (activeTab === 'messages') return <tr key={row._id} style={rowStyle}><td style={style}><strong>{row.name}</strong></td><td style={style}>{row.subject}</td><td style={style}>{row.message?.substring(0, 20)}...</td><td style={style}>{row.createdAt ? new Date(row.createdAt).toLocaleDateString() : 'N/A'}</td>{deleteCell}</tr>;
         return null;
     });
   };
@@ -225,31 +259,54 @@ const Dashboard = () => {
         body.dark-mode .dashboard-container { background: #111; }
         h1, h2, h3 { font-family: 'Cinzel', serif; letter-spacing: 0.05em; color: #1a1a1a; }
         .dash-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         .stat-card { background: white; padding: 1.5rem; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .stat-val { font-size: 2rem; font-weight: 700; color: #1a1a1a; margin: 5px 0; }
         .content-split { display: grid; grid-template-columns: 3fr 1fr; gap: 2rem; }
         @media (max-width: 1000px) { .content-split { grid-template-columns: 1fr; } }
         .content-card { background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05); min-height: 400px; }
-        .tabs { display: flex; gap: 20px; border-bottom: 2px solid #eee; margin-bottom: 20px; }
-        .tab-btn { background: none; border: none; padding-bottom: 10px; cursor: pointer; font-family: 'Cinzel', serif; font-weight: bold; font-size: 1rem; color: #888; border-bottom: 3px solid transparent; transition: all 0.3s; }
-        .tab-btn.active { color: #FFA500; border-bottom-color: #FFA500; }
-        .action-btn { padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; text-align: left; margin-bottom: 10px; border: 1px solid #ddd; background: white; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        
+        .tabs { display: flex; gap: 15px; border-bottom: 2px solid #eee; margin-bottom: 20px; overflow-x: auto; white-space: nowrap; padding-bottom: 5px; }
+        .tab-btn { background: none; border: none; padding-bottom: 10px; cursor: pointer; font-family: 'Cinzel', serif; font-weight: bold; font-size: 0.95rem; color: #888; border-bottom: 3px solid transparent; transition: all 0.3s; }
+        .tab-btn.active { color: #ea580c; border-bottom-color: #ea580c; }
+        
+        .action-btn { padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; text-align: left; margin-bottom: 10px; border: 1px solid #ddd; background: white; font-weight: 600; display: flex; align-items: center; gap: 10px; transition: background 0.2s;}
         .action-btn:hover { background: #f9f9f9; }
+        
+        /* CSS FIX: LIBRARY BUTTON HOVER OVERRIDE */
+        .library-nav-btn { 
+            background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); 
+            color: white; 
+            border: none; 
+            margin-bottom: 20px; 
+            justify-content: center; 
+            box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3); 
+        }
+        .library-nav-btn:hover { 
+            background: linear-gradient(135deg, #c2410c 0%, #9a3412 100%); 
+            color: white; 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 15px rgba(234, 88, 12, 0.4); 
+        }
+
         .status-msg { margin-top: 15px; padding: 10px; border-radius: 6px; font-size: 0.85rem; }
-        .status-success { background: #d1fae5; color: #065f46; }
-        .status-error { background: #fee2e2; color: #991b1b; }
+        .status-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;}
+        .status-error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;}
+        .status-info { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe;}
         .hover-row:hover { background-color: #f9fafb; transition: background 0.2s; }
         .search-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 9999; display: flex; align-items: center; justify-content: center; }
         .search-modal { background: white; width: 90%; max-width: 600px; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+        .search-input { width: 100%; border: none; padding: 1rem; font-size: 1.2rem; outline: none; font-family: 'Montserrat'; }
+        .search-header { display: flex; align-items: center; padding: 0 1rem; border-bottom: 1px solid #eee; }
         .user-detail-modal { background: white; width: 90%; max-width: 900px; max-height:90vh; overflow-y:auto; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); padding: 0; }
         .ud-header { background: #1a1a1a; color: white; padding: 2rem; position: relative; }
-        .ud-close { position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
+        .ud-close { position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; transition: background 0.2s;}
+        .ud-close:hover { background: #ea580c; }
         .ud-body { padding: 2rem; }
         .ud-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
         .ud-card { background: #f9fafb; padding: 1.5rem; border-radius: 12px; border: 1px solid #eee; }
         .ud-tag { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; margin-right: 5px; margin-bottom: 5px; }
-        .ud-tag.green { background: #d1fae5; color: #065f46; }
+        .ud-tag.green { background: #dcfce7; color: #166534; }
         .payment-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 1rem; }
         @media (max-width: 768px) { .ud-grid, .payment-grid { grid-template-columns: 1fr; } }
       `}</style>
@@ -265,35 +322,44 @@ const Dashboard = () => {
 
       <div className="stats-grid">
         <motion.div className="stat-card" variants={itemVariants}>
-            <div style={{color:'#888', textTransform:'uppercase', fontSize:'0.8rem'}}>Total Members</div>
+            <div style={{color:'#888', textTransform:'uppercase', fontSize:'0.8rem'}}>Total App Users</div>
             <div className="stat-val">{stats.userCount}</div>
+        </motion.div>
+        <motion.div className="stat-card" variants={itemVariants}>
+            <div style={{color:'#888', textTransform:'uppercase', fontSize:'0.8rem'}}>Library Seats Taken</div>
+            <div className="stat-val" style={{color:'#ea580c'}}>{stats.libUserCount}</div>
+        </motion.div>
+        <motion.div className="stat-card" variants={itemVariants}>
+            <div style={{color:'#888', textTransform:'uppercase', fontSize:'0.8rem'}}>Books Issued</div>
+            <div className="stat-val" style={{color:'#059669'}}>{stats.issuedBooksCount}</div>
         </motion.div>
         <motion.div className="stat-card" variants={itemVariants}>
             <div style={{color:'#888', textTransform:'uppercase', fontSize:'0.8rem'}}>Event Registrations</div>
             <div className="stat-val" style={{color:'#FFA500'}}>{stats.eventCount}</div>
-        </motion.div>
-        <motion.div className="stat-card" variants={itemVariants}>
-            <div style={{color:'#888', textTransform:'uppercase', fontSize:'0.8rem'}}>Messages</div>
-            <div className="stat-val" style={{color:'#4f46e5'}}>{stats.msgCount}</div>
         </motion.div>
       </div>
 
       <div className="content-split">
         <motion.div className="content-card" variants={itemVariants}>
           <div className="tabs">
-            <button className={`tab-btn ${activeTab==='users'?'active':''}`} onClick={()=>setActiveTab('users')}>Users</button>
-            <button className={`tab-btn ${activeTab==='events'?'active':''}`} onClick={()=>setActiveTab('events')}>Event Registrations</button>
+            {/* TABS RENAMED */}
+            <button className={`tab-btn ${activeTab==='users'?'active':''}`} onClick={()=>setActiveTab('users')}>All Users</button>
+            <button className={`tab-btn ${activeTab==='library_users'?'active':''}`} onClick={()=>setActiveTab('library_users')}>Library Users</button>
+            <button className={`tab-btn ${activeTab==='library_books'?'active':''}`} onClick={()=>setActiveTab('library_books')}>Issued Books</button>
+            <button className={`tab-btn ${activeTab==='events'?'active':''}`} onClick={()=>setActiveTab('events')}>Events</button>
             <button className={`tab-btn ${activeTab==='messages'?'active':''}`} onClick={()=>setActiveTab('messages')}>Messages</button>
           </div>
 
           <div style={{display:'flex', justifyContent:'space-between', marginBottom:'15px'}}>
-             <h3 style={{fontSize:'1.2rem', margin:0}}>Recent {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</h3>
+             <h3 style={{fontSize:'1.2rem', margin:0}}>
+                 Recent {activeTab === 'library_users' ? 'Library Users' : activeTab.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+             </h3>
              <button onClick={()=>fetchData(activeTab)} style={{background:'none', border:'none', cursor:'pointer', fontSize:'1.2rem'}} title="Refresh">🔄</button>
           </div>
 
           <div style={{ overflowX: 'auto' }}>
             {loadingData ? <p style={{textAlign:'center', padding:'20px'}}>Loading...</p> : 
-             tableData.length === 0 ? <p style={{textAlign:'center', padding:'20px', color:'#999'}}>No data found.</p> : (
+             tableData.length === 0 ? <p style={{textAlign:'center', padding:'20px', color:'#999'}}>No data found for this section.</p> : (
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
                 <thead><tr style={{ textAlign: 'left', borderBottom: '1px solid #ddd', color: '#888' }}>{renderTableHeaders()}</tr></thead>
                 <tbody>{renderTableRows()}</tbody>
@@ -303,16 +369,37 @@ const Dashboard = () => {
         </motion.div>
 
         <motion.div className="content-card" variants={itemVariants} style={{ height: 'fit-content' }}>
+          
+          <button 
+             className="action-btn library-nav-btn" 
+             onClick={() => setPage && setPage('library_dashboard')}
+          >
+             📚 Open Advanced Library Operations ➜
+          </button>
+
+          <hr style={{border:'none', borderTop:'1px solid #eee', marginBottom:'20px'}}/>
+
           <h3>Actions</h3>
-          <p style={{color:'#666', fontSize:'0.9rem', marginBottom:'20px'}}>Manage data for <strong>{activeTab}</strong>.</p>
+          <p style={{color:'#666', fontSize:'0.9rem', marginBottom:'20px'}}>
+              Manage data for <strong>{activeTab === 'library_users' ? 'Library Users' : activeTab.replace('_', ' ')}</strong>.
+          </p>
           
           <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept=".xlsx,.xls,.csv" onChange={handleFileChange} />
-          {activeTab === 'users' && <button className="action-btn" onClick={handleImportClick} disabled={uploading}>📂 {uploading ? 'Importing...' : 'Import Users (Excel)'}</button>}
-          <button className="action-btn" onClick={handleExportClick}>⬇ Export {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} (Excel)</button>
+          
+          {['users', 'library_users', 'library_books'].includes(activeTab) && (
+              <button className="action-btn" onClick={handleImportClick} disabled={uploading}>
+                  {/* IMPORT TEXT RENAMED */}
+                  📂 {uploading ? 'Importing...' : `Import ${activeTab === 'users' ? 'App Users' : activeTab === 'library_users' ? 'Library Users' : 'Books'} (Excel)`}
+              </button>
+          )}
+          
+          <button className="action-btn" onClick={handleExportClick}>
+              ⬇ Export {activeTab === 'library_users' ? 'Library Users' : activeTab.split('_').pop().replace(/\b\w/g, l => l.toUpperCase())} (Excel)
+          </button>
 
           <AnimatePresence>
             {statusMsg.text && (
-                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className={`status-msg status-${statusMsg.type}`}>
+                <motion.div initial={{opacity:0, y:-10}} animate={{opacity:1, y:0}} exit={{opacity:0, y:-10}} className={`status-msg status-${statusMsg.type}`}>
                     <strong>{statusMsg.text}</strong>
                     {statusMsg.subText && <div style={{marginTop:'5px', fontSize:'0.8em'}}>{statusMsg.subText}</div>}
                 </motion.div>

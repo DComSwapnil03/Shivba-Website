@@ -115,8 +115,7 @@ function VerifyCodePage({ defaultEmail = '', name = '', phone = '', onVerified, 
 
       // 2. Trigger Backend Notification
       if (phoneToSend) {
-          // Fire and forget (don't await strictly if you want UI to be snappy, 
-          // but awaiting ensures log consistency)
+          // Fire and forget (don't await strictly if you want UI to be snappy)
           await triggerNotificationAPI(email, phoneToSend, nameToSend);
       } else {
           console.error("❌ Could not find phone number. WhatsApp message skipped.");
@@ -323,15 +322,30 @@ function VerifyCodePage({ defaultEmail = '', name = '', phone = '', onVerified, 
                 <p style={{color: '#888', marginBottom: '2rem', fontSize: '0.9rem'}}>Code sent to <strong>{email}</strong></p>
                 
                 <form onSubmit={handleSubmit}>
-                  <div style={{position: 'relative', marginBottom: '2rem'}}>
-                    {/* Invisible Input for Mobile Keyboards */}
+                  {/* CRITICAL FIX: The wrapper div now handles the click and focuses the input */}
+                  <div 
+                      style={{position: 'relative', marginBottom: '2rem', cursor: 'text'}} 
+                      onClick={() => codeInputRef.current?.focus()}
+                  >
+                    {/* CRITICAL FIX: The invisible input is now securely locked to the top-left of the wrapper */}
                     <input 
                         ref={codeInputRef} 
                         type="text" 
+                        inputMode="numeric" 
+                        autoComplete="one-time-code" 
                         value={code} 
                         onChange={e => setCode(e.target.value.replace(/[^0-9]/g, '').slice(0,6))} 
                         maxLength={6} 
-                        style={{position: 'absolute', opacity: 0, width: '100%', height: '100%', cursor: 'text', zIndex: 10}} 
+                        style={{
+                            position: 'absolute', 
+                            top: 0, 
+                            left: 0, 
+                            opacity: 0, 
+                            width: '100%', 
+                            height: '100%', 
+                            cursor: 'text', 
+                            zIndex: 10
+                        }} 
                         autoFocus 
                     />
                     {/* Visual Boxes */}

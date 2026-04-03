@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
 
-const AdminDataPanel = () => {
+// --- CONFIGURATION ---
+// This ensures it uses localhost:8000 when you are testing locally
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+
+const AdminDataPanel = ({ refreshDashboard }) => {
     const [file, setFile] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [message, setMessage] = useState('');
+    const [importType, setImportType] = useState('users'); // Tracks which tab we are importing to
 
-    // --- 1. HANDLE FILE SELECTION ---
     const handleFileChange = (e) => {
         setFile(e.target.files[0]);
-        setMessage(''); // Clear previous messages
+        setMessage(''); 
     };
 
-    // --- 2. IMPORT FUNCTION (Upload to Server) ---
+    // --- 1. UPDATED IMPORT FUNCTION ---
     const handleImport = async (e) => {
         e.preventDefault();
         
@@ -22,23 +26,27 @@ const AdminDataPanel = () => {
 
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('type', importType); // Tells the backend which collection to use
 
         setUploading(true);
         setMessage('');
 
         try {
-            // Adjust URL if your server runs on a different port (e.g., http://localhost:5000)
-   const response = await fetch('https://shivba-website-git-main-shivba-team.vercel.app/api/data/import-members', {
-    method: 'POST',
-    body: formData,
-});
+            // Updated endpoint to match the dataController logic
+            const response = await fetch(`${API_BASE_URL}/api/data/import`, {
+                method: 'POST',
+                body: formData,
+            });
 
             const data = await response.json();
 
             if (response.ok) {
                 setMessage(`✅ Success: ${data.message}`);
-                setFile(null); // Reset file input
-                // Optional: Refresh your data list here if you have one
+                setFile(null); 
+                // Reset file input in the DOM
+                e.target.reset();
+                // Trigger dashboard refresh if the prop exists
+                if (refreshDashboard) refreshDashboard(importType);
             } else {
                 setMessage(`⚠️ Error: ${data.message}`);
             }
@@ -50,11 +58,11 @@ const AdminDataPanel = () => {
         }
     };
 
-    // --- 3. EXPORT FUNCTION (Download from Server) ---
+    // --- 2. UPDATED EXPORT FUNCTION ---
     const handleExport = () => {
-        // Direct browser download
-        // Ensure this URL matches your backend port
-window.open('https://shivba-website-git-main-shivba-team.vercel.app/api/data/export-members', '_blank');
+        // Points to the dynamic export route we built in the controller
+        const exportUrl = `${API_BASE_URL}/api/data/export?type=${importType}`;
+        window.open(exportUrl, '_blank');
     };
 
     return (
@@ -64,10 +72,25 @@ window.open('https://shivba-website-git-main-shivba-team.vercel.app/api/data/exp
             
             <div className="d-flex flex-column gap-3">
                 
+                {/* SELECT DATA CATEGORY */}
+                <div className="mb-2">
+                    <label className="form-label fw-bold">Select Category:</label>
+                    <select 
+                        className="form-select" 
+                        value={importType} 
+                        onChange={(e) => setImportType(e.target.value)}
+                    >
+                        <option value="users">All App Users</option>
+                        <option value="library_users">Library Users</option>
+                        <option value="library_books">Issued Books</option>
+                        <option value="events">Event Registrations</option>
+                    </select>
+                </div>
+
                 {/* IMPORT SECTION */}
-                <div className="border p-3 rounded">
+                <div className="border p-3 rounded bg-light">
                     <h5>📂 Import Data</h5>
-                    <form onSubmit={handleImport} className="d-flex gap-2 align-items-center">
+                    <form onSubmit={handleImport} className="d-flex flex-column gap-2">
                         <input 
                             type="file" 
                             accept=".xlsx, .xls, .csv"
@@ -77,23 +100,23 @@ window.open('https://shivba-website-git-main-shivba-team.vercel.app/api/data/exp
                         />
                         <button 
                             type="submit" 
-                            className="btn btn-primary" 
+                            className="btn btn-primary w-100" 
                             disabled={uploading || !file}
                         >
-                            {uploading ? 'Uploading...' : 'Upload'}
+                            {uploading ? 'Processing File...' : `Upload to ${importType.replace('_', ' ')}`}
                         </button>
                     </form>
-                    <small className="text-muted">Supported: .xlsx, .xls, .csv</small>
+                    <small className="text-muted mt-1 d-block">Supported: .xlsx, .xls, .csv</small>
                 </div>
 
                 {/* EXPORT SECTION */}
                 <div className="border p-3 rounded d-flex justify-content-between align-items-center">
                     <div>
                         <h5>⬇️ Export Data</h5>
-                        <small className="text-muted">Download all members as an Excel sheet.</small>
+                        <small className="text-muted">Download {importType.replace('_', ' ')} as Excel.</small>
                     </div>
                     <button onClick={handleExport} className="btn btn-success">
-                        Download Excel
+                        Download Sheet
                     </button>
                 </div>
 

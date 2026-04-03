@@ -48,29 +48,36 @@ app.use(cors({ origin: '*', credentials: true }));
 
 app.use(helmet());
 app.use(morgan('dev'));
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
+
+// CRITICAL FIX: Only apply the rate limiter to /api routes.
+// This prevents Render/Vercel health checks from getting accidentally blocked.
+const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });
+app.use('/api', apiLimiter);
 
 // Ensure models register
 try { require('./src/models'); } catch (e) { /* optional */ }
 
 // --- ROUTE IMPORTS ---
-// Ensure the file you updated in the last step is named 'authRoutes.js' 
-// inside the 'src/routes' folder!
 const authRoutes = require('./src/routes/authRoutes');
 const accountRoutes = require('./src/routes/accountRoutes');
 const eventRegistrationRoutes = require('./src/routes/eventRegistrationRoutes');
 const contactRoutes = require('./src/routes/contactRoutes');
 const dataRoutes = require('./src/routes/dataRoutes');
 
+// --- CRITICAL FIX: ROOT HEALTH CHECK ---
+// This stops the 'GET / 404' errors in your Render/Vercel logs
+app.get('/', (req, res) => {
+    res.status(200).send("Shivba Backend Server is live and healthy.");
+});
+
 // --- ROUTE MOUNTING ---
-// The '/send-welcome-message' route is inside authRoutes now
 app.use('/api', authRoutes); 
 app.use('/api', accountRoutes);
 app.use('/api', eventRegistrationRoutes);
 app.use('/api', contactRoutes);
 app.use('/api/data', dataRoutes);
 
-// Health check
+// Additional API Health checks
 app.get("/api/message", (req, res) => {
     res.json({ message: "Hello from Express on Vercel!" });
 });
@@ -108,7 +115,7 @@ if (process.env.NODE_ENV !== 'production') {
     })();
 }
 
-// 404 handler
+// 404 handler for API routes
 app.use('/api', (req, res) => res.status(404).json({ message: 'API route not found' }));
 
 // Generic error handler

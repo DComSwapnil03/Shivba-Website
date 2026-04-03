@@ -1,14 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// --- 0. MOCK DATA FOR LIBRARY SYSTEM ---
-const BOOKS_DATA = [
-  { id: 101, title: "Shriman Yogi", author: "Ranjit Desai", category: "History", status: "Available", cover: "https://m.media-amazon.com/images/I/814L+vq01mL.jpg" },
-  { id: 102, title: "Chhava", author: "Shivaji Sawant", category: "History", status: "Issued", cover: "https://m.media-amazon.com/images/I/51tH-C2y+AL.jpg" },
-  { id: 103, title: "Cracking the Coding Interview", author: "Gayle Laakmann", category: "Tech", status: "Available", cover: "https://m.media-amazon.com/images/I/61mIq2iJUXL._AC_UF1000,1000_QL80_.jpg" },
-  { id: 104, title: "MPSC/UPSC General Studies", author: "Unique Academy", category: "Exam Prep", status: "Available", cover: "https://m.media-amazon.com/images/I/71s8d8yH+XL.jpg" },
-  { id: 105, title: "Clean Code", author: "Robert C. Martin", category: "Tech", status: "Maintenance", cover: "https://m.media-amazon.com/images/I/41xShlnTZTL._SX218_BO1,204,203,200_QL40_FMwebp_.jpg" },
-];
+// IMPORT YOUR DECOUPLED DATA FILES HERE
+import { BOOKS_DATA } from './booksData'; 
+import { ADMISSION_DATA } from './admissionData'; 
 
 // --- 1. ANIMATION VARIANTS ---
 const containerVariants = {
@@ -141,6 +136,7 @@ const BookLibrarySection = () => {
           <option value="History">History</option>
           <option value="Tech">Technology</option>
           <option value="Exam Prep">Exam Prep</option>
+          <option value="Misc">Miscellaneous</option>
         </select>
       </div>
 
@@ -155,7 +151,7 @@ const BookLibrarySection = () => {
                <span className="book-category">{book.category}</span>
             </div>
             <div className="book-footer">
-               <span className={`status-badge ${book.status.toLowerCase()}`}>{book.status}</span>
+               <span className={`status-badge ${book.status.toLowerCase().replace(' ', '-')}`}>{book.status}</span>
                <button className="borrow-btn" disabled={book.status !== 'Available'}>
                  {book.status === 'Available' ? 'Reserve' : 'Notify'}
                </button>
@@ -166,7 +162,6 @@ const BookLibrarySection = () => {
     </motion.div>
   );
 };
-
 
 // --- 4. MAIN PAGE COMPONENT ---
 function ServiceDetailPage({ serviceId = 'hostel', setPage }) {
@@ -192,7 +187,7 @@ function ServiceDetailPage({ serviceId = 'hostel', setPage }) {
     if (serviceId === 'hostel' || serviceId === 'library') {
         setPage({
             name: 'booking-selection',
-            params: { serviceId, selectedPlanIndex: activeIndex }
+            params: { serviceId, selectedPlanIndex: activeIndex, admissionData: ADMISSION_DATA }
         });
     } else {
         setPage({
@@ -211,17 +206,14 @@ function ServiceDetailPage({ serviceId = 'hostel', setPage }) {
       animate="visible"
       variants={containerVariants}
     >
-      {/* --- INJECTED CSS --- */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;500;600&display=swap');
         .service-detail-container { font-family: 'Montserrat', sans-serif; background: #f4f4f4; min-height: 100vh; }
         .service-detail-container h1, .service-detail-container h2, .service-detail-container h3 { font-family: 'Cinzel', serif; letter-spacing: 0.05em; }
         
-        /* HERO */
         .service-detail-hero { padding: 4rem 2rem; text-align: center; background: #1a1a1a; color: white; margin-bottom: 2rem; }
         .service-detail-hero h1 { font-size: 3rem; margin: 0; }
 
-        /* GRID */
         .service-detail-grid { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1.5fr 1fr; gap: 2rem; padding: 0 20px; }
         @media (max-width: 900px) { .service-detail-grid { grid-template-columns: 1fr; } }
         
@@ -229,25 +221,21 @@ function ServiceDetailPage({ serviceId = 'hostel', setPage }) {
         .service-detail-image { width: 100%; height: 300px; object-fit: cover; border-radius: 10px; margin-bottom: 1.5rem; }
         .service-list li { margin-bottom: 0.5rem; display: flex; gap: 10px; color: #555; }
 
-        /* BUTTONS */
         .pay-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 1rem; }
         .pay-btn:disabled { background: #ccc; cursor: not-allowed; }
         .secondary-btn { width: 100%; padding: 12px; background: transparent; border: 1px solid #ddd; margin-top: 10px; border-radius: 8px; cursor: pointer; color: #666; }
         .know-more-btn { display: block; width: fit-content; margin: 1rem auto 0; padding: 8px 20px; border: 1px dashed #FFA500; color: #ea580c; background: transparent; border-radius: 30px; cursor: pointer; font-size: 0.85rem; transition: all 0.3s; }
         .know-more-btn:hover { background: #fff7ed; transform: translateY(-2px); }
 
-        /* VISUAL CTA */
         .selection-cta { margin-top: 2rem; text-align: center; padding: 2rem; background: #f9fafb; border-radius: 12px; border: 1px dashed #ccc; }
         .cta-button { padding: 12px 30px; background: #1a1a1a; color: white; border: none; border-radius: 30px; font-weight: bold; cursor: pointer; display: inline-flex; alignItems: center; gap: 10px; transition: all 0.3s; }
         .cta-button:hover { background: #ea580c; transform: translateY(-2px); }
 
-        /* --- NEW: LIBRARY TAB SYSTEM --- */
         .lib-tabs { display: flex; gap: 1rem; justify-content: center; margin-bottom: 2rem; }
         .lib-tab-btn { padding: 10px 24px; border-radius: 30px; border: none; cursor: pointer; font-weight: 600; font-family: 'Cinzel', serif; transition: all 0.3s; }
         .lib-tab-btn.active { background: #ea580c; color: white; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); }
         .lib-tab-btn.inactive { background: white; color: #666; border: 1px solid #ddd; }
 
-        /* --- NEW: BOOK LIBRARY STYLES --- */
         .library-book-system { background: white; border-radius: 15px; padding: 2rem; margin: 0 auto; max-width: 1100px; }
         .lbs-controls { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
         .lbs-search { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Montserrat'; }
@@ -266,7 +254,6 @@ function ServiceDetailPage({ serviceId = 'hostel', setPage }) {
         .status-badge.maintenance { color: #854d0e; background: #fef9c3; }
         .borrow-btn { border: none; background: #1a1a1a; color: white; padding: 6px 12px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; }
         .borrow-btn:disabled { background: #eee; color: #aaa; cursor: not-allowed; }
-
       `}</style>
 
       {/* --- HERO --- */}
@@ -296,11 +283,10 @@ function ServiceDetailPage({ serviceId = 'hostel', setPage }) {
 
       {/* --- CONDITIONAL RENDERING --- */}
       
-      {/* VIEW 1: STANDARD SERVICE VIEW (Study Space, Gym, Hostel, etc) */}
+      {/* VIEW 1: STANDARD SERVICE VIEW */}
       {(serviceId !== 'library' || libraryTab === 'study') && (
         <>
             <div className="service-detail-grid">
-                {/* LEFT: Content */}
                 <motion.div className="service-detail-card" variants={itemVariants}>
                 <img src={cfg.image} alt={cfg.title} className="service-detail-image" />
                 
@@ -313,7 +299,6 @@ function ServiceDetailPage({ serviceId = 'hostel', setPage }) {
                     ▼ View Details & Process
                 </button>
 
-                {/* VISUAL SELECTION CTA (For Hostel/Library Seat) */}
                 {(serviceId === 'hostel' || serviceId === 'library') && (
                     <div className="selection-cta">
                         <h3>Select Your Space</h3>
@@ -325,7 +310,6 @@ function ServiceDetailPage({ serviceId = 'hostel', setPage }) {
                 )}
                 </motion.div>
 
-                {/* RIGHT: Pricing */}
                 <motion.div className="service-detail-card" style={{ height: 'fit-content', position: 'sticky', top: '20px' }} variants={itemVariants}>
                 <h2 style={{ textAlign: 'center', fontSize: '1.4rem' }}>{cfg.priceLabel}</h2>
                 
@@ -363,7 +347,6 @@ function ServiceDetailPage({ serviceId = 'hostel', setPage }) {
                 </motion.div>
             </div>
 
-            {/* DETAILS (Bottom) */}
             <div ref={detailsRef} style={{margin:'3rem auto', maxWidth:'1100px', padding:'0 2rem'}}>
                 <h3>Process Steps</h3>
                 {cfg.processSteps.map((step, idx) => (
@@ -386,7 +369,7 @@ function ServiceDetailPage({ serviceId = 'hostel', setPage }) {
         </>
       )}
 
-      {/* VIEW 2: LIBRARY BOOK SYSTEM (Only shows if Library + Book Tab is active) */}
+      {/* VIEW 2: LIBRARY BOOK SYSTEM */}
       {serviceId === 'library' && libraryTab === 'books' && (
           <div style={{padding: '0 20px'}}>
               <BookLibrarySection />

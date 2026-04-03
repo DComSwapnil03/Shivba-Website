@@ -90,9 +90,16 @@ const InterestRegistrationSchema = new mongoose.Schema({
   },
   verifyTokenExpiresAt: { 
     type: Date 
+  },
+  // --- ADD THESE NEW FIELDS ---
+  isOnline: { 
+    type: Boolean, 
+    default: false 
+  },
+  lastLogin: { 
+    type: Date 
   }
 }, { 
-  timestamps: true // Auto-manages createdAt and updatedAt
+  timestamps: true 
 });
-
 module.exports = mongoose.model('InterestRegistration', InterestRegistrationSchema);
