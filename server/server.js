@@ -6,6 +6,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
+const Razorpay = require('razorpay'); // ADDED: Razorpay SDK
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -39,6 +40,18 @@ async function connectToDatabase() {
   }
 }
 
+// --- RAZORPAY CONFIGURATION (ADDED) ---
+let razorpayInstance = null;
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+  razorpayInstance = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+  });
+  console.log('✅ Razorpay Configured');
+} else {
+  console.warn('⚠️ WARNING: RAZORPAY_KEY_ID or SECRET missing from .env. Payments will fail.');
+}
+
 // --- MIDDLEWARE ---
 app.use(json());
 app.use(urlencoded({ extended: true }));
@@ -64,6 +77,16 @@ const eventRegistrationRoutes = require('./src/routes/eventRegistrationRoutes');
 const contactRoutes = require('./src/routes/contactRoutes');
 const dataRoutes = require('./src/routes/dataRoutes');
 
+// ADDED: Import the payment routes we created earlier
+// Make sure you saved the Express routing code I gave you in this file location!
+let paymentRoutes;
+try {
+  paymentRoutes = require('./src/routes/paymentRoutes');
+} catch (e) {
+  console.warn('⚠️ paymentRoutes.js not found yet. Create it in ./src/routes/');
+}
+
+
 // --- CRITICAL FIX: ROOT HEALTH CHECK ---
 // This stops the 'GET / 404' errors in your Render/Vercel logs
 app.get('/', (req, res) => {
@@ -76,6 +99,12 @@ app.use('/api', accountRoutes);
 app.use('/api', eventRegistrationRoutes);
 app.use('/api', contactRoutes);
 app.use('/api/data', dataRoutes);
+
+// ADDED: Mount Razorpay Routes
+// Mounted at '/' because your paymentRoutes file already defines the '/payment/...' paths
+if (razorpayInstance && paymentRoutes) {
+  app.use('/', paymentRoutes(razorpayInstance));
+}
 
 // Additional API Health checks
 app.get("/api/message", (req, res) => {
