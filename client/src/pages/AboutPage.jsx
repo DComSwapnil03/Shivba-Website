@@ -33,39 +33,28 @@ function AboutPage() {
       animate="visible"
       variants={containerVariants}
     >
-      {/* --- INJECTED CSS: FONTS & STYLES --- */}
+      {/* --- INJECTED CSS --- */}
       <style>{`
-        /* 1. Import Fonts */
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;500;600&display=swap');
 
-        /* 2. Global Typography */
-        .about-container h1, 
-        .about-container h2, 
-        .about-container h3 {
+        .about-container h1, .about-container h2, .about-container h3 {
             font-family: 'Cinzel', serif !important;
             letter-spacing: 0.05em;
             color: #1a1a1a;
         }
 
-        .about-container p, 
-        .about-container span {
+        .about-container p, .about-container span {
             font-family: 'Montserrat', sans-serif !important;
             color: #4a4a4a;
             line-height: 1.6;
         }
 
-        /* Dark Mode Overrides */
+        /* Dark Mode */
         body.dark-mode .about-container h1,
         body.dark-mode .about-container h2,
-        body.dark-mode .about-container h3,
-        body.dark-mode .about-team-avatar {
-             color: #ffffff !important;
-        }
-        body.dark-mode .about-container p {
-             color: #cccccc !important;
-        }
+        body.dark-mode .about-container h3 { color: #ffffff !important; }
+        body.dark-mode .about-container p { color: #cccccc !important; }
 
-        /* 3. Hero Section */
         .about-hero {
             position: relative;
             height: 60vh;
@@ -77,87 +66,23 @@ function AboutPage() {
             background: url('https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070&auto=format&fit=crop') no-repeat center center/cover;
             margin-bottom: 4rem;
         }
-        .about-hero-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-        }
-        .about-hero-inner {
-            position: relative;
-            z-index: 2;
-            color: white;
-            max-width: 800px;
-            padding: 0 20px;
-        }
-        .about-hero h1 {
-            font-size: 3.5rem;
-            color: #ffffff;
-            margin-bottom: 1rem;
-            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
-        .about-hero p {
-            font-size: 1.25rem;
-            color: #f0f0f0;
-            font-weight: 300;
-        }
+        .about-hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); }
+        .about-hero-inner { position: relative; z-index: 2; color: white; max-width: 800px; padding: 0 20px; }
+        .about-hero h1 { font-size: 3.5rem; color: #ffffff; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
 
-        /* 4. Sections Layout */
-        .about-block {
-            padding: 4rem 1.5rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .about-inner-narrow {
-            max-width: 800px;
-            margin: 0 auto;
-            text-align: center;
-        }
-        .about-block h2 {
-            font-size: 2.5rem;
-            text-align: center;
-            margin-bottom: 3rem;
-            position: relative;
-            display: inline-block;
-            width: 100%;
-        }
+        .about-block { padding: 4rem 1.5rem; max-width: 1200px; margin: 0 auto; }
+        .about-inner-narrow { max-width: 800px; margin: 0 auto; text-align: center; }
         
-        /* 5. Values Grid */
-        .about-values-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-        }
-        .about-value-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(0,0,0,0.1);
-            padding: 2rem;
-            border-radius: 15px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-        body.dark-mode .about-value-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .about-value-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: #FFA500; 
-        }
+        .about-values-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; }
+        .about-value-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(0,0,0,0.1); padding: 2rem; border-radius: 15px; text-align: center; transition: all 0.3s ease; }
+        body.dark-mode .about-value-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); }
 
-        /* 6. Team Grid */
-        .about-team-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 3rem;
-            justify-content: center;
-        }
-        .about-team-card {
-            text-align: center;
-        }
+        /* Team Section */
+        .about-team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 3rem; justify-content: center; }
+        .about-team-card { text-align: center; }
         .about-team-avatar {
-            width: 120px;
-            height: 120px;
+            width: 150px; /* Slightly larger for photos */
+            height: 150px;
             margin: 0 auto 1.5rem;
             border-radius: 50%;
             background: linear-gradient(135deg, #1a1a1a, #333);
@@ -166,180 +91,51 @@ function AboutPage() {
             align-items: center;
             justify-content: center;
             font-size: 3rem;
-            font-family: 'Cinzel', serif;
             border: 3px solid #FFA500;
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            overflow: hidden; /* Added to keep image circular */
         }
-        .role-text {
-            color: #888;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin-top: 0.5rem;
-        }
-
-        /* 7. Success Stories Grid */
-        .success-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-        .success-card {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            transition: transform 0.3s ease;
-            text-align: center;
-            border: 1px solid #eee;
-        }
-        body.dark-mode .success-card {
-            background: #1a1a1a;
-            border: 1px solid #333;
-        }
-        .success-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 40px rgba(255, 165, 0, 0.15);
-            border-color: #FFA500;
-        }
-        
-        /* THIS FIXES THE IMAGE STRETCHING */
-        .success-image {
+        .about-team-img {
             width: 100%;
-            height: 280px;
-            object-fit: cover; 
-            object-position: center top; 
-            display: block;
-            border-bottom: 3px solid #FFA500;
+            height: 100%;
+            object-fit: cover; /* Ensures image isn't stretched */
         }
-        
-        .success-content {
-            padding: 1.5rem;
-        }
-        .success-content h3 {
-            margin: 0 0 0.5rem 0;
-            color: #1a1a1a;
-            font-size: 1.4rem;
-        }
-        body.dark-mode .success-content h3 { color: #fff; }
-        .success-content p {
-            margin: 0;
-            font-size: 0.95rem;
-            color: #666;
-        }
-        .success-badge {
-            display: inline-block;
-            background: #fdf6e3;
-            color: #d97706;
-            padding: 6px 15px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            margin-top: 15px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            border: 1px solid #fde68a;
-        }
-        body.dark-mode .success-badge {
-            background: rgba(255, 165, 0, 0.1);
-            color: #FFA500;
-            border-color: rgba(255, 165, 0, 0.3);
-        }
+        .role-text { color: #888; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; }
+
+        /* Success Stories */
+        .success-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 2rem; }
+        .success-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08); transition: transform 0.3s ease; text-align: center; border: 1px solid #eee; }
+        body.dark-mode .success-card { background: #1a1a1a; border: 1px solid #333; }
+        .success-image { width: 100%; height: 280px; object-fit: cover; border-bottom: 3px solid #FFA500; }
+        .success-badge { display: inline-block; background: #fdf6e3; color: #d97706; padding: 6px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; margin-top: 15px; border: 1px solid #fde68a; }
       `}</style>
 
-      {/* --- HERO SECTION --- */}
+      {/* --- HERO --- */}
       <section className="about-hero">
         <div className="about-hero-overlay" />
         <motion.div className="about-hero-inner" variants={itemVariants}>
-          <motion.h1 variants={itemVariants}>{t('about.heroTitle')}</motion.h1>
-          <motion.p variants={itemVariants}>{t('about.heroSubtitle')}</motion.p>
+          <h1>{t('about.heroTitle')}</h1>
+          <p>{t('about.heroSubtitle')}</p>
         </motion.div>
       </section>
 
       {/* --- OUR STORY --- */}
-      <motion.section 
-        className="about-block about-story"
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
-      >
+      <motion.section className="about-block" variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
         <div className="about-inner-narrow">
-          <motion.h2 variants={itemVariants}>{t('about.storyTitle')}</motion.h2>
-          <motion.p variants={itemVariants} style={{ marginBottom: '1.5rem', fontSize: '1.1rem' }}>
-            {t('about.storyParagraph1')}
-          </motion.p>
-          <motion.p variants={itemVariants} style={{ fontSize: '1.1rem' }}>
-            {t('about.storyParagraph2')}
-          </motion.p>
-        </div>
-      </motion.section>
-
-      {/* --- WHAT DRIVES US (VALUES) --- */}
-      <motion.section 
-        className="about-block about-values"
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
-      >
-        <div className="about-inner-wide">
-          <motion.h2 variants={itemVariants}>{t('about.drivesTitle')}</motion.h2>
-          <div className="about-values-grid">
-            <ValueCard icon="➜" title={t('about.missionTitle')} text={t('about.missionText')} />
-            <ValueCard icon="◎" title={t('about.visionTitle')} text={t('about.visionText')} />
-            <ValueCard icon="❤" title={t('about.valuesTitle')} text={t('about.valuesText')} />
-            <ValueCard icon="★" title={t('about.commitmentTitle')} text={t('about.commitmentText')} />
-          </div>
+          <h2>{t('about.storyTitle')}</h2>
+          <p style={{ fontSize: '1.1rem' }}>{t('about.storyParagraph1')}</p>
         </div>
       </motion.section>
 
       {/* --- SUCCESS STORIES --- */}
-      <motion.section 
-        className="about-block success-stories"
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
-      >
-        <div className="about-inner-wide">
-          <motion.h2 variants={itemVariants}>Success Stories</motion.h2>
-          <motion.p variants={itemVariants} style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            Proud moments from Shivba Talim. Hard work, dedication, and results.
-          </motion.p>
-          
+      <motion.section className="about-block" variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+          <h2 style={{textAlign:'center'}}>Success Stories</h2>
           <div className="success-grid">
-            {/* Card 1 */}
-            <SuccessStoryCard 
-              name="PRANJALI NAGARGOJE" 
-              achievement="A shining star from Shivba Talim, Pranjali Nagargoje secured a coveted position in the Maharashtra Police. Her dedication and hard work have truly paid off!"
-              badge="🛡️ Maharashtra Police"
-              imageUrl="/WhatsApp Image 2026-04-08 at 12.35.24 AM (1).jpeg"
-            />
-            {/* Card 2 */}
-            <SuccessStoryCard 
-              name="SACHIN JADHAV & SAURABH JADHAV" 
-              achievement="Jadhav brothers both selected in Maharashtra Police. A proud moment for Shivba Talim!"
-              badge="⚔️ MUMBAI POLICE"
-              imageUrl="/SACHIN JADHAV & SAURABH JADHAV.jpeg"
-            />
-            {/* Card 3 - Assuming this matches the filename you provided earlier */}
-            <SuccessStoryCard 
-              name="Hakim, Sunil & Akshay" 
-              achievement="Hakim, Sunil, and Akshay all selected in the Pune Police. A triple triumph for Shivba Talim!"
-              badge="⚔️ MAHARASHTRA POLICE"
-              imageUrl="/HAKIM SUTAR, SUNIL HANDE & AKSHAY MORE.jpeg"
-            />
-            {/* Card 4 - Placeholder for another success story */}
-            <SuccessStoryCard 
-              name="SUPRIYA JAMBUKAR" 
-              achievement="Another proud Shivba Talim success story, Supriya Jambukar secured a position in the Maharashtra Police. Her journey is an inspiration to all!"
-              badge="🌟 MAHARASHTRA POLICE"
-              imageUrl="/WhatsApp Image 2026-04-08 at 12.35.24 AM.jpeg"
-            />
+            <SuccessStoryCard name="AKSHADA VATEKAR" achievement="..." badge="🛡️ Maharashtra Police" imageUrl="/WhatsApp Image 2026-04-08 at 12.35.24 AM (1).jpeg" />
+            <SuccessStoryCard name="SACHIN & SAURABH" achievement="..." badge="⚔️ MUMBAI POLICE" imageUrl="/SACHIN JADHAV & SAURABH JADHAV.jpeg" />
+            <SuccessStoryCard name="HAKIM, SUNIL & AKSHAY" achievement="..." badge="⚔️ MAHARASHTRA POLICE" imageUrl="/HAKIM SUTAR, SUNIL HANDE & AKSHAY MORE.jpeg" />
+            <SuccessStoryCard name="SUPRIYA JAMBUKAR" achievement="..." badge="🌟 MAHARASHTRA POLICE" imageUrl="/WhatsApp Image 2026-04-08 at 12.35.24 AM.jpeg" />
           </div>
-        </div>
       </motion.section>
 
       {/* --- LEADERSHIP TEAM --- */}
@@ -351,35 +147,50 @@ function AboutPage() {
         viewport={{ once: true, margin: "-100px" }}
       >
         <div className="about-inner-wide">
-          <motion.h2 variants={itemVariants}>{t('about.teamTitle')}</motion.h2>
+          <motion.h2 variants={itemVariants} style={{textAlign:'center'}}>{t('about.teamTitle')}</motion.h2>
           <div className="about-team-grid">
-            <TeamCard name={t('about.team1.name')} role={t('about.team1.role')} />
-            <TeamCard name={t('about.team2.name')} role={t('about.team2.role')} />
-            <TeamCard name={t('about.team3.name')} role={t('about.team3.role')} />
+            
+            {/* UPDATED TEAM CARDS WITH YOUR PICTURES */}
+            <TeamCard 
+              name="Aniket Thakur" 
+              role="Founder & Head Coach" 
+              imageUrl="/ANIKET THAKUR.png" 
+            />
+            
+            <TeamCard 
+              name="Harshada Thakur" 
+              role="Co-Founder & Administrator" 
+              imageUrl="/HARSHADA THAKUR.png" 
+            />
+            
+            <TeamCard 
+              name={t('about.team3.name')} 
+              role={t('about.team3.role')} 
+              imageUrl={null} /* Generic fallback for others */
+            />
+
           </div>
         </div>
       </motion.section>
-
     </motion.div>
   );
 }
 
-/* --- HELPER COMPONENTS WITH MOTION --- */
+/* --- HELPER COMPONENTS --- */
 
-function ValueCard({ icon, title, text }) {
+function TeamCard({ name, role, imageUrl }) {
+  const initial = name ? name.charAt(0).toUpperCase() : '?';
   return (
-    <motion.div 
-      className="about-value-card"
-      variants={itemVariants}
-      whileHover={{ 
-        y: -10, 
-        boxShadow: "0 15px 30px rgba(0,0,0,0.1)",
-        borderColor: "#FFA500"
-      }}
-    >
-      <div className="about-value-icon">{icon}</div>
-      <h3>{title}</h3>
-      <p>{text}</p>
+    <motion.div className="about-team-card" variants={itemVariants} whileHover={{ scale: 1.05 }}>
+      <div className="about-team-avatar">
+        {imageUrl ? (
+          <img src={imageUrl} alt={name} className="about-team-img" />
+        ) : (
+          initial
+        )}
+      </div>
+      <h3>{name}</h3>
+      <p className="role-text">{role}</p>
     </motion.div>
   );
 }
@@ -387,34 +198,12 @@ function ValueCard({ icon, title, text }) {
 function SuccessStoryCard({ name, achievement, badge, imageUrl }) {
   return (
     <motion.div className="success-card" variants={itemVariants}>
-      {/* Fallback to a placeholder if the image fails to load due to bad filename */}
-      <img 
-        src={imageUrl} 
-        alt={name} 
-        className="success-image" 
-        loading="lazy" 
-        onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1594381898411-846e7d193883?q=80&w=600&auto=format&fit=crop' }} 
-      />
+      <img src={imageUrl} alt={name} className="success-image" loading="lazy" />
       <div className="success-content">
         <h3>{name}</h3>
         <p>{achievement}</p>
         <div className="success-badge">{badge}</div>
       </div>
-    </motion.div>
-  );
-}
-
-function TeamCard({ name, role }) {
-  const initial = name ? name.charAt(0).toUpperCase() : '?';
-  return (
-    <motion.div 
-      className="about-team-card"
-      variants={itemVariants}
-      whileHover={{ scale: 1.05 }}
-    >
-      <div className="about-team-avatar">{initial}</div>
-      <h3>{name}</h3>
-      <p className="role-text">{role}</p>
     </motion.div>
   );
 }

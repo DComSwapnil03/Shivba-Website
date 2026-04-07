@@ -483,7 +483,7 @@ function MarqueeBar() {
         <div className="shivba-marquee-track">
           <span>{t('hero.tickerText') || 'Welcome to Shivba Group'}</span>
           <span>•</span>
-          <span>Admissions Open for 2025 Batch</span>
+          <span>Admissions Open for 2026 Batch</span>
           <span>•</span>
           <span>New Hostel Wing Opening Soon</span>
           <span>•</span>

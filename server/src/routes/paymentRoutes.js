@@ -1,7 +1,18 @@
 const express = require('express');
 const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const router = express.Router();
-const { Registration, Member, InterestRegistration } = require('../models');
+// Ensure you have these models imported
+const { Registration, Member, InterestRegistration, LibrarySeat, HostelBed } = require('../models');
+
+// --- 1. EMAIL CONFIGURATION ---
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER, // Your Gmail
+    pass: process.env.EMAIL_PASS  // Your Google App Password
+  }
+});
 
 module.exports = (razorpay) => {
   // ==========================================
@@ -10,39 +21,28 @@ module.exports = (razorpay) => {
   router.post('/payment/create-order', async (req, res) => {
     try {
       const { amount } = req.body;
-      if (!amount || amount <= 0) {
-        return res.status(400).json({ message: 'Invalid amount' });
-      }
+      if (!amount || amount <= 0) return res.status(400).json({ message: 'Invalid amount' });
       
       const options = {
-        amount: Number(amount), // Amount in paise
+        amount: Number(amount), 
         currency: 'INR',
         receipt: `receipt_order_${crypto.randomBytes(4).toString('hex')}`,
       };
       
       const order = await razorpay.orders.create(options);
-      
-      if (!order) {
-        return res.status(500).json({ message: 'Razorpay order creation failed' });
-      }
       res.json(order);
     } catch (error) {
-      console.error('Error creating Razorpay order:', error.message);
+      console.error('Error creating order:', error.message);
       res.status(500).json({ message: 'Server error while creating order' });
     }
   });
 
   // ==========================================
-  // 2. VERIFY PAYMENT & SAVE DATA
+  // 2. VERIFY PAYMENT, UPDATE STATUS & SEND EMAIL
   // ==========================================
   router.post('/payment/verify-payment', async (req, res) => {
     try {
-      const {
-        razorpay_order_id,
-        razorpay_payment_id,
-        razorpay_signature,
-        registrationData,
-      } = req.body;
+      const { razorpay_order_id, razorpay_payment_id, razorpay_signature, registrationData } = req.body;
 
       // --- A. Verify Signature ---
       const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
@@ -50,120 +50,97 @@ module.exports = (razorpay) => {
       const generated_signature = hmac.digest('hex');
 
       if (generated_signature !== razorpay_signature) {
-        console.warn('Payment verification failed: Invalid signature');
-        return res.status(400).json({
-          signatureIsValid: false,
-          message: 'Payment verification failed. Invalid signature.',
-        });
+        return res.status(400).json({ signatureIsValid: false, message: 'Invalid signature.' });
       }
 
       // --- B. Extract Data ---
-      const { name, email, phone, eventName, planDuration, amount } = registrationData;
+      const { name, email, phone, eventName, planDuration, amount, slotId } = registrationData;
       const lowerCaseEmail = email.toLowerCase().trim();
 
-      // --- C. Calculate Expiry (Logic for Services) ---
-      // This is used for 'programs' in User model and 'services' in Member model
+      // --- C. Update Occupancy ---
+      if (slotId) {
+        const lowerEvent = eventName.toLowerCase();
+        if (lowerEvent.includes('library')) {
+           await LibrarySeat.findOneAndUpdate({ seatNo: slotId }, { status: 'booked', userEmail: lowerCaseEmail });
+        } else if (lowerEvent.includes('hostel')) {
+           await HostelBed.findOneAndUpdate({ bedId: slotId }, { status: 'booked', userEmail: lowerCaseEmail });
+        }
+      }
+
+      // --- D. Prepare Data & Expiry ---
       const startDate = new Date();
       const expiryDate = new Date(startDate);
       const durationString = planDuration || eventName; 
-
       if (durationString.includes('Month')) {
-         const months = parseInt(durationString) || 1;
-         expiryDate.setMonth(expiryDate.getMonth() + months);
+         expiryDate.setMonth(expiryDate.getMonth() + (parseInt(durationString) || 1));
       } else if (durationString.includes('Year')) {
-         const years = parseInt(durationString) || 1;
-         expiryDate.setFullYear(expiryDate.getFullYear() + years);
+         expiryDate.setFullYear(expiryDate.getFullYear() + (parseInt(durationString) || 1));
       } else {
-         // Default fallback: 1 Month
          expiryDate.setMonth(expiryDate.getMonth() + 1);
       }
 
-      // --- D. Prepare Data Objects ---
-      
-      // 1. Payment Record (For Payment History Table)
       const newPayment = {
           paymentId: razorpay_payment_id,
           orderId: razorpay_order_id,
-          amount: Number(amount) / 100, // Convert paise to Rupees for display
+          amount: Number(amount) / 100, 
           eventName: eventName, 
           date: new Date(),
           status: 'success'
       };
 
-      // 2. Program Record (For Active Services Cards)
       const newProgram = {
           name: planDuration ? `${eventName} (${planDuration})` : eventName,
           status: 'active',
           registrationDate: startDate,
           endDate: expiryDate,
-          paymentId: razorpay_payment_id
+          paymentId: razorpay_payment_id,
+          slotId: slotId 
       };
 
-      // --- E. KEY STEP: Update InterestRegistration (The Main Auth Model) ---
-      // This ensures the data shows up on the MyAccountPage Dashboard
-      let user = await InterestRegistration.findOne({ email: lowerCaseEmail });
+      // --- E. Update InterestRegistration (Verification) ---
+      let user = await InterestRegistration.findOneAndUpdate(
+        { email: lowerCaseEmail },
+        { 
+          $set: { isVerified: true, mobileNumber: phone, name: name }, 
+          $push: { payments: newPayment, programs: newProgram }
+        },
+        { new: true, upsert: true }
+      );
 
-      if (user) {
-          // User exists: Add to history
-          if (!user.payments) user.payments = [];
-          if (!user.programs) user.programs = [];
-          
-          user.payments.push(newPayment);
-          user.programs.push(newProgram);
-          
-          // Ensure phone is updated
-          if (!user.mobileNumber) user.mobileNumber = phone;
-          
-          await user.save();
-          console.log(`✅ Updated existing user: ${lowerCaseEmail}`);
-      } else {
-          // Guest Checkout: Create new User Account
-          // They are "Verified" because they successfully paid.
-          user = new InterestRegistration({
-              name,
-              email: lowerCaseEmail,
-              mobileNumber: phone,
-              isVerified: true, 
-              payments: [newPayment],
-              programs: [newProgram]
-          });
-          await user.save();
-          console.log(`✅ Created new user from payment: ${lowerCaseEmail}`);
-      }
+      // --- F. EMAIL SENDING LOGIC ---
+      const mailOptions = {
+        from: `"Shivba Foundation" <${process.env.EMAIL_USER}>`,
+        to: lowerCaseEmail,
+        subject: `Payment Confirmed - ${eventName} Receipt`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; border: 1px solid #eee; border-radius: 10px; overflow: hidden;">
+            <div style="background: #ea580c; color: white; padding: 20px; text-align: center;">
+              <h1 style="margin: 0; font-size: 22px;">Payment Successful</h1>
+            </div>
+            <div style="padding: 25px; color: #333;">
+              <p>Hello <strong>${name}</strong>,</p>
+              <p>Your payment for <strong>${eventName}</strong> has been received. Your membership is now <strong>Verified ✅</strong>.</p>
+              
+              <div style="background: #f9fafb; border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="margin-top: 0; color: #ea580c; border-bottom: 1px solid #eee; padding-bottom: 10px;">Receipt Detail</h3>
+                <p><strong>Payment ID:</strong> ${razorpay_payment_id}</p>
+                <p><strong>Amount Paid:</strong> ₹${amount / 100}</p>
+                ${slotId ? `<p style="font-size: 1.1rem; color: #ea580c;"><strong>Your Assigned Spot:</strong> ${slotId}</p>` : ''}
+                <p><strong>Duration:</strong> ${planDuration || '1 Month'}</p>
+              </div>
 
-      // --- F. Legacy/Redundant Support (Optional) ---
-      // If you still use the 'Member' schema for admin panels, keep this.
-      // If you are migrating fully to InterestRegistration, this block can eventually be removed.
-      const isService = /talim|hostel|library|training|membership/i.test(eventName);
-      if (isService) {
-        let serviceId = 'general_service';
-        if (eventName.toLowerCase().includes('talim')) serviceId = 'talim';
-        if (eventName.toLowerCase().includes('hostel')) serviceId = 'hostel';
+              <p>Please show this digital receipt at the center to access your facilities.</p>
+              <p style="margin-top: 30px;">Stay Strong,<br><strong>Team Shivba Foundation</strong></p>
+            </div>
+          </div>
+        `
+      };
 
-        await Member.findOneAndUpdate(
-          { email: lowerCaseEmail },
-          {
-            $setOnInsert: { name, phone, joiningDate: new Date() },
-            $push: { 
-                services: {
-                    serviceId,
-                    serviceName: newProgram.name,
-                    subscriptionDate: startDate,
-                    expiryDate: expiryDate,
-                    totalFee: Number(amount) / 100, // Store in Rupees
-                    paymentId: razorpay_payment_id
-                } 
-            },
-            $set: { phone: phone } 
-          },
-          { upsert: true, new: true }
-        );
-      }
+      transporter.sendMail(mailOptions).catch(err => console.error("Mail Error:", err));
 
-      // --- G. Response ---
       res.json({
         signatureIsValid: true,
-        message: 'Payment verified and account updated successfully.',
+        message: 'Payment verified and Receipt sent.',
         registrationId: user._id,
       });
 

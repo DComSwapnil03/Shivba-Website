@@ -14,7 +14,7 @@ const SUCCESS_STORIES = [
   },
   {
     id: 2,
-    name: "Pranjali Nagargoje",
+    name: "AKSHADA VATEKAR",
     role: "Maharashtra Police",
     quote: "Discipline, expert guidance, and the best facilities at Shivba helped me achieve my dream of wearing the police uniform.",
     image: "/WhatsApp Image 2026-04-08 at 12.35.24 AM (1).jpeg"
