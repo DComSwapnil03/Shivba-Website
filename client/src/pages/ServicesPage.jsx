@@ -6,7 +6,6 @@ const services = [
   {
     id: 'talim',
     title: 'Shivba Talim',
-    // UPDATED: Using your local image for Gym
     imageUrl: '/IMG-20251226-WA0024.jpg',
     icon: '⚡',
     tagline: 'State-of-the-art equipment for the modern warrior.',
@@ -22,7 +21,6 @@ const services = [
   {
     id: 'hostel',
     title: 'Shivba Hostel',
-    // Keeping original Unsplash image for Hostel
     imageUrl: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?q=80&w=2069&auto=format&fit=crop',
     icon: '🏠',
     tagline: 'Connect with like-minded individuals in comfort.',
@@ -38,7 +36,6 @@ const services = [
   {
     id: 'library',
     title: 'Shivba Library',
-    // Using local image from public folder (previously updated)
     imageUrl: '/IMG-20251226-WA0006.jpg',
     icon: '📚',
     tagline: 'Expand your mind with our extensive collection.',
@@ -54,7 +51,6 @@ const services = [
   {
     id: 'awareness',
     title: 'Social Awareness',
-    // Using local image from public folder (previously updated)
     imageUrl: '/IMG-20251226-WA0012.jpg',
     icon: '🤝',
     tagline: 'Participate in workshops, seminars, and change.',
@@ -262,7 +258,7 @@ function ServicesPage({ setPage }) {
             letter-spacing: 0.1em; cursor: pointer; transition: all 0.3s;
         }
         .btn-cinematic-primary:hover {
-            background: #FFA500; transform: translateY(-2px);
+            background: #FFA500; transform: translateY(-2px); color: #1a1a1a;
         }
         .btn-cinematic-secondary {
             background: transparent; color: #1a1a1a;
@@ -273,39 +269,75 @@ function ServicesPage({ setPage }) {
             background: #1a1a1a; color: white;
         }
 
-        /* --- FIX: READY TO GET STARTED VISIBILITY --- */
-        /* This forces the text to be Black, even if Dark Mode is on, 
-           because the background of this section is always white. */
+        /* 8. CTA Section */
+        .services-cta-section {
+             padding: 6rem 2rem; 
+             text-align: center; 
+             background: #f9fafb;
+             border-top: 1px solid #eee;
+        }
+        .services-cta-section h2 {
+            color: #1a1a1a;
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        .services-cta-section p {
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+
+        /* ========================================= */
+        /* 9. DARK MODE OVERRIDES (THE CRITICAL FIX) */
+        /* ========================================= */
         
-        .home-cta h2 {
-            color: #1a1a1a !important; /* Force Title Black */
-            text-shadow: none !important;
+        /* Make all section titles white */
+        body.dark-mode .service-text h2 { color: #ffffff !important; }
+        
+        /* Make shortcut tags readable on dark mode */
+        body.dark-mode .service-shortcut-tag { 
+            background: #333 !important; 
+            color: #ccc !important; 
+            border-color: #444 !important; 
         }
 
-        .home-cta p {
-            color: #555555 !important; /* Force Subtitle Grey */
+        /* Make tagline light grey */
+        body.dark-mode .service-tagline { color: #cccccc !important; border-left-color: #FFA500; }
+        
+        /* Make bullet points light grey */
+        body.dark-mode .service-bullets li { color: #bbbbbb !important; }
+
+        /* Dark mode CTA section */
+        body.dark-mode .services-cta-section {
+             background: #111111 !important;
+             border-top: 1px solid #222 !important;
+        }
+        body.dark-mode .services-cta-section h2 { color: #ffffff !important; }
+        body.dark-mode .services-cta-section p { color: #bbbbbb !important; }
+
+        /* Dark mode buttons */
+        body.dark-mode .btn-cinematic-primary { 
+            background: #FFA500 !important; 
+            color: #000000 !important; 
+        }
+        body.dark-mode .btn-cinematic-primary:hover { 
+            background: #ffffff !important; 
+        }
+        
+        body.dark-mode .btn-cinematic-secondary { 
+            border-color: #ffffff !important; 
+            color: #ffffff !important; 
+        }
+        body.dark-mode .btn-cinematic-secondary:hover { 
+            background: #ffffff !important; 
+            color: #000000 !important; 
         }
 
-        /* Fix the Outline Button (Talk to Team) so it's visible on white */
-        .home-cta .btn-cinematic-secondary {
-            border-color: #1a1a1a !important;
-            color: #1a1a1a !important;
-        }
-
-        /* Fix Hover effect for the Outline Button */
-        .home-cta .btn-cinematic-secondary:hover {
-            background: #1a1a1a !important;
-            color: #ffffff !important;
-        }
-
-        /* 8. Dark Mode Overrides */
-        body.dark-mode .service-text h2 { color: white; }
-        body.dark-mode .service-bullets li { color: #ccc; }
-        body.dark-mode .service-tagline { color: #aaa; }
-        body.dark-mode .btn-cinematic-primary { background: #FFA500; color: #000; }
-        body.dark-mode .btn-cinematic-primary:hover { background: white; }
-        body.dark-mode .btn-cinematic-secondary { border-color: white; color: white; }
-        body.dark-mode .btn-cinematic-secondary:hover { background: white; color: black; }
       `}</style>
 
       {/* --- HERO SECTION --- */}
@@ -334,16 +366,15 @@ function ServicesPage({ setPage }) {
 
       {/* --- CTA SECTION --- */}
       <motion.section 
-        className="home-cta" // Reusing home-cta class for consistency, but managed by global CSS
+        className="services-cta-section"
         variants={itemVariants}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
-        style={{ padding: '6rem 2rem', textAlign: 'center', background: '#f9fafb' }}
       >
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <h2 style={{ fontFamily: 'Cinzel, serif', fontSize: '2.5rem', marginBottom: '1rem' }}>Ready to Get Started?</h2>
-          <p style={{ marginBottom: '2rem', fontSize: '1.1rem', color: '#666' }}>
+        <div>
+          <h2>Ready to Get Started?</h2>
+          <p>
             Join thousands of satisfied members who have transformed their lives with Shivba.
           </p>
           <div>

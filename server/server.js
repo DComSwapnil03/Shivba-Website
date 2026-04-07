@@ -6,7 +6,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
-const Razorpay = require('razorpay'); // ADDED: Razorpay SDK
+const Razorpay = require('razorpay');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -40,7 +40,7 @@ async function connectToDatabase() {
   }
 }
 
-// --- RAZORPAY CONFIGURATION (ADDED) ---
+// --- RAZORPAY CONFIGURATION ---
 let razorpayInstance = null;
 if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
   razorpayInstance = new Razorpay({
@@ -56,60 +56,64 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
 app.use(json());
 app.use(urlencoded({ extended: true }));
 
-// Allow all origins for dev (Fixes frontend connection issues)
-app.use(cors({ origin: '*', credentials: true })); 
+// CRITICAL FIX: Dynamically accept the origin instead of using the forbidden '*'
+app.use(cors({ 
+    origin: function(origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        return callback(null, true); // Allows any dynamically requested origin
+    }, 
+    credentials: true 
+}));
 
 app.use(helmet());
 app.use(morgan('dev'));
 
-// CRITICAL FIX: Only apply the rate limiter to /api routes.
-// This prevents Render/Vercel health checks from getting accidentally blocked.
+// Rate limiter applied only to API routes
 const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });
 app.use('/api', apiLimiter);
 
 // Ensure models register
 try { require('./src/models'); } catch (e) { /* optional */ }
 
-// --- ROUTE IMPORTS ---
-const authRoutes = require('./src/routes/authRoutes');
-const accountRoutes = require('./src/routes/accountRoutes');
-const eventRegistrationRoutes = require('./src/routes/eventRegistrationRoutes');
-const contactRoutes = require('./src/routes/contactRoutes');
-const dataRoutes = require('./src/routes/dataRoutes');
+// --- ROUTE IMPORTS (With Safety Checks) ---
+let authRoutes, accountRoutes, eventRegistrationRoutes, contactRoutes, dataRoutes, paymentRoutes, chatRoutes;
 
-// ADDED: Import the payment routes we created earlier
-// Make sure you saved the Express routing code I gave you in this file location!
-let paymentRoutes;
-try {
-  paymentRoutes = require('./src/routes/paymentRoutes');
-} catch (e) {
-  console.warn('⚠️ paymentRoutes.js not found yet. Create it in ./src/routes/');
-}
+try { authRoutes = require('./src/routes/authRoutes'); } catch(e) { console.warn('⚠️ authRoutes not found'); }
+try { accountRoutes = require('./src/routes/accountRoutes'); } catch(e) { console.warn('⚠️ accountRoutes not found'); }
+try { eventRegistrationRoutes = require('./src/routes/eventRegistrationRoutes'); } catch(e) { console.warn('⚠️ eventRegistrationRoutes not found'); }
+try { contactRoutes = require('./src/routes/contactRoutes'); } catch(e) { console.warn('⚠️ contactRoutes not found'); }
+try { dataRoutes = require('./src/routes/dataRoutes'); } catch(e) { console.warn('⚠️ dataRoutes not found'); }
+try { paymentRoutes = require('./src/routes/paymentRoutes'); } catch(e) { console.warn('⚠️ paymentRoutes not found'); }
+
+// THE CHATBOT FIX: You forgot the chatbot route!
+try { chatRoutes = require('./src/routes/chat'); } catch(e) { console.warn('⚠️ chat.js route not found. AI Chatbot disabled.'); }
 
 
 // --- CRITICAL FIX: ROOT HEALTH CHECK ---
-// This stops the 'GET / 404' errors in your Render/Vercel logs
 app.get('/', (req, res) => {
     res.status(200).send("Shivba Backend Server is live and healthy.");
 });
 
 // --- ROUTE MOUNTING ---
-app.use('/api', authRoutes); 
-app.use('/api', accountRoutes);
-app.use('/api', eventRegistrationRoutes);
-app.use('/api', contactRoutes);
-app.use('/api/data', dataRoutes);
+if (authRoutes) app.use('/api', authRoutes); 
+if (accountRoutes) app.use('/api', accountRoutes);
+if (eventRegistrationRoutes) app.use('/api', eventRegistrationRoutes);
+if (contactRoutes) app.use('/api', contactRoutes);
 
-// ADDED: Mount Razorpay Routes
-// Mounted at '/' because your paymentRoutes file already defines the '/payment/...' paths
+// Your Admin Dashboard & Excel Data Routes
+if (dataRoutes) app.use('/api/data', dataRoutes);
+
+// Your AI Chatbot Route
+if (chatRoutes) app.use('/api/chat', chatRoutes);
+
+// Razorpay Routes
 if (razorpayInstance && paymentRoutes) {
   app.use('/', paymentRoutes(razorpayInstance));
 }
 
 // Additional API Health checks
-app.get("/api/message", (req, res) => {
-    res.json({ message: "Hello from Express on Vercel!" });
-});
+app.get("/api/message", (req, res) => res.json({ message: "Hello from Express on Vercel!" }));
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
 // --- VERCEL ENTRYPOINT ---
@@ -128,11 +132,16 @@ if (process.env.NODE_ENV !== 'production') {
         try {
             await connectToDatabase();
             
-            // --- ENV CHECK (For Debugging) ---
             if(!process.env.TWILIO_AUTH_TOKEN) {
                 console.warn("⚠️  WARNING: TWILIO_AUTH_TOKEN is missing from .env!");
             } else {
                 console.log("✅ Twilio Config Detected");
+            }
+
+            if(!process.env.OPENAI_API_KEY) {
+                console.warn("⚠️  WARNING: OPENAI_API_KEY is missing! Chatbot will fail.");
+            } else {
+                console.log("✅ OpenAI API Key Detected");
             }
 
             app.listen(PORT, () => {

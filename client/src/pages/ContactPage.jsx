@@ -149,6 +149,7 @@ function ContactPage({ setModalState }) {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;500;600&display=swap');
 
+        .contact-container { padding-bottom: 2rem; }
         .contact-container h1, .contact-container h2, .contact-container h3 {
             font-family: 'Cinzel', serif !important;
             letter-spacing: 0.05em;
@@ -161,7 +162,7 @@ function ContactPage({ setModalState }) {
             padding: 5rem 2rem; text-align: center;
             background: #1a1a1a; color: white; margin-bottom: 3rem;
         }
-        .contact-hero h1 { font-size: 3.5rem; margin-bottom: 0.5rem; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .contact-hero h1 { font-size: 3.5rem; margin-bottom: 0.5rem; text-shadow: 0 4px 10px rgba(0,0,0,0.5); color: #fff;}
         .contact-hero p { font-size: 1.2rem; color: #ccc; max-width: 600px; margin: 0 auto; }
 
         .info-grid {
@@ -193,7 +194,7 @@ function ContactPage({ setModalState }) {
         .form-group { margin-bottom: 1.2rem; }
         .contact-input {
             width: 100%; padding: 12px 16px; border: 1px solid #ddd;
-            border-radius: 8px; font-size: 1rem; transition: all 0.3s; background: #f9fafb;
+            border-radius: 8px; font-size: 1rem; transition: all 0.3s; background: #f9fafb; color: #1a1a1a;
         }
         .contact-input:focus { border-color: #FFA500; background: white; outline: none; box-shadow: 0 0 0 3px rgba(255,165,0,0.1); }
 
@@ -261,6 +262,35 @@ function ContactPage({ setModalState }) {
             border-radius: 30px; font-weight: 600; cursor: pointer; transition: all 0.3s;
         }
         .popup-close-btn:hover { background: #FFA500; color: black; }
+
+        /* ================================================= */
+        /* --- DARK MODE OVERRIDES (THE CRITICAL FIX) --- */
+        /* ================================================= */
+        
+        body.dark-mode .info-card { background: #1e1e1e; border-color: #333; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        body.dark-mode .info-card:hover { border-color: #FFA500; }
+        body.dark-mode .info-card h3 { color: #fff; }
+        body.dark-mode .info-card p { color: #bbb; }
+        body.dark-mode .info-helper { color: #777; }
+
+        body.dark-mode .contact-split { background: #1e1e1e; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        body.dark-mode .contact-form-wrapper h2 { color: #fff; }
+        body.dark-mode .contact-input { background: #2a2a2a; border-color: #444; color: #fff; }
+        body.dark-mode .contact-input::placeholder { color: #888; }
+        body.dark-mode .contact-input:focus { border-color: #FFA500; background: #333; box-shadow: 0 0 0 3px rgba(255,165,0,0.2); }
+        
+        body.dark-mode .submit-btn { background: #FFA500; color: #000; }
+        body.dark-mode .submit-btn:hover { background: #fff; }
+        body.dark-mode .submit-btn:disabled { background: #444; color: #888; }
+
+        body.dark-mode .map-controls { border-bottom: 1px solid #333; }
+        
+        body.dark-mode .popup-content { background: #1e1e1e; border: 1px solid #333; }
+        body.dark-mode .popup-content h3 { color: #fff; }
+        body.dark-mode .popup-content p { color: #ccc; }
+        body.dark-mode .popup-close-btn { background: #FFA500; color: #000; }
+        body.dark-mode .popup-close-btn:hover { background: #fff; }
+
       `}</style>
 
       {/* --- HERO SECTION --- */}

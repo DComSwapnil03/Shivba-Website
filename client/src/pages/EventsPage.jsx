@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // --- CONFIGURATION & HELPERS ---
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 const EVENT_CATEGORIES = ['All', 'Wellness', 'Education', 'Culture', 'Fitness'];
 
 const calculateEventStatus = (dateStr, timeStr, currentTime) => {
@@ -66,7 +67,12 @@ const EventCard = ({ event, status, onAction, viewMode }) => {
             </div>
 
             <div className="card-image-box">
-                <img src={event.imageUrl} alt={event.title} loading="lazy" />
+                <img 
+                    src={event.imageUrl} 
+                    alt={event.title} 
+                    loading="lazy" 
+                    onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?q=80&w=800&auto=format&fit=crop' }}
+                />
                 <span className="category-tag">{event.category}</span>
             </div>
 
@@ -96,13 +102,40 @@ const EventCard = ({ event, status, onAction, viewMode }) => {
 
 // --- MAIN PAGE COMPONENT ---
 const EventsPage = ({ setPage, setSelectedEvent }) => {
-    const [events] = useState(INITIAL_EVENTS);
+    const [events, setEvents] = useState([]);
+    const [loading, setLoading] = useState(true);
+    
     const [viewMode, setViewMode] = useState('upcoming'); // 'upcoming' or 'past'
     const [activeCategory, setActiveCategory] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
     const [now, setNow] = useState(new Date());
 
+    // --- REAL-TIME DB FETCHING LOGIC ---
     useEffect(() => {
+        const fetchEvents = async () => {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/data/published-events`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.length > 0) {
+                        setEvents(data);
+                    } else {
+                        setEvents(INITIAL_EVENTS); // Fallback if DB is empty
+                    }
+                } else {
+                    setEvents(INITIAL_EVENTS); // Fallback on error
+                }
+            } catch (err) {
+                console.error("Failed to fetch events:", err);
+                setEvents(INITIAL_EVENTS); // Fallback on network error
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchEvents();
+        
+        // Timer to update "LIVE" statuses
         const timer = setInterval(() => setNow(new Date()), 60000);
         return () => clearInterval(timer);
     }, []);
@@ -111,7 +144,7 @@ const EventsPage = ({ setPage, setSelectedEvent }) => {
         return events.filter(e => {
             const status = calculateEventStatus(e.date, e.time, now);
             const categoryMatch = activeCategory === 'All' || e.category === activeCategory;
-            const searchMatch = e.title.toLowerCase().includes(searchQuery.toLowerCase());
+            const searchMatch = e.title?.toLowerCase().includes(searchQuery.toLowerCase());
             
             if (viewMode === 'upcoming') {
                 return categoryMatch && searchMatch && (status === 'ongoing' || status === 'upcoming');
@@ -123,24 +156,26 @@ const EventsPage = ({ setPage, setSelectedEvent }) => {
     return (
         <div className="pro-events-container">
             <style>{`
-                .pro-events-container { background: #f8f9fa; min-height: 100vh; padding-bottom: 100px; font-family: 'Montserrat', sans-serif; }
+                .pro-events-container { background: #f8f9fa; min-height: 100vh; padding-bottom: 100px; font-family: 'Montserrat', sans-serif; transition: background 0.3s; }
                 
                 /* Hero Section */
-                .hero-section { padding: 100px 20px 60px; text-align: center; background: white; border-bottom: 1px solid #eee; }
-                .hero-section h1 { font-family: 'Cinzel', serif; font-size: 3rem; color: #1a1a1a; margin-bottom: 15px; }
+                .hero-section { padding: 100px 20px 60px; text-align: center; background: white; border-bottom: 1px solid #eee; transition: all 0.3s; }
+                .hero-section h1 { font-family: 'Cinzel', serif; font-size: 3rem; color: #1a1a1a; margin-bottom: 15px; transition: color 0.3s; }
+                .hero-section p { color: #555; transition: color 0.3s; }
                 
                 /* Controls Toolbar */
                 .controls-bar { 
                     max-width: 1100px; margin: -30px auto 40px; background: white; 
                     padding: 20px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
                     display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: space-between;
+                    transition: all 0.3s; border: 1px solid transparent;
                 }
 
-                .view-tabs { display: flex; background: #f1f1f1; padding: 5px; border-radius: 10px; }
-                .tab-btn { padding: 8px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s; color: #666; }
+                .view-tabs { display: flex; background: #f1f1f1; padding: 5px; border-radius: 10px; transition: background 0.3s; }
+                .tab-btn { padding: 8px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s; color: #666; background: transparent; }
                 .tab-btn.active { background: white; color: #000; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 
-                .search-input { border: 1px solid #ddd; padding: 10px 15px; border-radius: 8px; width: 250px; outline: none; }
+                .search-input { border: 1px solid #ddd; padding: 10px 15px; border-radius: 8px; width: 250px; outline: none; background: white; color: #333; transition: all 0.3s;}
 
                 /* Event List */
                 .events-list { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 25px; padding: 0 20px; }
@@ -148,37 +183,42 @@ const EventsPage = ({ setPage, setSelectedEvent }) => {
                 /* Card Design */
                 .pro-card { 
                     display: flex; background: white; border-radius: 20px; overflow: hidden; 
-                    border: 1px solid #eef0f2; transition: transform 0.3s ease;
+                    border: 1px solid #eef0f2; transition: all 0.3s ease;
                 }
                 .pro-card:hover { transform: translateY(-4px); box-shadow: 0 15px 35px rgba(0,0,0,0.07); }
-                .border-live { border: 2px solid #ff4757; }
+                .border-live { border: 2px solid #ff4757 !important; }
 
                 .card-date-side { 
                     width: 100px; background: #fdfdfd; display: flex; flex-direction: column; 
                     align-items: center; justify-content: center; border-right: 1px solid #f0f0f0;
+                    transition: all 0.3s;
                 }
                 .card-date-side .month { color: #ff4757; font-weight: 800; font-size: 0.85rem; text-transform: uppercase; }
-                .card-date-side .day { font-size: 2rem; font-weight: 700; color: #2f3542; }
+                .card-date-side .day { font-size: 2rem; font-weight: 700; color: #2f3542; transition: color 0.3s; }
 
                 .card-image-box { width: 240px; position: relative; overflow: hidden; }
                 .card-image-box img { width: 100%; height: 100%; object-fit: cover; }
                 .category-tag { 
                     position: absolute; top: 12px; left: 12px; background: rgba(255,255,255,0.9);
-                    padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; 
+                    padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; color: #1a1a1a;
                 }
 
                 .card-content { flex: 1; padding: 25px; display: flex; flex-direction: column; }
-                .card-header-meta { display: flex; gap: 15px; font-size: 0.8rem; color: #747d8c; margin-bottom: 10px; }
-                .card-title { font-size: 1.4rem; color: #2f3542; margin-bottom: 12px; font-family: 'Cinzel', serif; }
-                .card-desc { color: #57606f; font-size: 0.95rem; line-height: 1.6; flex: 1; }
+                .card-header-meta { display: flex; gap: 15px; font-size: 0.8rem; color: #747d8c; margin-bottom: 10px; transition: color 0.3s; }
+                .card-title { font-size: 1.4rem; color: #2f3542; margin-bottom: 12px; font-family: 'Cinzel', serif; transition: color 0.3s; }
+                .card-desc { color: #57606f; font-size: 0.95rem; line-height: 1.6; flex: 1; transition: color 0.3s; }
 
                 .card-footer { margin-top: 20px; }
                 .primary-action-btn { 
                     background: #1a1a1a; color: white; border: none; padding: 12px 25px; 
                     border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s;
                 }
-                .primary-action-btn:hover { background: #ff4757; }
-                .secondary-action-btn { background: none; border: 1px solid #ddd; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+                .primary-action-btn:hover { background: #ff4757; color: white; }
+                
+                .secondary-action-btn { 
+                    background: transparent; border: 1px solid #ddd; color: #333; 
+                    padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: 0.3s; 
+                }
 
                 /* Live Animations */
                 .live-dot { height: 8px; width: 8px; background: #ff4757; border-radius: 50%; display: inline-block; margin-right: 5px; animation: pulse 1.5s infinite; }
@@ -186,9 +226,41 @@ const EventsPage = ({ setPage, setSelectedEvent }) => {
 
                 @media (max-width: 768px) {
                     .pro-card { flex-direction: column; }
-                    .card-date-side { width: 100%; flex-direction: row; gap: 10px; padding: 10px; }
+                    .card-date-side { width: 100%; flex-direction: row; gap: 10px; padding: 10px; border-right: none; border-bottom: 1px solid #f0f0f0; }
                     .card-image-box { width: 100%; height: 200px; }
                 }
+
+                /* ================================================= */
+                /* --- DARK MODE OVERRIDES (THE CRITICAL FIX) --- */
+                /* ================================================= */
+                
+                body.dark-mode .pro-events-container { background: #121212; }
+                
+                body.dark-mode .hero-section { background: #111; border-color: #222; }
+                body.dark-mode .hero-section h1 { color: #fff; }
+                body.dark-mode .hero-section p { color: #ccc; }
+                
+                body.dark-mode .controls-bar { background: #1e1e1e; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-color: #333; }
+                body.dark-mode .view-tabs { background: #111; }
+                body.dark-mode .tab-btn { color: #888; }
+                body.dark-mode .tab-btn.active { background: #333; color: #FFA500; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+                body.dark-mode .search-input { background: #222; border-color: #444; color: #fff; }
+                
+                body.dark-mode .pro-card { background: #1e1e1e; border-color: #333; }
+                body.dark-mode .card-date-side { background: #222; border-color: #333; }
+                @media (max-width: 768px) { body.dark-mode .card-date-side { border-bottom-color: #333; } }
+                body.dark-mode .card-date-side .day { color: #fff; }
+                
+                body.dark-mode .card-title { color: #fff; }
+                body.dark-mode .card-desc { color: #bbb; }
+                body.dark-mode .card-header-meta { color: #888; }
+                body.dark-mode .category-tag { background: rgba(0,0,0,0.8); color: #FFA500; border: 1px solid #FFA500; }
+                
+                body.dark-mode .primary-action-btn { background: #FFA500; color: #000; }
+                body.dark-mode .primary-action-btn:hover { background: #fff; color: #000; }
+                
+                body.dark-mode .secondary-action-btn { border-color: #555; color: #ccc; }
+                body.dark-mode .secondary-action-btn:hover { background: #333; color: #fff; }
             `}</style>
 
             <section className="hero-section">
@@ -217,31 +289,40 @@ const EventsPage = ({ setPage, setSelectedEvent }) => {
             </div>
 
             <main className="events-list">
-                <AnimatePresence mode="popLayout">
-                    {filteredEvents.map(event => (
-                        <EventCard 
-                            key={event.id}
-                            event={event}
-                            status={calculateEventStatus(event.date, event.time, now)}
-                            viewMode={viewMode}
-                            onAction={(evt) => {
-                                setSelectedEvent(evt);
-                                setPage({ name: viewMode === 'upcoming' ? 'event-register' : 'event-summary' });
-                            }}
-                        />
-                    ))}
-                </AnimatePresence>
-                
-                {filteredEvents.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>
-                        No events found for this selection.
-                    </div>
+                {loading ? (
+                    <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>Loading Events...</div>
+                ) : (
+                    <AnimatePresence mode="popLayout">
+                        {filteredEvents.map(event => (
+                            <EventCard 
+                                key={event._id || event.id} // use MongoDB _id if present
+                                event={event}
+                                status={calculateEventStatus(event.date, event.time, now)}
+                                viewMode={viewMode}
+                                onAction={(evt) => {
+                                    setSelectedEvent(evt);
+                                    setPage({ name: viewMode === 'upcoming' ? 'event-register' : 'event-summary' });
+                                }}
+                            />
+                        ))}
+                        
+                        {filteredEvents.length === 0 && (
+                            <motion.div 
+                                initial={{ opacity: 0 }} 
+                                animate={{ opacity: 1 }} 
+                                style={{ textAlign: 'center', padding: '60px', color: '#999' }}
+                            >
+                                No events found for this selection.
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 )}
             </main>
         </div>
     );
 };
 
+// Fallback data if the database is empty or fails to connect
 const INITIAL_EVENTS = [
     {
         id: '1',

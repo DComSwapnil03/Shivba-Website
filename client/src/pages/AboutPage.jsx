@@ -54,7 +54,7 @@ function AboutPage() {
             line-height: 1.6;
         }
 
-        /* Dark Mode Overrides (Handled by GlobalStyles usually, but ensuring specific text visibility) */
+        /* Dark Mode Overrides */
         body.dark-mode .about-container h1,
         body.dark-mode .about-container h2,
         body.dark-mode .about-container h3,
@@ -142,7 +142,7 @@ function AboutPage() {
         .about-value-icon {
             font-size: 3rem;
             margin-bottom: 1rem;
-            color: #FFA500; /* Shivba Gold */
+            color: #FFA500; 
         }
 
         /* 6. Team Grid */
@@ -178,6 +178,74 @@ function AboutPage() {
             margin-top: 0.5rem;
         }
 
+        /* 7. Success Stories Grid */
+        .success-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .success-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+            text-align: center;
+            border: 1px solid #eee;
+        }
+        body.dark-mode .success-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+        }
+        .success-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(255, 165, 0, 0.15);
+            border-color: #FFA500;
+        }
+        
+        /* THIS FIXES THE IMAGE STRETCHING */
+        .success-image {
+            width: 100%;
+            height: 280px;
+            object-fit: cover; 
+            object-position: center top; 
+            display: block;
+            border-bottom: 3px solid #FFA500;
+        }
+        
+        .success-content {
+            padding: 1.5rem;
+        }
+        .success-content h3 {
+            margin: 0 0 0.5rem 0;
+            color: #1a1a1a;
+            font-size: 1.4rem;
+        }
+        body.dark-mode .success-content h3 { color: #fff; }
+        .success-content p {
+            margin: 0;
+            font-size: 0.95rem;
+            color: #666;
+        }
+        .success-badge {
+            display: inline-block;
+            background: #fdf6e3;
+            color: #d97706;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: 1px solid #fde68a;
+        }
+        body.dark-mode .success-badge {
+            background: rgba(255, 165, 0, 0.1);
+            color: #FFA500;
+            border-color: rgba(255, 165, 0, 0.3);
+        }
       `}</style>
 
       {/* --- HERO SECTION --- */}
@@ -227,6 +295,53 @@ function AboutPage() {
         </div>
       </motion.section>
 
+      {/* --- SUCCESS STORIES --- */}
+      <motion.section 
+        className="about-block success-stories"
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+      >
+        <div className="about-inner-wide">
+          <motion.h2 variants={itemVariants}>Success Stories</motion.h2>
+          <motion.p variants={itemVariants} style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            Proud moments from Shivba Talim. Hard work, dedication, and results.
+          </motion.p>
+          
+          <div className="success-grid">
+            {/* Card 1 */}
+            <SuccessStoryCard 
+              name="PRANJALI NAGARGOJE" 
+              achievement="A shining star from Shivba Talim, Pranjali Nagargoje secured a coveted position in the Maharashtra Police. Her dedication and hard work have truly paid off!"
+              badge="🛡️ Maharashtra Police"
+              imageUrl="/WhatsApp Image 2026-04-08 at 12.35.24 AM (1).jpeg"
+            />
+            {/* Card 2 */}
+            <SuccessStoryCard 
+              name="SACHIN JADHAV & SAURABH JADHAV" 
+              achievement="Jadhav brothers both selected in Maharashtra Police. A proud moment for Shivba Talim!"
+              badge="⚔️ MUMBAI POLICE"
+              imageUrl="/SACHIN JADHAV & SAURABH JADHAV.jpeg"
+            />
+            {/* Card 3 - Assuming this matches the filename you provided earlier */}
+            <SuccessStoryCard 
+              name="Hakim, Sunil & Akshay" 
+              achievement="Hakim, Sunil, and Akshay all selected in the Pune Police. A triple triumph for Shivba Talim!"
+              badge="⚔️ MAHARASHTRA POLICE"
+              imageUrl="/HAKIM SUTAR, SUNIL HANDE & AKSHAY MORE.jpeg"
+            />
+            {/* Card 4 - Placeholder for another success story */}
+            <SuccessStoryCard 
+              name="SUPRIYA JAMBUKAR" 
+              achievement="Another proud Shivba Talim success story, Supriya Jambukar secured a position in the Maharashtra Police. Her journey is an inspiration to all!"
+              badge="🌟 MAHARASHTRA POLICE"
+              imageUrl="/WhatsApp Image 2026-04-08 at 12.35.24 AM.jpeg"
+            />
+          </div>
+        </div>
+      </motion.section>
+
       {/* --- LEADERSHIP TEAM --- */}
       <motion.section 
         className="about-block about-team"
@@ -265,6 +380,26 @@ function ValueCard({ icon, title, text }) {
       <div className="about-value-icon">{icon}</div>
       <h3>{title}</h3>
       <p>{text}</p>
+    </motion.div>
+  );
+}
+
+function SuccessStoryCard({ name, achievement, badge, imageUrl }) {
+  return (
+    <motion.div className="success-card" variants={itemVariants}>
+      {/* Fallback to a placeholder if the image fails to load due to bad filename */}
+      <img 
+        src={imageUrl} 
+        alt={name} 
+        className="success-image" 
+        loading="lazy" 
+        onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1594381898411-846e7d193883?q=80&w=600&auto=format&fit=crop' }} 
+      />
+      <div className="success-content">
+        <h3>{name}</h3>
+        <p>{achievement}</p>
+        <div className="success-badge">{badge}</div>
+      </div>
     </motion.div>
   );
 }

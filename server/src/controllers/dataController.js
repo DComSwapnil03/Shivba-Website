@@ -1,9 +1,12 @@
 const xlsx = require('xlsx');
 const InterestRegistration = require('../models/InterestRegistration'); // Users
-const EventRegistration = require('../models/EventRegistration');       // Events
+const EventRegistration = require('../models/EventRegistration');       // Events (User registrations)
 const ContactMessage = require('../models/ContactMessage');             // Messages
 const LibraryUser = require('../models/LibraryUser');                   // Library Admissions
 const LibraryBook = require('../models/LibraryBook');                   // Library Books
+
+// --- NEW MODEL IMPORT FOR PUBLISHING EVENTS ---
+const PublishedEvent = require('../models/PublishedEvent');             
 
 // Helper function to map the string 'type' to the correct Mongoose Model
 const getModelByType = (type) => {
@@ -132,16 +135,19 @@ exports.getDashboardData = async (req, res) => {
             const data = await LibraryBook.find({}).sort({ issueDate: -1 }).limit(50);
             return res.status(200).json(data);
         } else {
-             // Default: Return stats count
-             const userCount = await InterestRegistration.countDocuments();
-             const eventCount = await EventRegistration.countDocuments();
-             const msgCount = await ContactMessage.countDocuments();
-             const libUserCount = await LibraryUser.countDocuments();
-             const issuedBooksCount = await LibraryBook.countDocuments();
+             // OPTIMIZATION: Use Promise.all so these run at the same time, not one by one.
+             const [userCount, eventCount, msgCount, libUserCount, issuedBooksCount] = await Promise.all([
+                 InterestRegistration.countDocuments(),
+                 EventRegistration.countDocuments(),
+                 ContactMessage.countDocuments(),
+                 LibraryUser.countDocuments(),
+                 LibraryBook.countDocuments()
+             ]);
              
              return res.json({ userCount, eventCount, msgCount, libUserCount, issuedBooksCount });
         }
     } catch (error) {
+        console.error("Fetch Data Error:", error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -171,6 +177,40 @@ exports.deleteData = async (req, res) => {
         res.status(200).json({ success: true, message: "Deleted successfully" });
 
     } catch (error) {
+        console.error("Delete Error:", error);
         res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// --- 5. PUBLISH NEW EVENT ---
+exports.publishEvent = async (req, res) => {
+    try {
+        const { title, category, date, time, location, imageUrl, shortDescription } = req.body;
+
+        if (!title || !date || !time || !location) {
+            return res.status(400).json({ error: "Missing required fields." });
+        }
+
+        const newEvent = new PublishedEvent({
+            title, category, date, time, location, imageUrl, shortDescription
+        });
+
+        await newEvent.save();
+
+        res.status(201).json({ message: "Event published successfully!", event: newEvent });
+    } catch (error) {
+        console.error("Publish Event Error:", error);
+        res.status(500).json({ error: "Failed to publish event to database." });
+    }
+};
+
+// --- 6. GET PUBLISHED EVENTS (For the public website) ---
+exports.getPublishedEvents = async (req, res) => {
+    try {
+        const events = await PublishedEvent.find({}).sort({ date: 1 }); 
+        res.status(200).json(events);
+    } catch (error) {
+        console.error("Fetch Events Error:", error);
+        res.status(500).json({ error: "Failed to fetch events." });
     }
 };

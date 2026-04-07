@@ -3,27 +3,21 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 
 /* --- 1. DATA: SUCCESS STORIES --- */
+// UPDATED: Only showing the two Maharashtra Police selections
 const SUCCESS_STORIES = [
   {
     id: 1,
-    name: "Rahul Patil",
-    role: "State Level Wrestler",
-    quote: "The combination of traditional Kusti and modern gym equipment at Shivba Talim gave me the edge I needed to win gold.",
-    image: "https://randomuser.me/api/portraits/men/32.jpg"
+    name: "Supriya Jambukar",
+    role: "Maharashtra Police",
+    quote: "The rigorous physical training and focused environment at Shivba Talim were instrumental in my selection for the Maharashtra Police.",
+    image: "/WhatsApp Image 2026-04-08 at 12.35.24 AM.jpeg"
   },
   {
     id: 2,
-    name: "Priya Deshmukh",
-    role: "MPSC Aspirant",
-    quote: "The silence and resources in the Shivba Library helped me clear my prelims. It's not just a library, it's a temple of focus.",
-    image: "https://randomuser.me/api/portraits/women/44.jpg"
-  },
-  {
-    id: 3,
-    name: "Amit & Team",
-    role: "Social Volunteers",
-    quote: "Through the Shivba Social initiatives, we restored 3 local forts. The feeling of serving our heritage is indescribable.",
-    image: "https://randomuser.me/api/portraits/men/86.jpg"
+    name: "Pranjali Nagargoje",
+    role: "Maharashtra Police",
+    quote: "Discipline, expert guidance, and the best facilities at Shivba helped me achieve my dream of wearing the police uniform.",
+    image: "/WhatsApp Image 2026-04-08 at 12.35.24 AM (1).jpeg"
   }
 ];
 
@@ -59,7 +53,6 @@ const EmojiOrbitAnimation = () => {
 
   return (
     <div className="emoji-orbit-wrapper">
-      {/* SVG replaces the CSS borders to allow "line drawing" completion animations */}
       <svg className="orbit-svg" viewBox="0 0 300 300">
         
         {/* Outer Ring - Dashed and spinning slowly */}
@@ -83,8 +76,8 @@ const EmojiOrbitAnimation = () => {
           strokeLinecap="round"
           initial={{ pathLength: 0.1, rotate: 0 }}
           animate={{ 
-            pathLength: [0.1, 1, 0.1], // Grows from 10% to 100% (completed), then back
-            rotate: -360 // Spins counter-clockwise
+            pathLength: [0.1, 1, 0.1], 
+            rotate: -360 
           }}
           transition={{ 
             pathLength: { duration: 3, repeat: Infinity, ease: "easeInOut" },
@@ -134,7 +127,12 @@ const SuccessStories = () => {
            className="story-card"
          >
             <div className="story-img-wrapper">
-                <img src={SUCCESS_STORIES[active].image} alt={SUCCESS_STORIES[active].name} />
+                {/* Added onError to fallback to a placeholder if the image path is broken */}
+                <img 
+                  src={SUCCESS_STORIES[active].image} 
+                  alt={SUCCESS_STORIES[active].name} 
+                  onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1594381898411-846e7d193883?q=80&w=200&auto=format&fit=crop' }}
+                />
             </div>
             <p className="story-quote">"{SUCCESS_STORIES[active].quote}"</p>
             <div className="story-meta">
@@ -185,7 +183,7 @@ function HomePage({ setPage }) {
 
         /* Global Font Assignments */
         .home-container {
-            background-color: #121212; /* DARK MODE BACKGROUND */
+            background-color: #121212; 
             color: #e0e0e0;
             min-height: 100vh;
         }
@@ -205,7 +203,7 @@ function HomePage({ setPage }) {
             text-transform: uppercase; letter-spacing: 0.15em; font-weight: 600; border-radius: 0 !important; cursor: pointer;
         }
 
-        /* Emoji Orbit CSS - UPDATED FOR SVG ANIMATION */
+        /* Emoji Orbit CSS */
         .emoji-orbit-wrapper { 
             position: relative; width: 300px; height: 300px; 
             display: flex; justify-content: center; align-items: center; 
@@ -225,7 +223,7 @@ function HomePage({ setPage }) {
         .hero-content h1 { text-shadow: 0 4px 10px rgba(0,0,0,0.5); font-size: 3.5rem; }
         .hero-subtitle { font-weight: 300; letter-spacing: 0.1em; font-size: 1.1rem; color: #f0f0f0 !important; }
 
-        /* --- FIX START: SERVICE CARDS VISIBILITY (DARK MODE) --- */
+        /* Service Cards */
         .cards-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -236,15 +234,15 @@ function HomePage({ setPage }) {
         }
 
         .info-card {
-            background: #1e1e1e !important; /* Dark Card Background */
+            background: #1e1e1e !important; 
             padding: 2rem;
             border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5); /* Darker shadow */
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5); 
             cursor: pointer;
-            border: 1px solid #333; /* Subtle border */
+            border: 1px solid #333; 
             transition: transform 0.3s ease;
             text-align: left;
-            color: #ffffff !important; /* White text */
+            color: #ffffff !important; 
         }
 
         .info-card h3, .home-container .info-card h3 {
@@ -255,7 +253,7 @@ function HomePage({ setPage }) {
         }
 
         .info-card p, .home-container .info-card p {
-            color: #bbbbbb !important; /* Light Grey text */
+            color: #bbbbbb !important; 
             font-size: 0.95rem;
             line-height: 1.6;
             margin-bottom: 1.5rem;
@@ -267,34 +265,30 @@ function HomePage({ setPage }) {
             font-size: 0.9rem;
             display: inline-block;
         }
-        /* --- FIX END --- */
 
-        /* --- FIX START: VOICES OF VICTORY (DARK MODE) --- */
+        /* Voices of Victory */
         .stories-section {
             padding: 4rem 2rem;
-            background-color: #121212 !important; /* Force Dark Background */
+            background-color: #121212 !important; 
             text-align: center;
         }
 
-        /* 1. Main Title "Voices of Victory" */
         .stories-section h2 {
-            color: #ffffff !important; /* Force White */
+            color: #ffffff !important; 
             font-family: 'Cinzel', serif !important;
             font-size: 2rem !important;
             margin-bottom: 10px !important;
             text-shadow: none !important; 
         }
 
-        /* 2. Subtitle "Real stories from..." */
         .stories-section p {
-            color: #bbbbbb !important; /* Force Light Grey */
+            color: #bbbbbb !important; 
             margin-bottom: 2rem !important;
             font-weight: 500 !important;
         }
 
-        /* 3. The Card Box */
         .story-card {
-            background-color: #1e1e1e !important; /* Force Dark Grey Card */
+            background-color: #1e1e1e !important; 
             padding: 2rem;
             border-radius: 15px;
             border: 1px solid #333;
@@ -305,26 +299,23 @@ function HomePage({ setPage }) {
             margin: 0 auto; 
         }
 
-        /* 4. The Quote Text */
         .story-quote {
-            color: #e0e0e0 !important; /* Off-white */
+            color: #e0e0e0 !important; 
             font-style: italic;
             font-size: 1.1rem !important;
             line-height: 1.6 !important;
             margin-bottom: 1.5rem !important;
         }
 
-        /* 5. Person Name */
         .story-meta h4 {
-            color: #ea580c !important; /* Force Orange */
+            color: #ea580c !important; 
             margin: 0 !important;
             font-size: 1.2rem !important;
             font-weight: 700 !important;
         }
 
-        /* 6. Person Role */
         .story-meta span {
-            color: #888888 !important; /* Force Grey */
+            color: #888888 !important; 
             font-size: 0.9rem !important;
         }
 
@@ -333,7 +324,6 @@ function HomePage({ setPage }) {
         .story-dots { display: flex; gap: 10px; margin-top: 1rem; justify-content: center; }
         .story-dots .dot { width: 10px; height: 10px; background: #555 !important; border-radius: 50%; cursor: pointer; transition: all 0.3s; }
         .story-dots .dot.active { background: #ea580c !important; transform: scale(1.2); }
-        /* --- FIX END --- */
       `}</style>
 
       {/* --- SECTION 1: HERO --- */}

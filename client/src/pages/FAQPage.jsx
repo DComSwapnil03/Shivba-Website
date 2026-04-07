@@ -2,11 +2,9 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// --- CONFIGURATION ---
-// Replace this with your actual Vercel URL
+// Pull the backend URL from the environment variable
 const BACKEND_URL = `${process.env.REACT_APP_API_URL}/api/chat`;
 
-// --- ANIMATION VARIANTS ---
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
@@ -22,7 +20,6 @@ const accordionVariants = {
   open: { height: 'auto', opacity: 1, transition: { duration: 0.3, ease: 'easeInOut' } }
 };
 
-// --- TYPEWRITER COMPONENT ---
 const Typewriter = ({ text, onComplete }) => {
   const [displayedText, setDisplayedText] = useState('');
   const index = useRef(0);
@@ -45,7 +42,6 @@ const Typewriter = ({ text, onComplete }) => {
   return <span>{displayedText}</span>;
 };
 
-// --- THINKING BUBBLE ---
 const ThinkingBubble = () => (
   <div className="thinking-dots">
     <span className="dot"></span><span className="dot"></span><span className="dot"></span>
@@ -69,7 +65,6 @@ function FAQPage({ setPage }) {
   const [openId, setOpenId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // --- CHATBOT STATE ---
   const [chatMessages, setChatMessages] = useState([
     { id: 1, sender: 'bot', text: "Welcome to Shivba! I'm your AI assistant. Ask me about our gym plans, library rules, or registration.", isTyping: false }
   ]);
@@ -77,19 +72,16 @@ function FAQPage({ setPage }) {
   const [isBotThinking, setIsBotThinking] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Used below in the chat UI
   const SUGGESTIONS = [
     { label: "📄 Register", action: "register" },
     { label: "🏆 Gym Fees", action: "gym_fees" },
     { label: "📞 Contact", action: "contact" },
   ];
 
-  // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages, isBotThinking]);
 
-  // Filter Logic
   const filteredFaqs = useMemo(() => {
     if (!searchTerm.trim()) return STATIC_FAQS;
     const q = searchTerm.toLowerCase();
@@ -100,7 +92,6 @@ function FAQPage({ setPage }) {
 
   const toggleFaq = (id) => setOpenId((prev) => (prev === id ? null : id));
 
-  // --- CHAT LOGIC ---
   const handleChatSubmit = async (e) => {
     e?.preventDefault();
     const text = chatInput.trim();
@@ -110,7 +101,7 @@ function FAQPage({ setPage }) {
     setChatInput('');
     setIsBotThinking(true);
 
-    const history = chatMessages.slice(-5).map(m => ({
+    const history = chatMessages.slice(-4).map(m => ({
         role: m.sender === 'user' ? 'user' : 'assistant',
         content: m.text
     }));
@@ -125,16 +116,18 @@ function FAQPage({ setPage }) {
         const data = await response.json();
         setIsBotThinking(false);
 
-        if (data.reply) {
+        if (response.ok && data.reply) {
             setChatMessages(prev => [...prev, { id: Date.now() + 1, sender: 'bot', text: data.reply, isTyping: true }]);
+        } else {
+            setChatMessages(prev => [...prev, { id: Date.now() + 1, sender: 'bot', text: `Error: ${data.error || 'Server issue'}`, isTyping: false }]);
         }
     } catch (error) {
         setIsBotThinking(false);
-        setChatMessages(prev => [...prev, { id: Date.now() + 1, sender: 'bot', text: "I'm having trouble connecting to the server. Please try again later.", isTyping: false }]);
+        console.error("Frontend Fetch Error:", error);
+        setChatMessages(prev => [...prev, { id: Date.now() + 1, sender: 'bot', text: "Connection failed. Please check if the server is running.", isTyping: false }]);
     }
   };
 
-  // Used for the suggestion chips below the chat messages
   const handleSuggestion = (action, label) => {
     if (action === 'register') {
       setPage({ name: 'register' });
@@ -212,7 +205,6 @@ function FAQPage({ setPage }) {
         @media (max-width: 900px) { .faq-structure { grid-template-columns: 1fr; } .faq-right-col { height: 500px; position: static; margin-top: 2rem; } .still-questions-box { flex-direction: column; text-align: center; gap: 20px; } }
       `}</style>
 
-      {/* --- HERO --- */}
       <section className="faq-hero">
         <motion.div variants={itemVariants}>
           <h1>FAQ & Support</h1>
@@ -220,10 +212,8 @@ function FAQPage({ setPage }) {
         </motion.div>
       </section>
 
-      {/* --- MAIN STRUCTURE --- */}
       <div className="faq-structure">
         
-        {/* LEFT: FAQ List */}
         <div className="faq-left-col">
           <motion.div className="faq-search" variants={itemVariants}>
             <input 
@@ -255,7 +245,6 @@ function FAQPage({ setPage }) {
           </motion.div>
         </div>
 
-        {/* RIGHT: Chatbot */}
         <div className="faq-right-col">
           <motion.div className="embedded-chat-card" variants={itemVariants}>
             <div className="chat-header">
@@ -273,7 +262,6 @@ function FAQPage({ setPage }) {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Suggestions Bar */}
             <div className="chat-suggestions">
               {SUGGESTIONS.map((s, idx) => (
                 <button 
@@ -295,7 +283,6 @@ function FAQPage({ setPage }) {
 
       </div>
 
-      {/* --- BOTTOM: CTA --- */}
       <section className="faq-bottom-bar">
         <motion.div className="still-questions-box" variants={itemVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
             <div className="sq-text">

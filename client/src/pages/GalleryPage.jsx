@@ -1,14 +1,25 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// --- 1. CONFIGURATION ---
+// --- 1. CONFIGURATION & DATA ---
 const CATEGORIES = ['All', 'Gym', 'Event', 'Library', 'Community'];
 
+const ACHIEVERS_DATA = [
+  { id: 'a1', name: "Akshay Gaikwad", role: "PSI (MPSC)", imageUrl: "/WhatsApp Image 2026-04-08 at 12.35.26 AM.jpeg" },
+  { id: 'a2', name: "Vaibhav Munde", role: "Assistant Engineer", imageUrl: "/WhatsApp Image 2026-04-08 at 12.35.27 AM (1).jpeg" },
+  { id: 'a3', name: "Sachin Shinde", role: "Prison Department", imageUrl: "/WhatsApp Image 2026-04-08 at 12.35.27 AM (2).jpeg" },
+  // { id: 'a4', name: "Somnath Gite", role: "Tax Assistant", imageUrl: "/WhatsApp Image 2026-04-08 at 12.35.27 AM (3).jpeg" },
+  { id: 'a5', name: "SHUBHAM DATTATRAY", role: "REVENUE ASSISTANT", imageUrl: "/WhatsApp Image 2026-04-08 at 12.35.27 AM.jpeg" },
+  { id: 'a6', name: "RUTUJA KAD ", role: "ASO", imageUrl: "/WhatsApp Image 2026-04-08 at 12.35.28 AM (1).jpeg" },
+  { id: 'a7', name: "PRIYANKA GITE", role: "CONSTABLE", imageUrl: "/WhatsApp Image 2026-04-08 at 12.35.28 AM (2).jpeg" },
+  { id: 'a8', name: "Hakim, Sunil & Akshay", role: "MAHARASHTRA POLICE", imageUrl: "/HAKIM SUTAR, SUNIL HANDE & AKSHAY MORE.jpeg" },
+  { id: 'a9', name: "Sachin & Saurabh", role: "MAHARASHTRA POLICE", imageUrl: "/SACHIN JADHAV & SAURABH JADHAV.jpeg" },
+  { id: 'a10', name: "Kishor Phad", role: "MAHARASHTRA POLICE", imageUrl: "/WhatsApp Image 2026-04-08 at 12.35.08 AM.jpeg" }
+];
+
 const INITIAL_PHOTOS = [
-  // --- LIBRARY ---
   { id: 7, category: 'Library', title: 'Library Area', url: '/IMG-20251226-WA0005.jpg' },
   { id: 26, category: 'Library', title: 'Select on MPSC', url: '/IMG-20251226-WA0018.jpg' },
-  // --- GYM ---
   { id: 11, category: 'Gym', title: 'Equipment Tour', url: '/VID-20251226-WA0006.mp4' },
   { id: 18, category: 'Gym', title: 'Entrance View', url: '/IMG-20251226-WA0026.jpg' },
   { id: 19, category: 'Gym', title: 'Reception Area', url: '/IMG-20251226-WA0025.jpg' },
@@ -17,7 +28,6 @@ const INITIAL_PHOTOS = [
   { id: 27, category: 'Event', title: 'Award Distribution', url: '/IMG-20251226-WA0017.jpg' },
   { id: 33, category: 'Community', title: 'Office', url: '/IMG-20251226-WA0012.jpg' },
   { id: 39, category: 'Library', title: 'Overview', url: '/IMG-20251226-WA0006.jpg' },
-  // --- EVENT ---
   { id: 8, category: 'Event', title: 'Event Highlight', url: '/VID-20251226-WA0009.mp4' },
   { id: 9, category: 'Event', title: 'Training Session', url: '/VID-20251226-WA0008.mp4' },
   { id: 12, category: 'Event', title: 'Opening Ceremony', url: '/VID-20251226-WA0005.mp4' },
@@ -32,7 +42,6 @@ const INITIAL_PHOTOS = [
   { id: 34, category: 'Event', title: 'Flash Mob', url: '/VID-20251226-WA0002.mp4' },
   { id: 37, category: 'Event', title: 'Setup Day', url: '/IMG-20251226-WA0009.jpg' },
   { id: 38, category: 'Event', title: 'Evening View', url: '/IMG-20251226-WA0007.jpg' },
-  // --- COMMUNITY ---
   { id: 10, category: 'Community', title: 'Group Activity', url: '/VID-20251226-WA0007.mp4' },
   { id: 13, category: 'Community', title: 'Member Gathering', url: '/IMG-20251226-WA0030.jpg' },
   { id: 14, category: 'Community', title: 'Shivba', url: '/IMG-20251226-WA0029.jpg' },
@@ -61,21 +70,10 @@ const modalVariants = {
   exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } }
 };
 
-// "Copilot" Style Animation (Slide up from bottom)
 const floatingBarVariants = {
   hidden: { y: 150, x: "-50%", opacity: 0 },
-  visible: { 
-    y: 0, 
-    x: "-50%", 
-    opacity: 1, 
-    transition: { type: "spring", stiffness: 250, damping: 25 } 
-  },
-  exit: { 
-    y: 150, 
-    x: "-50%", 
-    opacity: 0, 
-    transition: { duration: 0.3 } 
-  }
+  visible: { y: 0, x: "-50%", opacity: 1, transition: { type: "spring", stiffness: 250, damping: 25 } },
+  exit: { y: 150, x: "-50%", opacity: 0, transition: { duration: 0.3 } }
 };
 
 function GalleryPage({ setPage }) {
@@ -92,11 +90,9 @@ function GalleryPage({ setPage }) {
   const isLoggedIn = !!localStorage.getItem('shivba_user_email');
   const canDelete = isLoggedIn;
 
-  // --- INTERSECTION OBSERVER ---
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // Show floating bar only when main toolbar scrolls OUT of view
         setShowFloatingBar(!entry.isIntersecting && entry.boundingClientRect.top < 0);
       },
       { threshold: 0, rootMargin: "-100px 0px 0px 0px" } 
@@ -166,8 +162,8 @@ function GalleryPage({ setPage }) {
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;500;600&display=swap');
 
         /* --- GLOBAL & HERO --- */
-        .gallery-container { min-height: 100vh; padding-bottom: 120px; /* Space for floating bar */ }
-        .gallery-container h1, .gallery-container h2, .gallery-card h3 { font-family: 'Cinzel', serif !important; letter-spacing: 0.05em; }
+        .gallery-container { min-height: 100vh; padding-bottom: 120px; }
+        .gallery-container h1, .gallery-container h2, .gallery-card h3, .achievers-section h2 { font-family: 'Cinzel', serif !important; letter-spacing: 0.05em; }
         .gallery-container p, button, span, label, input, select { font-family: 'Montserrat', sans-serif !important; }
 
         .gallery-hero {
@@ -182,14 +178,98 @@ function GalleryPage({ setPage }) {
         .gallery-hero h1 { font-size: 3.5rem; margin-bottom: 0.5rem; position: relative; z-index: 2; color: #fff; }
         .gallery-hero p { font-size: 1.2rem; color: #aaa; position: relative; z-index: 2; }
 
+        /* --- NEW: UPGRADED ACHIEVERS HALL OF FAME --- */
+        .achievers-section {
+            padding: 4rem 2rem 5rem;
+            background: #fdfdfd;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        body.dark-mode .achievers-section { background: #111; border-color: #222; }
+        
+        .achievers-section h2 { color: #1a1a1a; font-size: 2.5rem; margin-bottom: 0.5rem; }
+        body.dark-mode .achievers-section h2 { color: #fff; }
+        
+        .achievers-section p { color: #666; margin-bottom: 3rem; font-size: 1.1rem; }
+        body.dark-mode .achievers-section p { color: #aaa; }
+
+        .achievers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 3rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .achiever-card {
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 16px;
+            position: relative; /* Needed for overlapping badge */
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            cursor: pointer;
+        }
+        body.dark-mode .achiever-card { background: #1e1e1e; border-color: #333; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .achiever-card:hover { transform: translateY(-10px); box-shadow: 0 15px 35px rgba(234, 88, 12, 0.2); }
+        
+        .achiever-img-wrap {
+            position: relative;
+            width: 100%;
+            height: 340px;
+            background: linear-gradient(135deg, #1a1a1a, #333); /* Premium dark background behind flyer */
+            padding: 20px; 
+            border-radius: 16px 16px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* THE SPECIAL GOLD GLOWING BORDER FOR THE IMAGE */
+        .achiever-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain; 
+            border-radius: 6px;
+            border: 3px solid #FFA500; /* Gold frame */
+            box-shadow: 0 0 25px rgba(255, 165, 0, 0.5); /* Glowing effect */
+            background: white; /* In case the flyer has transparent parts */
+        }
+        
+        /* THE OVERLAPPING MEDAL BADGE */
+        .achiever-badge-special {
+            position: absolute;
+            bottom: -18px; /* Pulled down so it overlaps the image and the text area */
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #ea580c, #ffb700);
+            color: white;
+            padding: 8px 24px;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            box-shadow: 0 6px 15px rgba(234, 88, 12, 0.4);
+            border: 3px solid #fff; /* Thick white border to punch out from the background */
+            white-space: nowrap;
+            z-index: 2;
+        }
+        body.dark-mode .achiever-badge-special { border-color: #1e1e1e; }
+
+        .achiever-info { 
+            padding: 2.5rem 1.5rem 1.5rem; /* Extra top padding to make room for the overlapping badge */
+            text-align: center; 
+        }
+        .achiever-info h3 { margin: 0; color: #1a1a1a; font-size: 1.4rem; font-weight: 700; }
+        body.dark-mode .achiever-info h3 { color: #fff; }
+
         /* --- MAIN TOOLBAR --- */
         .gallery-toolbar {
-            padding: 1.5rem 2rem; max-width: 1400px; margin: 0 auto 2rem;
+            padding: 3rem 2rem 2rem; max-width: 1400px; margin: 0 auto;
             display: flex; justify-content: center; align-items: center;
             flex-wrap: wrap; gap: 1.5rem; 
             position: relative; z-index: 10;
         }
-
         .gallery-filters { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
         .gallery-filter-chip {
             padding: 8px 20px; border-radius: 50px; border: 1px solid #ddd;
@@ -203,191 +283,82 @@ function GalleryPage({ setPage }) {
         body.dark-mode .gallery-filter-chip:hover { color: #fff; }
         body.dark-mode .gallery-filter-chip.active { background: #FFA500; color: #000; border-color: #FFA500; }
 
-        /* --- COPILOT STYLE FLOATING BAR --- */
+        /* --- FLOATING BAR --- */
         .floating-pill-container {
-            position: fixed; 
-            bottom: 30px; 
-            left: 50%;
-            /* Transform is handled by framer motion variants */
-            
-            background: #ffffff;
-            padding: 6px 8px; /* Compact padding */
-            border-radius: 9999px; /* Fully rounded pill */
-            
-            display: flex; 
-            align-items: center; 
-            gap: 5px;
-            
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05); /* Soft shadow + thin border */
-            z-index: 2147483647;
-            
-            /* Blur backdrop optional if using transparency, but pure white matches Copilot better */
+            position: fixed; bottom: 30px; left: 50%;
+            background: #ffffff; padding: 6px 8px; border-radius: 9999px; 
+            display: flex; align-items: center; gap: 5px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05); z-index: 2147483647;
         }
-        
-        body.dark-mode .floating-pill-container {
-            background: #1e1e1e;
-            box-shadow: 0 4px 25px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1);
-        }
-
+        body.dark-mode .floating-pill-container { background: #1e1e1e; box-shadow: 0 4px 25px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1); }
         .pill-btn {
-            padding: 10px 18px; 
-            border-radius: 999px; 
-            border: none;
-            background: transparent; 
-            color: #5f6368; 
-            font-size: 0.85rem; 
-            font-weight: 600;
-            cursor: pointer; 
-            transition: all 0.2s ease; 
-            white-space: nowrap;
+            padding: 10px 18px; border-radius: 999px; border: none; background: transparent; 
+            color: #5f6368; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; white-space: nowrap;
         }
-        
-        .pill-btn:hover {
-            background: #f1f3f4;
-            color: #202124;
-        }
-        
-        .pill-btn.active {
-            background: #e8f0fe; /* Google/Copilot Blue-ish tint */
-            color: #1967d2;      /* Active Blue Text */
-            font-weight: 700;
-        }
-
-        /* Dark Mode Styles for Pill Buttons */
+        .pill-btn:hover { background: #f1f3f4; color: #202124; }
+        .pill-btn.active { background: #e8f0fe; color: #1967d2; font-weight: 700; }
         body.dark-mode .pill-btn { color: #aaa; }
         body.dark-mode .pill-btn:hover { background: #333; color: #fff; }
         body.dark-mode .pill-btn.active { background: #333; color: #FFA500; }
-
-        /* Add Button in Floating Bar */
         .pill-add-btn {
-            width: 36px; height: 36px; border-radius: 50%;
-            background: #ea580c; color: white; border: none;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.2rem; cursor: pointer; margin-left: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            width: 36px; height: 36px; border-radius: 50%; background: #ea580c; color: white; border: none;
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; margin-left: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         .pill-add-btn:hover { transform: scale(1.1); background: #c2410c; }
-
-
         .gallery-add-btn {
-            background: #ea580c; color: white; border: none; padding: 10px 24px;
-            border-radius: 50px; font-weight: 700; cursor: pointer; text-transform: uppercase;
-            font-size: 0.8rem; letter-spacing: 0.1em; transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(234, 88, 12, 0.3);
+            background: #ea580c; color: white; border: none; padding: 10px 24px; border-radius: 50px; font-weight: 700; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.1em; transition: all 0.3s; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.3);
         }
         .gallery-add-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(234, 88, 12, 0.4); }
 
         /* --- MASONRY LAYOUT --- */
-        .gallery-masonry {
-            column-count: 4; column-gap: 24px;
-            max-width: 1600px; margin: 0 auto; padding: 0 24px;
-        }
+        .gallery-masonry { column-count: 4; column-gap: 24px; max-width: 1600px; margin: 0 auto; padding: 0 24px; }
         @media (max-width: 1400px) { .gallery-masonry { column-count: 3; } }
         @media (max-width: 900px) { .gallery-masonry { column-count: 2; column-gap: 16px; padding: 0 16px; } }
         @media (max-width: 500px) { .gallery-masonry { column-count: 1; } }
 
         /* --- GALLERY CARD --- */
         .gallery-card {
-            break-inside: avoid; margin-bottom: 24px;
-            position: relative; border-radius: 12px; overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); cursor: pointer;
-            background: #f0f0f0; transform: translateZ(0);
+            break-inside: avoid; margin-bottom: 24px; position: relative; border-radius: 12px; overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); cursor: pointer; background: #f0f0f0; transform: translateZ(0);
         }
         body.dark-mode .gallery-card { background: #2a2a2a; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-
-        .gallery-img {
-            width: 100%; display: block; 
-            transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
+        .gallery-img { width: 100%; display: block; transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
         .gallery-card:hover .gallery-img { transform: scale(1.08); }
-        
-        .video-indicator {
-            position: absolute; top: 12px; right: 12px;
-            background: rgba(0,0,0,0.6); color: white;
-            width: 32px; height: 32px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            backdrop-filter: blur(4px); z-index: 5;
-        }
-
-        .gallery-overlay {
-            position: absolute; inset: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
-            opacity: 0; transition: opacity 0.3s ease;
-            display: flex; flex-direction: column; justify-content: flex-end; padding: 24px;
-        }
+        .video-indicator { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); z-index: 5; }
+        .gallery-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, transparent 100%); opacity: 0; transition: opacity 0.3s ease; display: flex; flex-direction: column; justify-content: flex-end; padding: 24px; }
         .gallery-card:hover .gallery-overlay { opacity: 1; }
-        
-        .gallery-tag {
-            background: #ea580c; color: white; font-size: 0.65rem; padding: 4px 10px;
-            border-radius: 20px; align-self: flex-start; margin-bottom: 8px; 
-            text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;
-        }
-        .gallery-card h3 { 
-            color: white; font-size: 1.1rem; margin: 0; line-height: 1.4;
-            transform: translateY(10px); transition: transform 0.3s ease;
-        }
+        .gallery-tag { background: #ea580c; color: white; font-size: 0.65rem; padding: 4px 10px; border-radius: 20px; align-self: flex-start; margin-bottom: 8px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; }
+        .gallery-card h3 { color: white; font-size: 1.1rem; margin: 0; line-height: 1.4; transform: translateY(10px); transition: transform 0.3s ease; }
         .gallery-card:hover h3 { transform: translateY(0); }
-
-        .delete-btn {
-            position: absolute; top: 10px; left: 10px;
-            background: white; border: none; border-radius: 50%;
-            width: 30px; height: 30px; cursor: pointer; color: #dc2626;
-            display: flex; align-items: center; justify-content: center;
-            opacity: 0; transition: all 0.2s; z-index: 10;
-        }
+        .delete-btn { position: absolute; top: 10px; left: 10px; background: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; color: #dc2626; display: flex; align-items: center; justify-content: center; opacity: 0; transition: all 0.2s; z-index: 10; }
         .gallery-card:hover .delete-btn { opacity: 1; }
         .delete-btn:hover { transform: scale(1.1); background: #fee2e2; }
 
         /* --- LIGHTBOX --- */
-        .lightbox-backdrop {
-            position: fixed; inset: 0; z-index: 10000;
-            background: rgba(0,0,0,0.95); backdrop-filter: blur(10px);
-            display: flex; align-items: center; justify-content: center;
-        }
+        .lightbox-backdrop { position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; }
         .lightbox-content { max-width: 90vw; max-height: 90vh; position: relative; }
         .lightbox-media { max-width: 100%; max-height: 90vh; border-radius: 8px; box-shadow: 0 0 50px rgba(0,0,0,0.5); object-fit: contain; }
-        .lightbox-close {
-            position: absolute; top: 30px; right: 30px;
-            background: rgba(255,255,255,0.1); color: white; border: none;
-            width: 50px; height: 50px; border-radius: 50%; font-size: 24px;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: background 0.2s;
-        }
+        .lightbox-close { position: absolute; top: 30px; right: 30px; background: rgba(255,255,255,0.1); color: white; border: none; width: 50px; height: 50px; border-radius: 50%; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
         .lightbox-close:hover { background: rgba(255,255,255,0.3); }
         .lightbox-info { position: absolute; bottom: -50px; left: 0; width: 100%; text-align: center; color: white; }
         .lightbox-info h3 { font-size: 1.5rem; margin: 0; }
         .lightbox-info span { color: #aaa; font-size: 0.9rem; text-transform: uppercase; }
 
         /* --- MODAL --- */
-        .modal-backdrop {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.8);
-            display: flex; align-items: center; justify-content: center; z-index: 10000;
-            backdrop-filter: blur(5px);
-        }
-        .gallery-modal {
-            background: white; width: 90%; max-width: 500px; padding: 2rem;
-            border-radius: 16px; position: relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-        }
+        .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(5px); }
+        .gallery-modal { background: white; width: 90%; max-width: 500px; padding: 2rem; border-radius: 16px; position: relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
         body.dark-mode .gallery-modal { background: #1e1e1e; color: white; border: 1px solid #333; }
-        
-        .gallery-modal input, .gallery-modal select {
-            width: 100%; padding: 12px; margin-top: 5px; margin-bottom: 20px;
-            border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;
-            background: #f9f9f9;
-        }
+        .gallery-modal input, .gallery-modal select { width: 100%; padding: 12px; margin-top: 5px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; background: #f9f9f9; }
         body.dark-mode .gallery-modal input, body.dark-mode .gallery-modal select { background: #2a2a2a; border-color: #444; color: white; }
-        
         .modal-actions { display: flex; gap: 15px; margin-top: 10px; }
         .btn-cancel { flex: 1; padding: 14px; border: 1px solid #ddd; background: transparent; border-radius: 8px; cursor: pointer; font-weight: 600; }
         .btn-submit { flex: 1; padding: 14px; border: none; background: #1a1a1a; color: white; border-radius: 8px; cursor: pointer; font-weight: 600; }
-        
         body.dark-mode .btn-cancel { color: #fff; border-color: #444; }
         body.dark-mode .btn-submit { background: #ea580c; color: #fff; }
-
         .gallery-empty { text-align: center; padding: 4rem; color: #888; font-style: italic; width: 100%; }
       `}</style>
 
-      {/* --- PAGE CONTENT (Main Scrollable Area) --- */}
+      {/* --- PAGE CONTENT --- */}
       <motion.div 
         className="gallery-container"
         initial="hidden"
@@ -397,12 +368,49 @@ function GalleryPage({ setPage }) {
         {/* HERO */}
         <section className="gallery-hero">
           <motion.div variants={itemVariants}>
-            <h1>Our Gallery</h1>
-            <p>Witness the strength, spirit, and soul of Shivba.</p>
+            <h1>Our Gallery & Wall of Fame</h1>
+            <p>Witness the strength, spirit, and success stories of Shivba.</p>
           </motion.div>
         </section>
 
-        {/* MAIN TOOLBAR (Visible at top) */}
+        {/* --- UPGRADED ACHIEVERS HALL OF FAME --- */}
+        <section className="achievers-section">
+            <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }}>
+                <motion.h2 variants={itemVariants}>Hall of Fame</motion.h2>
+                <motion.p variants={itemVariants}>Celebrating our proud members selected in MPSC, UPSC, and Defense.</motion.p>
+                
+                <div className="achievers-grid">
+                    {ACHIEVERS_DATA.map((achiever) => (
+                        <motion.div 
+                            key={achiever.id} 
+                            className="achiever-card" 
+                            variants={itemVariants}
+                            onClick={() => setSelectedMedia({ url: achiever.imageUrl, title: achiever.name, category: achiever.role })}
+                        >
+                            <div className="achiever-img-wrap">
+                                <img 
+                                    src={achiever.imageUrl} 
+                                    alt={achiever.name} 
+                                    className="achiever-img" 
+                                    loading="lazy"
+                                    onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1594381898411-846e7d193883?q=80&w=600&auto=format&fit=crop' }} 
+                                />
+                                {/* THE OVERLAPPING MEDAL BADGE */}
+                                <div className="achiever-badge-special">
+                                   {achiever.role.includes('Police') ? '🛡️ ' : achiever.role.includes('Army') ? '⚔️ ' : '🎓 '} 
+                                   {achiever.role}
+                                </div>
+                            </div>
+                            <div className="achiever-info">
+                                <h3>{achiever.name}</h3>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            </motion.div>
+        </section>
+
+        {/* MAIN TOOLBAR (For Masonry Gallery) */}
         <div className="gallery-toolbar" ref={toolbarRef}>
           <div className="gallery-filters">
             {CATEGORIES.map((cat) => (
@@ -420,7 +428,7 @@ function GalleryPage({ setPage }) {
           </button>
         </div>
 
-        {/* MASONRY GRID */}
+        {/* MASONRY GRID (General Photos) */}
         <div className="gallery-masonry">
           <AnimatePresence mode="popLayout">
             {filteredPhotos.length === 0 ? (
@@ -473,7 +481,7 @@ function GalleryPage({ setPage }) {
         </div>
       </motion.div>
 
-      {/* --- COPILOT-STYLE FLOATING BAR (Fixed Position) --- */}
+      {/* --- COPILOT-STYLE FLOATING BAR --- */}
       <AnimatePresence>
         {showFloatingBar && (
             <motion.div 
@@ -487,13 +495,12 @@ function GalleryPage({ setPage }) {
                     <button
                     key={cat}
                     className={`pill-btn ${activeCategory === cat ? 'active' : ''}`}
-                    onClick={() => { setActiveCategory(cat); window.scrollTo({ top: 300, behavior: 'smooth' }); }}
+                    onClick={() => { setActiveCategory(cat); window.scrollTo({ top: document.querySelector('.gallery-toolbar').offsetTop - 50, behavior: 'smooth' }); }}
                     >
                     {cat}
                     </button>
                 ))}
                 
-                {/* Optional: Add button right in the pill */}
                 <button className="pill-add-btn" onClick={handleAddClick} title="Add Media">
                     +
                 </button>
@@ -518,7 +525,12 @@ function GalleryPage({ setPage }) {
                     {isVideo(selectedMedia.url) ? (
                         <video src={selectedMedia.url} className="lightbox-media" controls autoPlay />
                     ) : (
-                        <img src={selectedMedia.url} alt={selectedMedia.title} className="lightbox-media" />
+                        <img 
+                          src={selectedMedia.url} 
+                          alt={selectedMedia.title} 
+                          className="lightbox-media" 
+                          onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1594381898411-846e7d193883?q=80&w=600&auto=format&fit=crop' }}
+                        />
                     )}
                     <div className="lightbox-info">
                         <h3>{selectedMedia.title}</h3>
