@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 
-/* --- 1. ANIMATION VARIANTS --- */
+/* --- 1. ANIMATION VARIANTS  --- */
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
